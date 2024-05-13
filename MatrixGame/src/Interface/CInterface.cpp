@@ -4323,8 +4323,8 @@ void CIFaceList::EnterArcadeMode(bool pos)
             o = ps->GetCurGroup()->GetObjectByN(ps->GetCurSelNum());
         }
 
-        //
         ps->SetArcadedObject(o);
+        if(o->IsRobot()) o->AsRobot()->SetNoMoreEverMovingOverride(false); //На случай, если на момент входа в ручной режим робот стоял в круге захвата завода
 
         //Переставляем все элементы интерфейса под аркадный режим
         CInterface* ifs = g_IFaceList->m_First;
