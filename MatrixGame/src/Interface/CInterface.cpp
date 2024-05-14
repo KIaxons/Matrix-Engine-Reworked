@@ -4335,6 +4335,7 @@ void CIFaceList::EnterArcadeMode(bool pos)
                 ifs->m_xPos = float(g_ScreenX - (1024 - (447 + 196)));
                 ifs->ReCalcElementsPos();
             }
+
             ifs = ifs->m_NextInterface;
         }
     }
@@ -4402,6 +4403,7 @@ void CIFaceList::ExitArcadeMode()
                 ifs->ReCalcElementsPos();
                 break;
             }
+
             ifs = ifs->m_NextInterface;
         }
     }

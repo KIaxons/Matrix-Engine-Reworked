@@ -508,7 +508,7 @@ void CMatrixConfig::ReadParams()
     if(cfg_par->ParCount(CFG_PLAYER_ROBOTS_AUTO_BOOM))
     {
         //Проверяем, включена ли опция автоматического подрыва бомбы на роботах игрока в случаях, когда их HP падает до нуля
-        g_PlayerRobotsAutoBoom = max(abs(cfg_par->Par(CFG_PLAYER_ROBOTS_AUTO_BOOM).GetBool()), 1);
+        g_PlayerRobotsAutoBoom = cfg_par->Par(CFG_PLAYER_ROBOTS_AUTO_BOOM).GetBool();
     }
 
     if(cfg_par->ParCount(CFG_ENABLE_FLYERS))
