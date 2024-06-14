@@ -887,8 +887,6 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
 
 CIFaceElement* CInterface::DelElement(CIFaceElement* pElement)
 {
-DTRACE();
-
 #if defined _TRACE || defined _DEBUG
 
     CIFaceElement *first = m_FirstElement;
@@ -902,17 +900,10 @@ DTRACE();
     }
 #endif
 
-DCP();
-
     CIFaceElement* next = pElement->m_NextElement;
-DCP();
-
 
     LIST_DEL(pElement, m_FirstElement, m_LastElement, m_PrevElement, m_NextElement);
-DCP();
-
     HDelete(CIFaceElement, pElement, Base::g_MatrixHeap);
-DCP();
 
     return next;
 
@@ -920,8 +911,6 @@ DCP();
 
 bool CInterface::AddElement(CIFaceElement* pElement)
 {
-DTRACE();
-
     D3DXVECTOR3 dp(pElement->m_xPos + m_xPos, m_yPos + pElement->m_yPos, pElement->m_zPos);
 
     int nC = 0;
@@ -946,53 +935,30 @@ DTRACE();
 
 void CInterface::BeforeRender(void)
 {
-DTRACE();
-
-#ifdef _DEBUG
-    try
+	if(m_VisibleAlpha == IS_VISIBLE || m_AlwaysOnTop)
     {
-#endif
-DCP();
-	    if(m_VisibleAlpha == IS_VISIBLE || m_AlwaysOnTop)
+        CIFaceElement* pObjectsList = m_FirstElement;
+
+		while(pObjectsList != nullptr)
         {
-DCP();
-            CIFaceElement* pObjectsList = m_FirstElement;
-DCP();
-		    while(pObjectsList != nullptr)
+            //if(pObjectsList->m_strName == IF_POPUP_RAMKA) ASSERT(1);
+            if(pObjectsList->GetVisibility())
             {
-                //if(pObjectsList->m_strName == IF_POPUP_RAMKA) ASSERT(1);
-DCP();
-                if(pObjectsList->GetVisibility())
-                {
-DCP();
-				    pObjectsList->BeforeRender();
-DCP();
-                }
-DCP();
-			    pObjectsList = pObjectsList->m_NextElement;
-DCP();
-		    }
-            if(g_MatrixMap->GetPlayerSide()->m_CurrSel == BASE_SELECTED && g_MatrixMap->GetPlayerSide()->m_ConstructPanel->IsActive())
-            {
-DCP();
-                g_MatrixMap->GetPlayerSide()->m_Constructor->BeforeRender();
+				pObjectsList->BeforeRender();
             }
-DCP();
-	    }
-#ifdef _DEBUG
-    }
-    catch (...)
-    {
-        _asm int 3
 
-    }
-#endif
+			pObjectsList = pObjectsList->m_NextElement;
+		}
+
+        if(g_MatrixMap->GetPlayerSide()->m_CurrSel == BASE_SELECTED && g_MatrixMap->GetPlayerSide()->m_ConstructPanel->IsActive())
+        {
+            g_MatrixMap->GetPlayerSide()->m_Constructor->BeforeRender();
+        }
+	}
 }
 
 void CInterface::Render()
 {
-DTRACE();
-
 	if(m_VisibleAlpha == IS_VISIBLE || m_AlwaysOnTop)
     {
         CIFaceElement* pObjectsList = m_FirstElement;
@@ -1016,8 +982,6 @@ DTRACE();
 
 bool CInterface::OnMouseMove(CPoint mouse)
 {
-	DTRACE();
-
     if(g_MatrixMap->IsPaused())
     {
         if(m_strName != IF_MINI_MAP && m_strName != IF_BASE && m_strName != IF_HINTS && m_strName != IF_POPUP_MENU)

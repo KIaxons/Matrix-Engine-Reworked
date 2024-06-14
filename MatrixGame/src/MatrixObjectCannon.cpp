@@ -149,12 +149,11 @@ void CMatrixCannon::GetResources(dword need)
 
         CBlockPar* cache = g_CacheData->BlockPathGet(g_Config.m_TurretsConsts[m_TurretKind].model_path);
         CWStr model_path = cache->ParGet(L"BaseModel");
-        //CWStr texture_path = cache->ParGet(L"BaseTexture");
+        CWStr texture_path = cache->ParGet(L"BaseTexture");
 
         //Грузим основание турели (круглая блямба, которая втыкается в землю)
         m_Module[0].m_Type = TURRET_PART_BASE;
-        m_Module[0].m_Graph = LoadObject(model_path.Add(L".vo"), Base::g_MatrixHeap, true);
-        //m_Module[0].m_Graph = LoadObject(model_path.Add(L".vo"), Base::g_MatrixHeap, true, texture_path);
+        m_Module[0].m_Graph = LoadObject(model_path.Add(L".vo"), Base::g_MatrixHeap, true, texture_path);
 
         m_ModulesCount = 0;
         while(true)
@@ -169,20 +168,19 @@ void CMatrixCannon::GetResources(dword need)
             {
                 type = TURRET_PART_MOUNT;
                 model_path = cache->ParGet(L"MountModel");
-                //texture_path = cache->ParGet(L"MountTexture");
+                texture_path = cache->ParGet(L"MountTexture");
             }
             else if(*nam == 'S')
             {
                 type = TURRET_PART_GUN;
                 model_path = cache->ParGet(L"GunModel");
-                //texture_path = cache->ParGet(L"GunTexture");
+                texture_path = cache->ParGet(L"GunTexture");
             }
 
             if(type == TURRET_PART_EMPTY) ERROR_S2(L"Not enough model parts for turret: ", g_Config.m_TurretsConsts[m_TurretKind].name);
 
             m_Module[m_ModulesCount].m_Type = type;
-            m_Module[m_ModulesCount].m_Graph = LoadObject(model_path.Add(L".vo"), Base::g_MatrixHeap, true);
-            //m_Module[m_ModulesCount].m_Graph = LoadObject(model_path.Add(L".vo"), Base::g_MatrixHeap, true, texture_path);
+            m_Module[m_ModulesCount].m_Graph = LoadObject(model_path.Add(L".vo"), Base::g_MatrixHeap, true, texture_path);
 
             //Добавляем башню/пушку турели (может содержать сразу несколько матриц (стволов) под выстрелы)
             if(type == TURRET_PART_GUN)
