@@ -157,14 +157,14 @@ public:
 	//   Str = "count=5,7"  GetCountPar("=,")     return 3
 	//   Str = "count=5,7"  GetStrPar(str, 1,"=") str = "5,7"
 	//   Str = "count=5,7"  GetIntPar(2, "=,")    return 7
-	int GetCountPar(const wchar* ogsim) const;
-	int GetSmePar(int np, const wchar* ogsim) const;
-	int GetLenPar(int smepar, const wchar* ogsim) const;
-	void GetStrPar(CWStr& str, int np, const wchar* ogsim) const;
-	CWStr GetStrPar(int np, const wchar* ogsim) const
+	int GetCountPar(const wchar* og_sim) const;
+	int GetSmePar(int np, const wchar* og_sim) const;
+	int GetLenPar(int sme_par, const wchar* og_sim) const;
+	void GetStrPar(CWStr& str, int np, const wchar* og_sim) const;
+	CWStr GetStrPar(int np, const wchar* og_sim) const
 	{
-		int sme = GetSmePar(np, ogsim);
-		return CWStr(Get() + sme, GetLenPar(sme, ogsim), GetHeap());
+		int sme = GetSmePar(np, og_sim);
+		return CWStr(Get() + sme, GetLenPar(sme, og_sim), GetHeap());
 	}
 
 	void GetStrPar(CWStr& str, int nps, int npe, const wchar* ogsim) const;

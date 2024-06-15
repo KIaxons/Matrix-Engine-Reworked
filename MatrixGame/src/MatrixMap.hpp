@@ -539,7 +539,6 @@ public:
     void RestoreMusicVolume();
     void SetMusicVolume(float vol);
 
-
     void StaticClear();
     void StaticDelete(CMatrixMapStatic* ms);
 		
@@ -550,7 +549,7 @@ public:
         m_AllObjects.Expand(sizeof(CMatrixMapStatic*));
         CMatrixMapStatic** e = m_AllObjects.BuffEnd<CMatrixMapStatic*>();
         *(e - 1) = ms;
-        if (add_to_logic) ms->AddLT();
+        if(add_to_logic) ms->AddLT();
     }
     template <class O> inline O* StaticAdd(bool add_to_logic = true)
     {

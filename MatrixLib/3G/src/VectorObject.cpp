@@ -1695,7 +1695,10 @@ void CVectorObjectAnim::InitVOAnim(CVectorObject* vo, CTextureManaged* tex_light
 	m_VO = vo;
     m_Skin = skin;
 
-    if(tex_light) InitVOAnimLights(tex_light);
+    if(tex_light)
+    {
+        InitVOAnimLights(tex_light);
+    }
 }
 
 //Добавляем на модель источники света в точки, помеченные специальными матрицами с именем, начинающимся с "$" (ищет матрицы только по имени)
@@ -1728,18 +1731,18 @@ void CVectorObjectAnim::InitVOAnimLights(CTextureManaged* tex_light)
             const wchar* matrix_name = m_VO->GetMatrixName(m);
             if(matrix_name[0] == '$')
             {
-                CWStr li_info(m_VO->GetPropValue(m_VO->GetMatrixName(m)), g_CacheHeap);
+                CWStr light_info_str = m_VO->GetPropValue(m_VO->GetMatrixName(m));
 
-                float ra = li_info.GetFloatPar(0, L",");
-                int pars = li_info.GetCountPar(L",");
-                m_Lights[l].intervals_cnt = pars - 2;
+                float light_radius = light_info_str.GetFloatPar(0, L",");
+                int pars_cnt = light_info_str.GetCountPar(L",");
+                m_Lights[l].intervals_cnt = pars_cnt - 2;
                 if(!m_Lights[l].intervals_cnt)
                 {
                     m_Lights[l].intervals = (SColorInterval*)HAlloc(sizeof(SColorInterval), g_CacheHeap);
                     m_Lights[l].intervals_cnt = 1;
-                    m_Lights[l].intervals[0].time1 = li_info.GetStrPar(1, L",").GetIntPar(0, L":");
+                    m_Lights[l].intervals[0].time1 = light_info_str.GetStrPar(1, L",").GetIntPar(0, L":");
                     m_Lights[l].intervals[0].time2 = m_Lights[l].intervals[0].time1;
-                    m_Lights[l].intervals[0].color1 = 0xFF000000 | li_info.GetStrPar(1, L",").GetStrPar(1, L":").GetHexUnsigned();
+                    m_Lights[l].intervals[0].color1 = 0xFF000000 | light_info_str.GetStrPar(1, L",").GetStrPar(1, L":").GetHexUnsigned();
                     m_Lights[l].intervals[0].color2 = m_Lights[l].intervals[0].color1;
 
                     m_Lights[l].period = 0;
@@ -1748,22 +1751,22 @@ void CVectorObjectAnim::InitVOAnimLights(CTextureManaged* tex_light)
                 {
                     m_Lights[l].intervals = (SColorInterval*)HAlloc(sizeof(SColorInterval) * m_Lights[l].intervals_cnt, g_CacheHeap);
 
-                    int* times = (int*)_malloca((sizeof(int) + sizeof(dword)) * (pars - 1));
+                    int* times = (int*)_malloca((sizeof(int) + sizeof(dword)) * (pars_cnt - 1));
                     if(!times) ERROR_S(L"Not enough memory for buffer after _malloca() call in CVectorObjectAnim::InitLights function!");
-                    dword* colors = (dword*)(times + (pars - 1));
+                    dword* colors = (dword*)(times + (pars_cnt - 1));
 
-                    for(int pa = 1; pa < pars; ++pa)
+                    for(int pa = 1; pa < pars_cnt; ++pa)
                     {
-                        times[pa - 1] = li_info.GetStrPar(pa, L",").GetIntPar(0, L":");
-                        colors[pa - 1] = 0xFF000000 | li_info.GetStrPar(pa, L",").GetStrPar(1, L":").GetHexUnsigned();
+                        times[pa - 1] = light_info_str.GetStrPar(pa, L",").GetIntPar(0, L":");
+                        colors[pa - 1] = 0xFF000000 | light_info_str.GetStrPar(pa, L",").GetStrPar(1, L":").GetHexUnsigned();
                     }
 
-                    --pars;
+                    --pars_cnt;
 
                     // bubble sort
 
                     int idx = 1;
-                    while(idx < pars)
+                    while(idx < pars_cnt)
                     {
                         if(times[idx - 1] > times[idx])
                         {
@@ -1792,10 +1795,11 @@ void CVectorObjectAnim::InitVOAnimLights(CTextureManaged* tex_light)
                     }
 
                     _freea(times); //Очистка после вызова _malloca
-                }                                
+                }
                 
                 m_Lights[l].matrix_id = m_VO->GetMatrixId(m);
-                m_Lights[l].BB() = CSprite(TRACE_PARAM_CALL D3DXVECTOR3(0, 0, 0), ra, 0, m_Lights[l].intervals[0].color1, tex_light);
+                m_Lights[l].BB() = CSprite(TRACE_PARAM_CALL D3DXVECTOR3(0.0f, 0.0f, 0.0f), light_radius, 0.0f, m_Lights[l].intervals[0].color1, tex_light);
+
                 ++l;
             }
         }
@@ -1833,7 +1837,7 @@ bool CVectorObjectAnim::SetAnimByName(const wchar* name, signed char loop, bool 
     return false;
 }
 
-byte CVectorObjectAnim::Tact(int cms, float speed_factor)
+byte CVectorObjectAnim::VectorObjectAnimTact(int cms, float speed_factor)
 {
     m_Time += cms;
 
@@ -2254,7 +2258,7 @@ bool CVectorObjectGroup::Tact(int cms)
     {
         if(u->m_Obj)
         {
-            bool change = u->m_Obj->Tact(cms);
+            bool change = u->m_Obj->VectorObjectAnimTact(cms);
             is_changed |= change;
             if(change)
             {
@@ -2278,7 +2282,7 @@ byte CVectorObjectGroup::OccasionalTact(int cms)
     {
         if(u->m_Obj)
         {
-            byte change = u->m_Obj->Tact(cms);
+            byte change = u->m_Obj->VectorObjectAnimTact(cms);
             is_changed |= change;
             if(change)
             {

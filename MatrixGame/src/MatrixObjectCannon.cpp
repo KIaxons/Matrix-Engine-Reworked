@@ -131,7 +131,6 @@ void CMatrixCannon::BoundGet(D3DXVECTOR3& bmin, D3DXVECTOR3& bmax)
     }
 }
 
-
 void CMatrixCannon::GetResources(dword need)
 {
     if(m_CurrState == CANNON_DIP) return;
@@ -195,7 +194,7 @@ void CMatrixCannon::GetResources(dword need)
                     STurretWeapon gun;
                     m_TurretWeapon.push_back(gun);
                     m_TurretWeapon[i].m_TurretWeaponMatrixId = g_Config.m_TurretsConsts[m_TurretKind].guns[i].matrix_id;
-                    m_TurretWeapon[i].m_Weapon = (CMatrixEffectWeapon*)CMatrixEffect::CreateWeapon(D3DXVECTOR3(0, 0, 0), D3DXVECTOR3(0, 0, 1), (dword)this, FireHandler, g_Config.m_TurretsConsts[m_TurretKind].guns[i].weapon_type);
+                    m_TurretWeapon[i].m_Weapon = (CMatrixEffectWeapon*)CMatrixEffect::CreateWeapon(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 1.0f), (dword)this, FireHandler, g_Config.m_TurretsConsts[m_TurretKind].guns[i].weapon_type);
                     m_TurretWeapon[i].m_Weapon->SetOwner(this);
                     m_TurretWeapon[i].m_AsyncAwaitTimer = 0;
 
@@ -417,14 +416,13 @@ void CMatrixCannon::GetResources(dword need)
 	}
 }
 
-
 void CMatrixCannon::Tact(int cms)
 {
 	for(int i = 0; i < m_ModulesCount; ++i)
     {
 		if(m_Module[i].m_Graph)
         {
-			if(m_Module[i].m_Graph->Tact(cms))
+			if(m_Module[i].m_Graph->VectorObjectAnimTact(cms))
             {
                 if(m_ShadowType == SHADOW_STENCIL) RChange(MR_ShadowStencil);
                 else if(m_ShadowType == SHADOW_PROJ_DYNAMIC) RChange(MR_ShadowProjTex);
@@ -498,38 +496,52 @@ void CMatrixCannon::Draw()
 
     for(int i = 0; i < 4; ++i)
     {
-        ASSERT_DX(g_D3DD->SetSamplerState(i,D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) (&g_MatrixMap->m_BiasCannons))));
+        ASSERT_DX(g_D3DD->SetSamplerState(i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) (&g_MatrixMap->m_BiasCannons))));
     }
 
-    if(m_CurrState == CANNON_DIP)
+    if(m_CurrState != CANNON_DIP)
+    {
+        if(m_CurrState == CANNON_UNDER_CONSTRUCTION) g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, 0xFF00FF00);
+        else g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, m_Core->m_TerrainColor);
+
+        for(int i = 0; i < m_ModulesCount; ++i)
+        {
+            SMatrixCannonUnit* cur_part = &m_Module[i];
+
+            ASSERT(cur_part->m_Graph);
+            ASSERT_DX(g_D3DD->SetTransform(D3DTS_WORLD, &(cur_part->m_Matrix)));
+            cur_part->m_Graph->Draw(coltex);
+            if(m_CurrState != CANNON_UNDER_CONSTRUCTION && this != g_MatrixMap->GetPlayerSide()->m_CannonForBuild.m_Cannon && !FLAG(g_MatrixMap->m_Flags, MMFLAG_DISABLE_DRAW_OBJECT_LIGHTS))
+            {
+                cur_part->m_Graph->DrawLightSprites(false, cur_part->m_Matrix, nullptr);
+            }
+        }
+    }
+    else
     {
     	g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, 0xFF808080);
         for(int i = 0; i < m_ModulesCount; ++i)
         {
-            if(m_Module[i].m_TTL <= 0) continue;
-		    ASSERT_DX(g_D3DD->SetTransform( D3DTS_WORLD, &(m_Module[i].m_Matrix) ));
-            m_Module[i].m_Graph->Draw(coltex);
+            SMatrixCannonUnit* cur_part = &m_Module[i];
+
+            if(cur_part->m_TTL <= 0) continue;
+		    ASSERT_DX(g_D3DD->SetTransform(D3DTS_WORLD, &(cur_part->m_Matrix)));
+            cur_part->m_Graph->Draw(coltex);
+            if(!FLAG(g_MatrixMap->m_Flags, MMFLAG_DISABLE_DRAW_OBJECT_LIGHTS))
+            {
+                cur_part->m_Graph->DrawLightSprites(false, cur_part->m_Matrix, nullptr);
+            }
 	    }
     }
-    else
-    {
-        if(m_CurrState == CANNON_UNDER_CONSTRUCTION) g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, 0xFF00FF00);
-        else g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, m_Core->m_TerrainColor);
-	    for(int i = 0; i < m_ModulesCount; ++i)
-        {
-		    ASSERT(m_Module[i].m_Graph);
-		    ASSERT_DX(g_D3DD->SetTransform( D3DTS_WORLD, &(m_Module[i].m_Matrix)));
-            m_Module[i].m_Graph->Draw(coltex);
-	    }
-    }
-	//g_D3DD->SetRenderState(D3DRS_NORMALIZENORMALS,  FALSE);
+
+	//g_D3DD->SetRenderState(D3DRS_NORMALIZENORMALS, FALSE);
 
     /*
     for(int k = 0; k < 100; ++k)
     {
-        D3DXVECTOR3 d(FSRND(1),FSRND(1),FSRND(1));
+        D3DXVECTOR3 d(FSRND(1), FSRND(1), FSRND(1));
         D3DXVec3Normalize(&d, &d);
-        CHelper::Create(1,0)->Line(m_GeoCenter, m_GeoCenter + d*m_Radius);
+        CHelper::Create(1, 0)->Line(m_GeoCenter, m_GeoCenter + d * m_Radius);
     }
     */
 }
@@ -573,7 +585,7 @@ bool CMatrixCannon::CalcBounds(D3DXVECTOR3& minv, D3DXVECTOR3& maxv)
     //RChange(MR_Matrix);
 	GetResources(MR_Matrix | MR_Graph);
 
-	D3DXVECTOR3 bminout, bmaxout;
+	D3DXVECTOR3 b_min_out, b_max_out;
 
 	minv.x = 1e30f; minv.y = 1e30f; minv.z = 1e30f;
 	maxv.x = -1e30f; maxv.y = -1e30f; maxv.z = -1e30f;
@@ -583,44 +595,19 @@ bool CMatrixCannon::CalcBounds(D3DXVECTOR3& minv, D3DXVECTOR3& maxv)
         int cnt = m_Module[u].m_Graph->VO()->GetFramesCnt();
 		for(int i = 0; i < cnt; ++i)
         {
-            m_Module[u].m_Graph->VO()->GetBound(i, m_Module[u].m_Matrix, bminout, bmaxout);
+            m_Module[u].m_Graph->VO()->GetBound(i, m_Module[u].m_Matrix, b_min_out, b_max_out);
 
-            minv.x = min(minv.x, bminout.x);
-            minv.y = min(minv.y, bminout.y);
-            minv.z = min(minv.z, bminout.z);
-            maxv.x = max(maxv.x, bmaxout.x);
-            maxv.y = max(maxv.y, bmaxout.y);
-            maxv.z = max(maxv.z, bmaxout.z);
+            minv.x = min(minv.x, b_min_out.x);
+            minv.y = min(minv.y, b_min_out.y);
+            minv.z = min(minv.z, b_min_out.z);
+
+            maxv.x = max(maxv.x, b_max_out.x);
+            maxv.y = max(maxv.y, b_max_out.y);
+            maxv.z = max(maxv.z, b_max_out.z);
 		}
 	}
 
     return false;
-
-    /*
-    GetResources(MR_Graph|MR_Matrix);
-
-    SVOFrame* f = m_Module[0].m_Graph->VO()->FrameGet(0);
-    minv.x = f->m_MinX;
-    minv.y = f->m_MinY;
-    maxv.x = f->m_MaxX;
-    maxv.y = f->m_MaxY;
-
-    for(int u = 0; u<m_ModulesCount; ++u)
-    {
-        int cnt = m_Module[u].m_Graph->VO()->Header()->m_FrameCnt;
-        for(int i = 1; i < cnt; ++i)
-        {
-            SVOFrame *f = m_Module[u].m_Graph->VO()->FrameGet(i);
-
-            minv.x = min(minv.x,f->m_MinX);
-            minv.y = min(minv.y,f->m_MinY);
-            maxv.x = max(maxv.x,f->m_MaxX);
-            maxv.y = max(maxv.y,f->m_MaxY);
-        }
-    }
-
-    return false;
-    */
 }
 
 

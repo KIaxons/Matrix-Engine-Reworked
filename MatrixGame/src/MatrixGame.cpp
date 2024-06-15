@@ -386,6 +386,9 @@ void MatrixGameInit
     }
     else map_name = Base::g_MatrixData->BlockGet(BLOCK_PATH_MAIN_CONFIG)->Par(L"Map");
 
+    //Если не подгружать все текстуры для эффектов достаточно высоко, то часть эффектов (например, огоньки на турелях) просто не смогут инициализироваться
+    CMatrixEffect::InitEffects(*Base::g_MatrixData);
+
     stor.Load(map_name);
 
     // Load replacements for MatrixData from map
@@ -565,7 +568,6 @@ void MatrixGameInit
     //Где-то здесь крашит, если отрубить всё модули, необходимые для загрузки стартовых роботов на карте
     g_MatrixMap->m_Transition.RenderToPrimaryScreen();
 
-    CMatrixEffect::InitEffects(*Base::g_MatrixData);
     g_MatrixMap->CreatePoolDefaultResources(true); //Отсюда же в итоге вызывается сборка стартовых роботов на карте
     g_MatrixMap->InitObjectsLights();
 

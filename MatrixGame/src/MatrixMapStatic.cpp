@@ -61,6 +61,7 @@ CMatrixMapStatic::~CMatrixMapStatic()
 {
     UnjoinGroup();
     DelLT();
+
     if(g_MatrixMap->m_TraceStopObj == this)
     {
         g_MatrixMap->m_TraceStopObj = nullptr;

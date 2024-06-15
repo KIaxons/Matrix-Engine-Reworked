@@ -59,8 +59,6 @@ void CBlockParUnit::Clear()
 
 void CBlockParUnit::ChangeType(int nt)
 {
-DTRACE();
-
 	if(m_Type == 1)
 	{
 		if(m_Par != nullptr)
@@ -84,8 +82,6 @@ DTRACE();
 
 void CBlockParUnit::CopyFrom(CBlockParUnit& bp)
 {
-DTRACE();
-
 	Clear();
 	ChangeType(bp.m_Type);
 	m_Name = bp.m_Name;
@@ -99,8 +95,6 @@ DTRACE();
 ////////////////////////////////////////////////////////////////////////////////
 void CBlockPar::Clear()
 {
-DTRACE();
-
 	CBlockParUnit* tt, *t = m_First;
 	while(t != nullptr)
 	{
@@ -131,7 +125,6 @@ DTRACE();
 
 void CBlockPar::CopyFrom(CBlockPar& bp)
 {
-	DTRACE();
 	Clear();
 	m_Sort = bp.m_Sort;
 	CBlockParUnit* el2, *el = bp.m_First;
@@ -148,7 +141,6 @@ void CBlockPar::CopyFrom(CBlockPar& bp)
 
 CBlockParUnit* CBlockPar::UnitAdd()
 {
-	DTRACE();
 	CBlockParUnit* el = HNew(m_Heap) CBlockParUnit(m_Heap);
 	el->m_Parent = this;
 
@@ -160,7 +152,6 @@ CBlockParUnit* CBlockPar::UnitAdd()
 
 void CBlockPar::UnitDel(CBlockParUnit* el)
 {
-	DTRACE();
 	LIST_DEL(el, m_First, m_Last, m_Prev, m_Next);
 
 	--m_Cnt;
@@ -172,7 +163,6 @@ void CBlockPar::UnitDel(CBlockParUnit* el)
 
 CBlockParUnit* CBlockPar::UnitGet(const wchar* path, int path_len)
 {
-	DTRACE();
 	wchar ch;
 	int i, u, sme, smeend, no;
 	int name_sme, name_len, name_next;
@@ -263,8 +253,6 @@ CBlockParUnit* CBlockPar::UnitGet(const wchar* path, int path_len)
 
 int CBlockPar::ArrayFind(const wchar* name, int namelen) const
 {
-DTRACE();
-
 	if(m_ArrayCnt < 1) return -1;
 	int istart = 0;
 	int iend = m_ArrayCnt - 1;

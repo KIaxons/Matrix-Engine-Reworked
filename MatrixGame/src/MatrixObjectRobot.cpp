@@ -767,7 +767,7 @@ void CMatrixRobot::DoAnimation(int cms)
         CVectorObjectAnim* model = m_Module[i].m_Graph;
         if(model)
         {
-            if(model->Tact(cms)) frame_changed = true;
+            if(model->VectorObjectAnimTact(cms)) frame_changed = true;
 
             //Если фоновая анимация завершилась, тут же запускаем её по новой
             if(model->IsAnimEnd()) //Эта проверка сработает только в случае, если анимации не был выставлен LOOP
@@ -787,7 +787,7 @@ void CMatrixRobot::DoAnimation(int cms)
     //При таком маркере на шасси код будет постоянно проигрывать все анимации шасси как фоновые
     if(m_ChassisData.m_MovingAnimType == NO_MOVING_ANIM)
     {
-        if(robot_chassis_model->Tact(cms)) frame_changed = true;
+        if(robot_chassis_model->VectorObjectAnimTact(cms)) frame_changed = true;
 
         //Если фоновая анимация завершилась, тут же запускаем её по новой
         if(robot_chassis_model->IsAnimEnd()) robot_chassis_model->SetAnimByName(ANIMATION_NAME_IDLE);
@@ -799,7 +799,7 @@ void CMatrixRobot::DoAnimation(int cms)
     //Тут играются анимации, которым не нужно учитывать текущую скорость движения робота
     if(m_ChassisData.m_MovingAnimType == NORMAL_MOVING_ANIM)
     {
-        if(robot_chassis_model->Tact(cms)) frame_changed = true;
+        if(robot_chassis_model->VectorObjectAnimTact(cms)) frame_changed = true;
     }
     //Тут играются анимации, привязанные к скорости движения (колёса, траки, шагающие и т.д.)
     else //if(m_ChassisData.m_MovingAnimType == SPEED_DEPENDENT_MOVING_ANIM)
@@ -807,17 +807,17 @@ void CMatrixRobot::DoAnimation(int cms)
         //Для данных типов анимаций учитывать скорость смысла нет
         if(m_Animation == ANIMATION_STAY || m_Animation == ANIMATION_END_MOVE || m_Animation == ANIMATION_END_MOVE_BACK)
         {
-            if(robot_chassis_model->Tact(cms)) frame_changed = true;
+            if(robot_chassis_model->VectorObjectAnimTact(cms)) frame_changed = true;
         }
         else if(m_Animation == ANIMATION_ROTATE_LEFT || m_Animation == ANIMATION_ROTATE_RIGHT)
         {
             float speed_factor = 0.01f / m_MaxRotationSpeed; //Базовой скоростью вращения шасси считаем 0.01, и корректируем анимацию разворота, опираясь на это значение
-            if(robot_chassis_model->Tact(cms, speed_factor)) frame_changed = true;
+            if(robot_chassis_model->VectorObjectAnimTact(cms, speed_factor)) frame_changed = true;
         }
         else
         {
             float speed_factor = min(m_ChassisData.m_MovingAnimSpeed / m_Speed, 3.0f);
-            if(robot_chassis_model->Tact(cms, speed_factor)) frame_changed = true;
+            if(robot_chassis_model->VectorObjectAnimTact(cms, speed_factor)) frame_changed = true;
         }
     }
 
@@ -845,9 +845,6 @@ void SMatrixRobotModule::PrepareForDIP()
         m_WeaponRepairData = nullptr;
     }
 
-#ifdef _DEBUG
-    Smoke().SEffectHandler::SEffectHandler(DEBUG_CALL_INFO);
-#endif
     Smoke().effect = nullptr;
 }
 

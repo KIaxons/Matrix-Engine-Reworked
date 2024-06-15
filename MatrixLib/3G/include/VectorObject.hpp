@@ -552,7 +552,7 @@ public:
 
     void EnumFrameVerts(ENUM_VERTS_HANDLER evh, dword data) const { m_VO->EnumFrameVerts(m_VOFrame, evh, data); };
 
-	byte Tact(int cms, float speed_factor = 0.0f); //Возвращает FRAME_NOT_CHANGED, если фрейм анимации объекта не поменялся, FRAME_CHANGED, если анимация сменила фрейм и FRAMES_LOOP_DONE, если та сменила фрейм и на этом же фрейме последовательность кадров вернулась в начало цикла
+	byte VectorObjectAnimTact(int cms, float speed_factor = 0.0f); //Возвращает FRAME_NOT_CHANGED, если фрейм анимации объекта не поменялся, FRAME_CHANGED, если анимация сменила фрейм и FRAMES_LOOP_DONE, если та сменила фрейм и на этом же фрейме последовательность кадров вернулась в начало цикла
     void UpdateLightSprites(int cms);
     dword NextFrame();
     dword PrevFrame();
@@ -588,7 +588,7 @@ public:
     CVectorObjectAnim* m_Obj = HNew(g_CacheHeap) CVectorObjectAnim();
 
 	CVectorObjectGroupUnit* m_Link = nullptr;
-	int m_LinkMatrixId = -1; // -1-center -2-by name >=0-by id
+	int m_LinkMatrixId = -1; // -1 - center, -2 - by name, >= 0 - by Id
 	CWStr m_LinkMatrixName = (CWStr)L"";
 
 	D3DXMATRIX m_Matrix;				// Дополнительная матрица позиционирования в локальных координатах.

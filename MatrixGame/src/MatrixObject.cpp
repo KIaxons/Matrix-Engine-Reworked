@@ -614,7 +614,7 @@ void CMatrixMapObject::Tact(int cms)
 
     if(m_Graph)
     {
-		if(m_Graph->Tact(cms))
+		if(m_Graph->VectorObjectAnimTact(cms))
         {
             if(m_ShadowType == SHADOW_STENCIL) RChange(MR_ShadowStencil);
             else if(m_ShadowType == SHADOW_PROJ_DYNAMIC) RChange(MR_ShadowProjTex);

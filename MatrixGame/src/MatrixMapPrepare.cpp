@@ -841,7 +841,7 @@ skip_this_cannon:
                 // 1 - building cannon. must present on map
                 // 2 - just place for cannon
 
-                //if(prop==0) c->SetSide(0);
+                //if(!prop) c->SetSide(0);
 
                 while(prop == 1 || prop == 2)
                 {
@@ -2051,9 +2051,10 @@ void CMatrixMap::CreatePoolDefaultResources(bool loading)
         {
             if(ms->IsBuildingAlive())
             {
-                ((CMatrixBuilding*)ms)->LogicTact(100000);
+                ms->AsBuilding()->LogicTact(100000);
                 ms->GetResources(MR_Matrix | MR_Graph | MR_MiniMap);
             }
+
             ms = ms->GetNextLogic();
         }
     }
@@ -2076,10 +2077,8 @@ void CMatrixMap::CreatePoolDefaultResources(bool loading)
     }
 }
 
-void CMatrixMap::ReleasePoolDefaultResources(void)
+void CMatrixMap::ReleasePoolDefaultResources()
 {
-DTRACE();
-
     if(g_D3DD == nullptr) return;
 
     if(m_DeviceState == nullptr) m_DeviceState = HNew(g_MatrixHeap) CDeviceState(g_D3DD);

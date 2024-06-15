@@ -139,7 +139,7 @@ bool SMatrixFlyerUnit::Tact(CMatrixFlyer* owner, float ms)
     bool ret = false;
     if(m_Type == FLYER_UNIT_WEAPON || m_Type == FLYER_UNIT_WEAPON_HOLLOW)
     {
-        if(m_Graph) ret = m_Graph->Tact(Float2Int(ms));
+        if(m_Graph) ret = m_Graph->VectorObjectAnimTact(Float2Int(ms));
         if(m_Weapon.m_Weapon) m_Weapon.m_Weapon->Tact(ms);
     }
     else if(m_Type == FLYER_UNIT_PROPELLER)
@@ -185,11 +185,11 @@ bool SMatrixFlyerUnit::Tact(CMatrixFlyer* owner, float ms)
         {
             if(m_Graph)
             {
-                if(!m_Graph->IsAnimEnd()) ret = m_Graph->Tact(Float2Int(ms));
+                if(!m_Graph->IsAnimEnd()) ret = m_Graph->VectorObjectAnimTact(Float2Int(ms));
             }
         }
     }
-    else if(m_Graph) ret = m_Graph->Tact(Float2Int(ms));
+    else if(m_Graph) ret = m_Graph->VectorObjectAnimTact(Float2Int(ms));
 
     return ret;
 }

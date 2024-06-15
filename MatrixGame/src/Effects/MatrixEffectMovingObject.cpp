@@ -19,8 +19,6 @@ void UnloadObject(CVectorObjectAnim* o, CHeap* heap);
 CMatrixEffectMovingObject::CMatrixEffectMovingObject(const SMOProps& props, dword hitmask, CMatrixMapStatic* skip, FIRE_END_HANDLER handler, dword user) :
 CMatrixEffect(), m_Props(props)
 {
-DTRACE();
-    
     m_EffectType = EFFECT_MOVING_OBJECT;
 
     m_Props.time = 0;
@@ -74,22 +72,12 @@ CMatrixEffectMovingObject::~CMatrixEffectMovingObject()
     }
 }
 
-
 void CMatrixEffectMovingObject::BeforeDraw()
 {
-#ifdef _DEBUG
-    if(m_Props.object == nullptr) _asm int 3
-#endif
     m_Props.object->BeforeDraw();
 }
 void CMatrixEffectMovingObject::Draw()
 {
-DTRACE();
-
-#ifdef _DEBUG
-    if(m_Props.object == nullptr) _asm int 3
-#endif
-
     CVectorObject::DrawBegin();
     g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR,0xFFFFFFFF);
     ASSERT_DX(g_D3DD->SetRenderState(D3DRS_AMBIENT, g_MatrixMap->m_AmbientColorObj));
@@ -105,9 +93,7 @@ DTRACE();
 }
 void CMatrixEffectMovingObject::Tact(float step)
 {
-DTRACE();
-
-    m_Props.object->Tact(Float2Int(step));
+    m_Props.object->VectorObjectAnimTact(Float2Int(step));
     m_Props.time += step;
     m_Props.handler(m_Mat, m_Props, step);
     if(m_Props.endoflife)
@@ -123,8 +109,6 @@ DTRACE();
 }
 void CMatrixEffectMovingObject::Release()
 {
-DTRACE();
-
     SetDIP();
     HDelete(CMatrixEffectMovingObject, this, m_Heap);
 }
@@ -193,14 +177,13 @@ static bool MOEnum(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dword user)
         CMatrixEffect::m_Dist2 = D3DXVec3LengthSq(&temp);
         props->endhandler(ms, center, (dword)props->uservalue, 0);
     }
+
     return true;
 }
 
 
 void MO_Cannon_Round_Tact(D3DXMATRIX& m, SMOProps& props, float tact)
 {
-DTRACE();
-
     float dtime = 0.1f * float(tact);
 
     float vel = D3DXVec3Length(&props.velocity);
@@ -583,14 +566,10 @@ void MO_Grenade_Tact(D3DXMATRIX& m, SMOProps& props, float tact)
 }
 
 
-
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
- void CMatrixEffectBuoy::Kill(void)
+ void CMatrixEffectBuoy::Kill()
  {
      m_Kill = true;
      if(m_Light.effect)
@@ -602,9 +581,7 @@ void MO_Grenade_Tact(D3DXMATRIX& m, SMOProps& props, float tact)
 
 void CMatrixEffectBuoy::Tact(float step)
 {
-DTRACE();
-
-    m_Props.object->Tact(Float2Int(step));
+    m_Props.object->VectorObjectAnimTact(Float2Int(step));
     m_Props.time += step;
 
     D3DXMATRIX mr, mr1;
@@ -654,13 +631,9 @@ endoflife:
         UnloadObject(m_Props.object, m_Heap);
         m_Props.object = nullptr;
         
-#ifdef _DEBUG
-        m_Light.Release(DEBUG_CALL_INFO);
-        g_MatrixMap->SubEffect(DEBUG_CALL_INFO, this);
-#else
         m_Light.Release();
         g_MatrixMap->SubEffect(this);
-#endif
+
         return;
     }
 
@@ -679,8 +652,6 @@ void BuoySetupTex(SVOSurface* vo, dword user_param, int)
 
 bool BuoySetupStages(dword user_param, int)
 {
-DTRACE();
-
 	ASSERT_DX(g_D3DD->SetFVF(VO_FVF));
 
     ASSERT_DX(g_D3DD->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE));
@@ -706,10 +677,8 @@ DTRACE();
     return false;
 }
 
-void CMatrixEffectBuoy::Draw(void)
+void CMatrixEffectBuoy::Draw()
 {
-DTRACE();
-
     byte a = 255;
 
     if(m_Kill) a = byte((m_KillTime / 1000.0f) * 255.0f);

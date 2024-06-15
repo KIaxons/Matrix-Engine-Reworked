@@ -680,29 +680,30 @@ int CWStr::GetSmePar(int np, const wchar* og_sim) const
 	return sme_par;
 }
 
-int CWStr::GetLenPar(int smepar, const wchar* ogsim) const
+int CWStr::GetLenPar(int sme_par, const wchar* separator) const
 {
 	int i;
 	int tlen = GetLen();
-	int lenogsim = WStrLen(ogsim);
-	if(tlen < 1 || lenogsim < 1 || smepar > tlen) ERROR_S(L"CWStr::GetLenPar Error!");
+	int separator_len = WStrLen(separator);
+
+	if(tlen < 1 || separator_len < 1 || sme_par > tlen) ERROR_S(L"CWStr::GetLenPar Error!");
 
 	const wchar* tstr = Get();
 
-	for(i = smepar; i < tlen; ++i)
+	for(i = sme_par; i < tlen; ++i)
 	{
 		int u;
-		for(u = 0; u < lenogsim; ++u) if (tstr[i] == ogsim[u]) break;
-		if(u < lenogsim) break;
+		for(u = 0; u < separator_len; ++u) if(tstr[i] == separator[u]) break;
+		if(u < separator_len) break;
 	}
 
-	return i - smepar;
+	return i - sme_par;
 }
 
-void CWStr::GetStrPar(CWStr& str, int np, const wchar* ogsim) const
+void CWStr::GetStrPar(CWStr& str, int np, const wchar* og_sim) const
 {
-	int sme = GetSmePar(np, ogsim);
-	int len = GetLenPar(sme, ogsim);
+	int sme = GetSmePar(np, og_sim);
+	int len = GetLenPar(sme, og_sim);
 	str.Set(Get() + sme, len);
 }
 
@@ -714,18 +715,18 @@ void CWStr::GetStrPar(CWStr& str, int nps, int npe, const wchar* ogsim) const
 	str.Set(Get() + sme1, sme2 - sme1);
 }
 
-CWStr CWStr::GetStrPar(int nps, int npe, const wchar* ogsim) const
+CWStr CWStr::GetStrPar(int nps, int npe, const wchar* og_sim) const
 {
-	int sme1 = GetSmePar(nps, ogsim);
-	int sme2 = GetSmePar(npe, ogsim);
-	sme2 += GetLenPar(sme2, ogsim);
+	int sme1 = GetSmePar(nps, og_sim);
+	int sme2 = GetSmePar(npe, og_sim);
+	sme2 += GetLenPar(sme2, og_sim);
 	return CWStr(Get() + sme1, sme2 - sme1, GetHeap());
 }
 
-bool CWStr::GetTrueFalsePar(int np, const wchar* ogsim) const
+bool CWStr::GetTrueFalsePar(int np, const wchar* og_sim) const
 {
 	CWStr tstr(*this, GetHeap());
-	GetStrPar(tstr, np, ogsim);
+	GetStrPar(tstr, np, og_sim);
 
 	if(tstr == L"true" || tstr == L"True" || tstr == L"TRUE") return 1;
 	if(tstr == L"false" || tstr == L"False" || tstr == L"FALSE") return 0;
