@@ -126,11 +126,11 @@ class CMatrixRobot : public CMatrixMapStatic
 protected:
     CMatrixBuilding* m_Base = nullptr; //база из который вышел робот
     //hitpoint
-    CMatrixProgressBar m_ProgressBar;
-    int         m_ShowHitpointTime = 0;
-    float       m_HitPoint = 0.0f;
-    float       m_HitPointMax = 0.0f; // Максимальное кол-во здоровья
-    float       m_MaxHitPointInversed = 0.0f; // for normalized calcs
+    CMatrixProgressBar m_HealthBar;
+    int         m_ShowHitpointsTime = 0;
+    float       m_Hitpoints = 0.0f;
+    float       m_MaxHitpoints = 0.0f; // Максимальное кол-во здоровья
+    float       m_MaxHitpointsInversed = 0.0f; // for normalized calcs
 
     EAnimation  m_Animation = ANIMATION_OFF;
 
@@ -143,7 +143,7 @@ public:
     int         m_ShadowSize = 128; // texture size for proj
 
     CWStr m_Name = CWStr(L"ROBOT");
-    int m_defHitPoint = Float2Int(m_HitPoint);
+    int m_defHitPoint = Float2Int(m_Hitpoints);
 
     float m_Speed = 0.0f;
     float m_PosX = 0.0f;
@@ -200,7 +200,7 @@ public:
     {
         m_Core->m_Type = OBJECT_TYPE_ROBOT_AI;
 
-        m_ProgressBar.Modify(1000000, 0, PB_ROBOT_WIDTH, 1);
+        m_HealthBar.Modify(1000000, 0, PB_ROBOT_WIDTH, 1);
 
         if(g_PlayerRobotsAutoBoom == 1) m_AutoBoom = true; //Если подключён мод на автоподрыв (и в конфиге выставлено включение подрыва по умолчанию), то по умолчанию он будет включён
     }
@@ -217,17 +217,17 @@ public:
     //Каст на логический подкласс CMatrixRobot
     CMatrixRobotAI* AsMatrixRobotAI() { return reinterpret_cast<CMatrixRobotAI*>(this); }
 
-    void ShowHitpoint() { m_ShowHitpointTime = HITPOINT_SHOW_TIME; }
+    void ShowHitpoint() { m_ShowHitpointsTime = HITPOINT_SHOW_TIME; }
     //Добавил функцию, чтобы иметь возможность чинить роботов напрямую из логики зданий, Klaxons
     void ModifyHitpoints(int num)
     {
-        m_HitPoint = max(min(m_HitPoint + num, m_HitPointMax), 0);
-        m_ProgressBar.Modify(m_HitPoint * m_MaxHitPointInversed);
+        m_Hitpoints = max(min(m_Hitpoints + num, m_MaxHitpoints), 0);
+        m_HealthBar.Modify(m_Hitpoints * m_MaxHitpointsInversed);
     }
 
-    float GetHitPoint() const { return m_HitPoint / 10; }
-    float GetMaxHitPoint() { return m_HitPointMax / 10; }
-    void  InitMaxHitpoint(float hp) { m_HitPoint = hp; m_HitPointMax = hp; m_MaxHitPointInversed = 1.0f / hp; }
+    float GetHitPoint() const { return m_Hitpoints / 10; }
+    float GetMaxHitPoint() { return m_MaxHitpoints / 10; }
+    void  InitMaxHitpoint(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
 
     void MarkCrazy() { SETFLAG(m_ObjectFlags, ROBOT_CRAZY); }
     void UnMarkCrazy() { RESETFLAG(m_ObjectFlags, ROBOT_CRAZY); }
@@ -302,7 +302,7 @@ public:
 
     virtual bool CalcBounds(D3DXVECTOR3& omin, D3DXVECTOR3& omax);
     virtual int  GetSide() const { return m_Side; };
-    virtual bool NeedRepair() const { return m_HitPoint < m_HitPointMax; }
+    virtual bool NeedRepair() const { return m_Hitpoints < m_MaxHitpoints; }
     virtual bool InRect(const CRect& rect)const;
 
     void OnOutScreen() {};

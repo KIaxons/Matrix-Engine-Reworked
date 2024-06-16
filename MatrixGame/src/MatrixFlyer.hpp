@@ -292,11 +292,11 @@ class CMatrixFlyer : public CMatrixMapStatic
     CWStr m_Name = (CWStr)L"FLYER";
 
     //hitpoint
-    CMatrixProgressBar m_ProgressBar;
-    int         m_ShowHitpointTime = 0;
-    float       m_HitPoint = 0.0f;
-	float       m_HitPointMax = 0.0f;  // Максимальное кол-во здоровья
-    float       m_MaxHitPointInversed = 0.0f; // for normalized calcs
+    CMatrixProgressBar m_HealthBar;
+    int         m_ShowHitpointsTime = 0;
+    float       m_Hitpoints = 0.0f;
+	float       m_MaxHitpoints = 0.0f;  // Максимальное кол-во здоровья
+    float       m_MaxHitpointsInversed = 0.0f; // for normalized calcs
 
     CTextureManaged* m_BigTexture = nullptr;
     CTextureManaged* m_MedTexture = nullptr;
@@ -387,12 +387,12 @@ public:
     CMatrixRobot* GetCarryingRobot() { return m_CarryData.m_Robot; }
     CMatrixFlyer::SCarryData* GetCarryData() { return &m_CarryData; };
 
-    void  ShowHitpoint() { m_ShowHitpointTime = HITPOINT_SHOW_TIME; }
-    float GetHitPoint() const { return m_HitPoint; }
-    float GetMaxHitPoint() { return m_HitPointMax; }
-    void  InitMaxHitpoint(float hp) { m_HitPoint = hp; m_HitPointMax = hp; m_MaxHitPointInversed = 1.0f / hp; }
+    void  ShowHitpoint() { m_ShowHitpointsTime = HITPOINT_SHOW_TIME; }
+    float GetHitPoint() const { return m_Hitpoints; }
+    float GetMaxHitPoint() { return m_MaxHitpoints; }
+    void  InitMaxHitpoint(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
 
-    void SetHitpoint(float hp) { m_HitPoint = hp; }
+    void SetHitpoint(float hp) { m_Hitpoints = hp; }
 
     const D3DXVECTOR3& GetPos() const { return m_Pos; } //Возвращает текущие фактические координаты вертолёта по всем трём осям
     const D3DXVECTOR3  GetPos(float ahead_to) const { return GetPos() + D3DXVECTOR3(-m_AngleZSin, m_AngleZCos, 0.0f) * ahead_to; } //Возвращает координатам на удалении, равном значению аргумента, по направлению вперёд ровно от носа вертолёта, можно использовать для расчёта вектора прямолинейного движения
@@ -478,7 +478,7 @@ public:
 
     virtual bool CalcBounds(D3DXVECTOR3& omin, D3DXVECTOR3& omax);
     virtual int GetSide() const { return m_Side; };
-    virtual bool NeedRepair() const { return m_HitPoint < m_HitPointMax; }
+    virtual bool NeedRepair() const { return m_Hitpoints < m_MaxHitpoints; }
 
     virtual bool InRect(const CRect& rect)const;
 

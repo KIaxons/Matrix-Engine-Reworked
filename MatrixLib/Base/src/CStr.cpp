@@ -720,12 +720,15 @@ int CStr::CompareSubstring(const CStr & str)
 	int kolsd = m_Len-str.m_Len+1;
 
     int i,u;
-	for(i=0;i<kolsd;i++) {
-		for(u=0;u<str.m_Len;u++) {
+	for(i=0;i<kolsd; ++i)
+	{
+		for(u=0;u<str.m_Len; ++u)
+		{
 			if(m_Str[u+i]!=str.m_Str[u]) break;
 		}
 		if(u==str.m_Len) return 1;
 	}
+
 	return 0;
 }
 

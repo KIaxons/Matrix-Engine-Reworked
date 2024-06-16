@@ -167,7 +167,7 @@ enum ESound : int
 
     S_ORDER_CAPTURE_FUCK_OFF,
 
-    S_CANTBE,
+    S_CANT_BE_DONE,
 
     S_SPECIAL_SLOT,
 

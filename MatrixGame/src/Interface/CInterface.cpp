@@ -4562,62 +4562,15 @@ void __stdcall CIFaceList::PlayerAction(void* object)
         CMatrixBuilding* base = (CMatrixBuilding*)ps->m_ActiveObject;
 
         //Нажали кнопку постройки конкретной турели
-        if(element->m_strName == IF_BUILD_TUR1)
+        if(element->m_strName.GetLen() == 4 && !wcsncmp(element->m_strName, IF_BUILD_TUR, 3))
         {
-            /*
-            if(((CMatrixBuilding*)ps->m_ActiveObject)->HaveMaxTurrets())
-            {
-                //sound
-                CSound::Play(S_CANTBE, SL_INTERFACE);
-                //hint
-            }
-            else
-            {
-            */
-            BeginBuildTurret(1);
-            //}
-        }
-        else if(element->m_strName == IF_BUILD_TUR2)
-        {
-            if(0/*((CMatrixBuilding*)ps->m_ActiveObject)->HaveMaxTurrets()*/)
-            {
-                //sound
-                CSound::Play(S_CANTBE, SL_INTERFACE);
-                //hint
-            }
-            else
-            {
-                BeginBuildTurret(2);                
-            }
-        }
-        else if(element->m_strName == IF_BUILD_TUR3)
-        {
-            if(0/*((CMatrixBuilding*)ps->m_ActiveObject)->HaveMaxTurrets()*/)
-            {
-                //sound
-                CSound::Play(S_CANTBE, SL_INTERFACE);
-                //hint
-            }
-            else
-            {
-                BeginBuildTurret(3);                
-            }
-        }
-        else if(element->m_strName == IF_BUILD_TUR4)
-        {
-            if(0/*((CMatrixBuilding*)ps->m_ActiveObject)->HaveMaxTurrets()*/)
-            {
-                //sound
-                CSound::Play(S_CANTBE, SL_INTERFACE);
-                //hint
-            }
-            else
-            {
-                BeginBuildTurret(4);
-            }
+            int turr_num = wcstol(&element->m_strName[3], nullptr, 0); //Конверт цифры из символа wchar в int
+            if(ps->IsEnoughResourcesForTurret(&g_Config.m_TurretsConsts[turr_num])) CreatePhantomCannonForBuild(turr_num);
+            else CSound::Play(S_CANT_BE_DONE, SL_INTERFACE);
         }
 
         //Нажали кнопку постройки конкретного вертолёта
+        //(добавить запуск вертушки в производство, а не моментальную постройку, добавить проверку и списание ресурсов)
         if(ps->m_CurrSel == BASE_SELECTED)
         {
             if(element->m_strName == IF_BUILD_FLYER_1)
@@ -5968,8 +5921,6 @@ void CIFaceList::DeleteDynamicTurrets()
 {
     CMatrixSideUnit* player_side = g_MatrixMap->GetPlayerSide();
 
-//icon
-
     CInterface* interfaces = m_First;
     while(interfaces)
     {
@@ -5996,25 +5947,24 @@ void CIFaceList::DeleteDynamicTurrets()
 
 }
 
-void CIFaceList::BeginBuildTurret(int no)
+void CIFaceList::CreatePhantomCannonForBuild(int turret_type)
 {
     CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
-    if(!ps->IsEnoughResourcesForTurret(&g_Config.m_TurretsConsts[no])) return;
 
     ps->m_CannonForBuild.Delete();
     CMatrixCannon* cannon = HNew(Base::g_MatrixHeap) CMatrixCannon;
     cannon->m_Pos.x = g_MatrixMap->m_TraceStopPos.x;
     cannon->m_Pos.y = g_MatrixMap->m_TraceStopPos.y;
     cannon->SetSide(PLAYER_SIDE);
-    cannon->UnitInit(no);
+    cannon->ModelInit(turret_type);
     cannon->m_Angle = 0;
 
     cannon->GetResources(MR_Matrix | MR_Graph);
 
     ps->m_CannonForBuild.m_Cannon = cannon;
-    ps->m_CannonForBuild.m_ParentBuilding = (CMatrixBuilding*)ps->m_ActiveObject;
+    ps->m_CannonForBuild.m_ParentBuilding = ps->m_ActiveObject->AsBuilding();
     ps->m_CurrentAction = BUILDING_TURRET;
-    g_MatrixMap->m_Cursor.SetPos(g_MatrixMap->m_Cursor.GetPosX(), (int)GetMainY() - 40);
+    g_MatrixMap->m_Cursor.SetPos(g_MatrixMap->m_Cursor.GetPosX(), int(GetMainY()) - 40);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -6081,8 +6031,3 @@ void SStateImages::SetStateText(bool copy)
 }
 
 CBuf* CInterface::m_ClearRects;
-
-#ifdef _DEBUG
-void t_pause()   { g_MatrixMap->Pause(true); }
-void t_unpause() { g_MatrixMap->Pause(false); }
-#endif

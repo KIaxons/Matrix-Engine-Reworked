@@ -156,7 +156,7 @@ void CSound::Init()
 
     m_Sounds[S_ROBOT_UPAL].path_name = L"s_upal";
 
-    m_Sounds[S_CANTBE].path_name = L"s_cantbe";
+    m_Sounds[S_CANT_BE_DONE].path_name = L"s_cantbe";
 
     m_Sounds[S_SPECIAL_SLOT].path_name = L"";
 

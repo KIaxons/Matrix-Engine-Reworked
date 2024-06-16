@@ -637,7 +637,7 @@ void CMatrixSideUnit::OnLButtonDown(const CPoint&)
             ca->m_Pos.y = m_CannonForBuild.m_Cannon->m_Pos.y;//g_MatrixMap->m_TraceStopPos.y;
             ca->m_Place = m_CannonForBuild.m_Cannon->m_Place;
             ca->SetSide(m_Id);
-            ca->UnitInit(m_CannonForBuild.m_Cannon->m_TurretKind);
+            ca->ModelInit(m_CannonForBuild.m_Cannon->m_TurretKind);
 
             ca->m_Angle = m_CannonForBuild.m_Cannon->GetMustBeAngle();
             ca->m_AddH = 0;
@@ -957,7 +957,7 @@ void CMatrixSideUnit::OnRButtonDouble(const CPoint&)
 
     if(pObject == TRACE_STOP_LANDSCAPE)
     {
-        if(m_CurrentAction == CAPTURING_ROBOT || m_CurrentAction == GETING_IN_ROBOT)
+        if(m_CurrentAction == CAPTURING_ROBOT || m_CurrentAction == GETTING_IN_ROBOT)
         {
             m_CurrentAction = NOTHING_SPECIAL;
         }
@@ -969,7 +969,7 @@ void CMatrixSideUnit::OnRButtonDouble(const CPoint&)
     }
     else if(pObject == TRACE_STOP_WATER)
     {
-        if(m_CurrentAction == CAPTURING_ROBOT || m_CurrentAction == GETING_IN_ROBOT)
+        if(m_CurrentAction == CAPTURING_ROBOT || m_CurrentAction == GETTING_IN_ROBOT)
         {
             m_CurrentAction = NOTHING_SPECIAL;
         }
@@ -7759,7 +7759,7 @@ void CMatrixSideUnit::ChooseAndBuildAICannon()
 
     cannon->m_Place = g_MatrixMap->m_RoadNetwork.FindInPL(place_cannon);
     cannon->SetSide(m_Id);
-    cannon->UnitInit(cur_type);
+    cannon->ModelInit(cur_type);
 
     cannon->GetResources(MR_Matrix | MR_Graph);
     cannon->m_ParentBuilding = building;
@@ -7874,11 +7874,13 @@ void CMatrixSideUnit::TactPL(int only_group)
                     GetEnv(obj)->m_PlaceAdd = CPoint(-1, -1);
                 }
             }
+
             if(obj->AsRobot()->GetGroupLogic() >= 0 && obj->AsRobot()->GetGroupLogic() < MAX_LOGIC_GROUP)
             {
                 m_PlayerGroup[obj->AsRobot()->GetGroupLogic()].m_RobotCnt++;
             }
         }
+
         obj = obj->GetNextLogic();
     }
 

@@ -56,7 +56,7 @@ public:
         {
             int          m_BreakHitPoint;
             int          m_AnimState; // for BEHF_ANIM
-            CMatrixProgressBar* m_ProgressBar;
+            CMatrixProgressBar* m_HealthBar;
             int          m_BreakHitPointMax;
             int          m_NextExplosionTime;
             int          m_NextExplosionTimeSound;
@@ -91,7 +91,7 @@ public:
     void FreeShadowTexture();
 
 public:
-    CMatrixMapObject() : CMatrixMapStatic(), m_BreakHitPoint(0), m_AnimState(0), m_ProgressBar(nullptr), m_BreakHitPointMax(0), m_NextExplosionTime(0), m_NextExplosionTimeSound(0)
+    CMatrixMapObject() : CMatrixMapStatic(), m_BreakHitPoint(0), m_AnimState(0), m_HealthBar(nullptr), m_BreakHitPointMax(0), m_NextExplosionTime(0), m_NextExplosionTimeSound(0)
     {
         m_Core->m_Type = OBJECT_TYPE_MAPOBJECT;
     }
@@ -105,9 +105,9 @@ public:
             HDelete(CMatrixShadowProj, m_ShadowProj, Base::g_MatrixHeap);
         }
 
-        if(m_BehaviorFlag == BEHF_TERRON && m_ProgressBar != nullptr) HDelete(CMatrixProgressBar, m_ProgressBar, Base::g_MatrixHeap);
-        if(m_BehaviorFlag == BEHF_BREAK && m_ProgressBar != nullptr) HDelete(CMatrixProgressBar, m_ProgressBar, Base::g_MatrixHeap);
-        if(m_BehaviorFlag == BEHF_ANIM && m_ProgressBar != nullptr) HDelete(CMatrixProgressBar, m_ProgressBar, Base::g_MatrixHeap);
+        if(m_BehaviorFlag == BEHF_TERRON && m_HealthBar != nullptr) HDelete(CMatrixProgressBar, m_HealthBar, Base::g_MatrixHeap);
+        if(m_BehaviorFlag == BEHF_BREAK && m_HealthBar != nullptr) HDelete(CMatrixProgressBar, m_HealthBar, Base::g_MatrixHeap);
+        if(m_BehaviorFlag == BEHF_ANIM && m_HealthBar != nullptr) HDelete(CMatrixProgressBar, m_HealthBar, Base::g_MatrixHeap);
         if(m_BehaviorFlag == BEHF_SPAWNER && m_SpawnRobotCore) m_SpawnRobotCore->Release();
     }
 

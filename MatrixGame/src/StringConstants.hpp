@@ -373,10 +373,15 @@
 #define IF_BUILD_TURRET                         L"buca"
 #define IF_BUILD_REPAIR                         L"bure"
 
+#define IF_BUILD_TUR                            L"tur"
 #define IF_BUILD_TUR1                           L"tur1"
 #define IF_BUILD_TUR2                           L"tur2"
 #define IF_BUILD_TUR3                           L"tur3"
 #define IF_BUILD_TUR4                           L"tur4"
+#define IF_BUILD_TUR5                           L"tur5"
+#define IF_BUILD_TUR6                           L"tur6"
+#define IF_BUILD_TUR7                           L"tur7"
+#define IF_BUILD_TUR8                           L"tur8"
 
 #define IF_BUILD_FLYER_1                        L"hel1"
 #define IF_BUILD_FLYER_2                        L"hel2"

@@ -1936,22 +1936,22 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                     if((GetAsyncKeyState(g_Config.m_KeyActions[KA_TURRET_CANNON]) & 0x8000) == 0x8000)
                     {
                         //"C"annon - Турель
-                        g_IFaceList->BeginBuildTurret(1);
+                        g_IFaceList->CreatePhantomCannonForBuild(1);
                     }
                     else if((GetAsyncKeyState(g_Config.m_KeyActions[KA_TURRET_GUN]) & 0x8000) == 0x8000)
                     {
                         //"G"un - Пушка
-                        g_IFaceList->BeginBuildTurret(2);
+                        g_IFaceList->CreatePhantomCannonForBuild(2);
                     }
                     else if((GetAsyncKeyState(g_Config.m_KeyActions[KA_TURRET_LASER]) & 0x8000) == 0x8000)
                     {
                         //"L"azer - Лазер
-                        g_IFaceList->BeginBuildTurret(3);
+                        g_IFaceList->CreatePhantomCannonForBuild(3);
                     }
                     else if((GetAsyncKeyState(g_Config.m_KeyActions[KA_TURRET_ROCKET]) & 0x8000) == 0x8000)
                     {
                         //"R"ocket - Ракетница
-                        g_IFaceList->BeginBuildTurret(4);
+                        g_IFaceList->CreatePhantomCannonForBuild(4);
                     }
                     //Нафиг не нужно, поскольку и так сбрасывается на X
                     /*

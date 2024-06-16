@@ -775,14 +775,14 @@ bool CWStr::CompareFirst(const CWStr& str) const
 	if(lens1 < 1) return false;
 	int lens2 = str.GetLen();
 	if(lens2 < 1) return false;
-	if(lens2 > lens1) return 0;
+	if(lens2 > lens1) return false;
 
 	const wchar* str1 = Get();
 	const wchar* str2 = str.Get();
 
-	for(int i = 0; i < lens2; ++i) if(str1[i] != str2[i]) return 0;
+	for(int i = 0; i < lens2; ++i) if(str1[i] != str2[i]) return false;
 
-	return 1;
+	return true;
 }
 
 int CWStr::CompareSubstring(const CWStr& str) const

@@ -219,12 +219,12 @@ static bool CollisionRobots(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dwo
 
 void CMatrixRobotAI::PauseTact(int cms)
 {
-    m_ProgressBar.Modify(100000.0f, 0.0f);
+    m_HealthBar.Modify(100000.0f, 0.0f);
     if(m_CurrState == ROBOT_DIP) return;
-    if(m_ShowHitpointTime > 0)
+    if(m_ShowHitpointsTime > 0)
     {
-        m_ShowHitpointTime -= cms;
-        if(m_ShowHitpointTime < 0) m_ShowHitpointTime = 0;
+        m_ShowHitpointsTime -= cms;
+        if(m_ShowHitpointsTime < 0) m_ShowHitpointsTime = 0;
     }
 }
 
@@ -298,7 +298,7 @@ void CMatrixRobotAI::LogicTact(int ms)
     MoveSelection();
 
     //Обновление точки местоположения робота (но это не точно)
-    m_ProgressBar.Modify(100000.0f, 0);
+    m_HealthBar.Modify(100000.0f, 0);
 
     //Death in progress - "протокол смерти" запущен, робот готовиться к уничтожению
     if(m_CurrState == ROBOT_DIP)
@@ -311,10 +311,10 @@ void CMatrixRobotAI::LogicTact(int ms)
     if(m_MiniMapFlashTime > 0) m_MiniMapFlashTime -= ms;
 
     //Тикает таймер времени отрисовки полоски HP над роботом
-    if(m_ShowHitpointTime > 0)
+    if(m_ShowHitpointsTime > 0)
     {
-        m_ShowHitpointTime -= ms;
-        if(m_ShowHitpointTime < 0) m_ShowHitpointTime = 0;
+        m_ShowHitpointsTime -= ms;
+        if(m_ShowHitpointsTime < 0) m_ShowHitpointsTime = 0;
     }
 
     //Если робот горит
@@ -408,10 +408,10 @@ void CMatrixRobotAI::LogicTact(int ms)
         //Если у робота имеется саморемонт, то накидываем ему недостающие HP отсюда
         if(m_SelfRepair || m_SelfRepairPercent)
         {
-            if(m_HitPoint < m_HitPointMax)
+            if(m_Hitpoints < m_MaxHitpoints)
             {
-                m_HitPoint = min(m_HitPoint + m_SelfRepair + m_SelfRepairPercent, m_HitPointMax);
-                m_ProgressBar.Modify(m_HitPoint * m_MaxHitPointInversed);
+                m_Hitpoints = min(m_Hitpoints + m_SelfRepair + m_SelfRepairPercent, m_MaxHitpoints);
+                m_HealthBar.Modify(m_Hitpoints * m_MaxHitpointsInversed);
 
                 //Хуй заставишь это всё нормально работать
                 //CMatrixEffectWeapon::SelfRepairEffect();
@@ -1929,8 +1929,8 @@ bool CMatrixRobotAI::TakingDamage(
     //Если в робота стреляют хилкой
     if(g_Config.m_WeaponsConsts[weap].is_repairer)
     {
-        m_HitPoint = min(m_HitPoint + g_Config.m_WeaponsConsts[weap].damage.to_robots, m_HitPointMax);
-        m_ProgressBar.Modify(m_HitPoint * m_MaxHitPointInversed);
+        m_Hitpoints = min(m_Hitpoints + g_Config.m_WeaponsConsts[weap].damage.to_robots, m_MaxHitpoints);
+        m_HealthBar.Modify(m_Hitpoints * m_MaxHitpointsInversed);
 
         return false;
     }
@@ -1950,10 +1950,10 @@ bool CMatrixRobotAI::TakingDamage(
     //float damage = damage_coef * friendly_fire ? g_Config.m_WeaponsConsts[weap].friendly_damage.to_robots : g_Config.m_WeaponsConsts[weap].damage.to_robots;
     damage = damage_coef * g_Config.m_WeaponsConsts[weap].damage.to_robots;
     if(weap == WEAPON_BOMB) damage += damage * m_BombProtect;
-    m_HitPoint = max(m_HitPoint - damage, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_robots);
+    m_Hitpoints = max(m_Hitpoints - damage, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_robots);
 
-    if(m_HitPoint >= 0) m_ProgressBar.Modify(m_HitPoint * m_MaxHitPointInversed);
-    else m_ProgressBar.Modify(0);
+    if(m_Hitpoints >= 0) m_HealthBar.Modify(m_Hitpoints * m_MaxHitpointsInversed);
+    else m_HealthBar.Modify(0);
 
     if(!friendly_fire) m_MiniMapFlashTime = FLASH_PERIOD;
 
@@ -2007,12 +2007,12 @@ bool CMatrixRobotAI::TakingDamage(
     }
     else m_LastDelayDamageSide = 0;
 
-    if(m_HitPoint > 50)
+    if(m_Hitpoints > 50)
     {
         if(g_Config.m_WeaponsConsts[weap].explosive_hit) CMatrixEffect::CreateExplosion(pos, ExplosionRobotHit);
     }
-    //else if(m_HitPoint > 0) {}
-    else if(m_HitPoint <= 0)
+    //else if(m_Hitpoints > 0) {}
+    else if(m_Hitpoints <= 0)
     {
         if(attacker_side != NEUTRAL_SIDE && !friendly_fire)
         {
@@ -5546,17 +5546,17 @@ void CMatrixRobotAI::CalcStrength()
 {
     m_Strength = 0;
     for(int i = 0; i < m_WeaponsCount; ++i) m_Strength += g_Config.m_RobotWeaponsConsts[m_RobotWeapons[i].m_Module->m_Kind].strength;
-    m_Strength = m_Strength * (0.4f + 0.6f * (m_HitPoint / m_HitPointMax));
+    m_Strength = m_Strength * (0.4f + 0.6f * (m_Hitpoints / m_MaxHitpoints));
 }
 
 void CMatrixRobotAI::CreateProgressBarClone(float x, float y, float width, EPBCoord clone_type)
 {
-    m_ProgressBar.CreateClone(clone_type, x, y, width);
+    m_HealthBar.CreateClone(clone_type, x, y, width);
 }
 
 void CMatrixRobotAI::DeleteProgressBarClone(EPBCoord clone_type)
 {
-    m_ProgressBar.KillClone(clone_type);
+    m_HealthBar.KillClone(clone_type);
 }
 
 void CMatrixRobotAI::CreateTextures()

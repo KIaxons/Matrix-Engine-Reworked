@@ -262,15 +262,15 @@ bool CMatrixBuilding::TakingDamage(
 
     if(g_Config.m_WeaponsConsts[weap].is_repairer)
     {
-        m_HitPoint = min(m_HitPoint + g_Config.m_WeaponsConsts[weap].damage.to_buildings, m_HitPointMax);
-        m_ProgressBar.Modify(m_HitPoint * m_MaxHitPointInversed);
+        m_Hitpoints = min(m_Hitpoints + g_Config.m_WeaponsConsts[weap].damage.to_buildings, m_MaxHitpoints);
+        m_HealthBar.Modify(m_Hitpoints * m_MaxHitpointsInversed);
         return false;
     }
 
-    //m_HitPoint = max(m_HitPoint - damage_coef * (friendly_fire ? g_Config.m_WeaponsConsts[weap].friendly_damage.to_buildings : g_Config.m_WeaponsConsts[weap].damage.to_buildings), g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_buildings);
-    m_HitPoint = max(m_HitPoint - damage_coef * g_Config.m_WeaponsConsts[weap].damage.to_buildings, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_buildings);
-    if(m_HitPoint >= 0) m_ProgressBar.Modify(m_HitPoint * m_MaxHitPointInversed);
-    else m_ProgressBar.Modify(0);
+    //m_Hitpoints = max(m_Hitpoints - damage_coef * (friendly_fire ? g_Config.m_WeaponsConsts[weap].friendly_damage.to_buildings : g_Config.m_WeaponsConsts[weap].damage.to_buildings), g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_buildings);
+    m_Hitpoints = max(m_Hitpoints - damage_coef * g_Config.m_WeaponsConsts[weap].damage.to_buildings, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_buildings);
+    if(m_Hitpoints >= 0) m_HealthBar.Modify(m_Hitpoints * m_MaxHitpointsInversed);
+    else m_HealthBar.Modify(0);
 
     if(m_Side == PLAYER_SIDE && !friendly_fire)
     {
@@ -310,7 +310,7 @@ bool CMatrixBuilding::TakingDamage(
     else m_LastDelayDamageSide = 0;
 
     //Функция выставления маркера смерти здания "death in progress"
-    if(m_HitPoint <= 0)
+    if(m_Hitpoints <= 0)
     {
         if(m_Side == PLAYER_SIDE)
         {
@@ -324,7 +324,7 @@ bool CMatrixBuilding::TakingDamage(
         }
 
         ReleaseMe();
-        m_HitPoint = -1;
+        m_Hitpoints = -1;
         m_State = BUILDING_DIP;
 
         if(attacker_side != NEUTRAL_SIDE && !friendly_fire)
@@ -550,18 +550,18 @@ static bool FindRobotForCaptureAny(const D3DXVECTOR2& center, CMatrixMapStatic* 
 
 void CMatrixBuilding::PauseTact(int cms)
 {
-    m_ProgressBar.Modify(100000.0f, 0);
+    m_HealthBar.Modify(100000.0f, 0);
 
     if(m_State != BUILDING_DIP && m_State != BUILDING_DIP_EXPLODED)
     {
-        m_ShowHitpointTime -= cms;
-        if(m_ShowHitpointTime < 0) m_ShowHitpointTime = 0;
+        m_ShowHitpointsTime -= cms;
+        if(m_ShowHitpointsTime < 0) m_ShowHitpointsTime = 0;
     }
 }
 
 void CMatrixBuilding::LogicTact(int cms)
 {
-    m_ProgressBar.Modify(100000.0f, 0);
+    m_HealthBar.Modify(100000.0f, 0);
     CMatrixMapStatic* obj;
 
     if(IsAblaze())
@@ -624,10 +624,10 @@ void CMatrixBuilding::LogicTact(int cms)
         m_UnderAttackTime -= cms;
         if(m_UnderAttackTime < 0) m_UnderAttackTime = 0;
         
-        if(m_ShowHitpointTime > 0)
+        if(m_ShowHitpointsTime > 0)
         {
-            m_ShowHitpointTime -= cms;
-            if(m_ShowHitpointTime < 0) m_ShowHitpointTime = 0;
+            m_ShowHitpointsTime -= cms;
+            if(m_ShowHitpointsTime < 0) m_ShowHitpointsTime = 0;
         }
 
         if(m_Kind != BUILDING_BASE)
@@ -805,14 +805,14 @@ void CMatrixBuilding::LogicTact(int cms)
             }
         }
     }
-    //if(m_Kind == BUILDING_BASE) CDText::T("hp", CStr((float)m_HitPoint));
+    //if(m_Kind == BUILDING_BASE) CDText::T("hp", CStr((float)m_Hitpoints));
 
     int downtime = -BUILDING_EXPLOSION_TIME;
     if(m_Kind == BUILDING_BASE)
     {
         downtime -= BUILDING_BASE_EXPLOSION_TIME;
 
-        if((m_State == BUILDING_DIP) && (m_HitPoint < downtime + 100))
+        if((m_State == BUILDING_DIP) && (m_Hitpoints < downtime + 100))
         {
             CSound::AddSound(S_EXPLOSION_BUILDING_BOOM4, GetGeoCenter());
             //DCNT("boom");
@@ -827,7 +827,7 @@ void CMatrixBuilding::LogicTact(int cms)
     }
 
     //Здание было уничтожено
-    if(m_HitPoint < downtime)
+    if(m_Hitpoints < downtime)
     {
         if(m_Kind != BUILDING_BASE) CSound::AddSound(S_EXPLOSION_BUILDING_BOOM3, GetGeoCenter());
 
@@ -892,14 +892,14 @@ void CMatrixBuilding::LogicTact(int cms)
             return;
         }
 
-        m_HitPoint = -10000000;
+        m_Hitpoints = -10000000;
     }
 
-    if(m_HitPoint < 0)
+    if(m_Hitpoints < 0)
     {
         if(m_GGraph)
         {
-            m_HitPoint -= cms;
+            m_Hitpoints -= cms;
             // explosions
             while(g_MatrixMap->GetTime() > m_NextExplosionTimeSound)
             {
@@ -1027,7 +1027,7 @@ void CMatrixBuilding::BeforeDraw()
     //if (pp > 1.0f) pp = 1.0f;
     //if (pp < 0) pp = 0;
 
-    if(m_ShowHitpointTime > 0 && m_HitPoint > 0)
+    if(m_ShowHitpointsTime > 0 && m_Hitpoints > 0)
     {
         D3DXVECTOR3 pos;
         float r = GetRadius();
@@ -1046,7 +1046,7 @@ void CMatrixBuilding::BeforeDraw()
         if(TRACE_STOP_NONE == g_MatrixMap->Trace(nullptr, g_MatrixMap->m_Camera.GetFrustumCenter(), pos, TRACE_LANDSCAPE, nullptr))
         {
             D3DXVECTOR2 p = g_MatrixMap->m_Camera.Project(pos, g_MatrixMap->GetIdentityMatrix());
-            m_ProgressBar.Modify(p.x - r, p.y, m_HitPoint * m_MaxHitPointInversed);
+            m_HealthBar.Modify(p.x - r, p.y, m_Hitpoints * m_MaxHitpointsInversed);
         }
     }
 
@@ -1104,7 +1104,7 @@ float CMatrixBuilding::GetFloorZ()
 
 void CMatrixBuilding::OnLoad()
 {
-    m_ProgressBar.Modify(1000000, 0, PB_BUILDING_WIDTH, 1);
+    m_HealthBar.Modify(1000000, 0, PB_BUILDING_WIDTH, 1);
 
     m_BuildZ = g_MatrixMap->GetZ(m_Pos.x, m_Pos.y);
     if(m_BuildZ < WATER_LEVEL)
@@ -1168,8 +1168,8 @@ void CMatrixBuilding::OnLoad()
         }
     }
 
-    m_ShowHitpointTime = 0;
-    m_defHitPoint = Float2Int(m_HitPoint);
+    m_ShowHitpointsTime = 0;
+    m_defHitPoint = Float2Int(m_Hitpoints);
 }
 
 bool CMatrixBuilding::CalcBounds(D3DXVECTOR3& omin, D3DXVECTOR3& omax)
@@ -1619,12 +1619,12 @@ void CMatrixBuilding::UnSelect(void)
 
 void CMatrixBuilding::CreateProgressBarClone(float x, float y, float width, EPBCoord clone_type)
 {
-    m_ProgressBar.CreateClone(clone_type, x, y, width);
+    m_HealthBar.CreateClone(clone_type, x, y, width);
 }
 
 void CMatrixBuilding::DeleteProgressBarClone(EPBCoord clone_type)
 {
-    m_ProgressBar.KillClone(clone_type);
+    m_HealthBar.KillClone(clone_type);
 }
 
 int CMatrixBuilding::GetPlacesForTurrets(CPoint* places)
@@ -1774,19 +1774,19 @@ void CBuildingQueue::TickTimer(int ms)
         float x = g_IFaceList->GetMainX() + 283;
         float y = g_IFaceList->GetMainY() + 71;
 
-        m_ProgressBar.Modify(100000.0f, 0);
+        m_HealthBar.Modify(100000.0f, 0);
         if(m_Timer <= g_Config.m_Timings[UNIT_ROBOT])
         {
-            m_ProgressBar.Modify(float(m_Timer) / float(g_Config.m_Timings[UNIT_ROBOT]));
+            m_HealthBar.Modify(float(m_Timer) / float(g_Config.m_Timings[UNIT_ROBOT]));
         }
 
         if(ps->m_CurrSel == BASE_SELECTED && ps->m_ActiveObject == m_ParentBase)
         {
-            m_ProgressBar.CreateClone(PBC_CLONE1, x, y, 87);
+            m_HealthBar.CreateClone(PBC_CLONE1, x, y, 87);
         }
         else
         {
-            m_ProgressBar.KillClone(PBC_CLONE1);
+            m_HealthBar.KillClone(PBC_CLONE1);
         }
 
         if(m_Timer >= g_Config.m_Timings[UNIT_ROBOT] && m_ParentBase->m_State == BASE_CLOSED)
@@ -1804,7 +1804,7 @@ void CBuildingQueue::TickTimer(int ms)
             }
             
             m_Timer = 0;
-            m_ProgressBar.KillClone(PBC_CLONE1);
+            m_HealthBar.KillClone(PBC_CLONE1);
 
             //produce robot, del from queue
             //STUB:
@@ -1829,19 +1829,19 @@ void CBuildingQueue::TickTimer(int ms)
         float x = g_IFaceList->GetMainX() + 283;
         float y = g_IFaceList->GetMainY() + 71;
 
-        m_ProgressBar.Modify(100000.0f, 0);
+        m_HealthBar.Modify(100000.0f, 0);
         if(m_Timer <= g_Config.m_Timings[UNIT_FLYER])
         {
-            m_ProgressBar.Modify(m_Timer * 1.0f / g_Config.m_Timings[UNIT_FLYER]);    
+            m_HealthBar.Modify(m_Timer * 1.0f / g_Config.m_Timings[UNIT_FLYER]);    
         }
 
         if(ps->m_CurrSel == BASE_SELECTED && ps->m_ActiveObject == m_ParentBase)
         {
-            m_ProgressBar.CreateClone(PBC_CLONE1, x, y, 87);
+            m_HealthBar.CreateClone(PBC_CLONE1, x, y, 87);
         }
         else
         {
-            m_ProgressBar.KillClone(PBC_CLONE1);
+            m_HealthBar.KillClone(PBC_CLONE1);
         }
 
         if(m_Timer >= g_Config.m_Timings[UNIT_FLYER] && m_ParentBase->m_State == BASE_CLOSED)
@@ -1859,7 +1859,7 @@ void CBuildingQueue::TickTimer(int ms)
             }
             
             m_Timer = 0;
-            m_ProgressBar.KillClone(PBC_CLONE1);
+            m_HealthBar.KillClone(PBC_CLONE1);
             //produce flyer, del from queue
             //STUB:
             if(m_ParentBase->GetSide() == PLAYER_SIDE)
@@ -1882,19 +1882,19 @@ void CBuildingQueue::TickTimer(int ms)
         float x = g_IFaceList->GetMainX() + 283;
         float y = g_IFaceList->GetMainY() + 71;
         float percent_done = float(m_Timer) / float(g_Config.m_Timings[UNIT_TURRET]);
-        m_ProgressBar.Modify(100000.0f, 0);
-        m_ProgressBar.Modify(percent_done);
+        m_HealthBar.Modify(100000.0f, 0);
+        m_HealthBar.Modify(percent_done);
 
         //((CMatrixCannon*)m_Top)->SetPBOutOfScreen();
         m_Top->AsCannon()->SetHitPoint(m_Top->AsCannon()->GetMaxHitPoint() * percent_done);
         
         if((ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED) && ps->m_ActiveObject == m_ParentBase)
         {
-            m_ProgressBar.CreateClone(PBC_CLONE1, x, y, 87);
+            m_HealthBar.CreateClone(PBC_CLONE1, x, y, 87);
         }
         else
         {
-            m_ProgressBar.KillClone(PBC_CLONE1);
+            m_HealthBar.KillClone(PBC_CLONE1);
         }
 
         if(m_Timer >= g_Config.m_Timings[UNIT_TURRET])
@@ -1920,7 +1920,7 @@ void CBuildingQueue::TickTimer(int ms)
             }
             
             m_Timer = 0;
-            m_ProgressBar.KillClone(PBC_CLONE1);
+            m_HealthBar.KillClone(PBC_CLONE1);
 
             for(int i = 0; i < MAX_PLACES; ++i)
             {
@@ -1989,7 +1989,7 @@ int CBuildingQueue::DeleteItem(int no)
         if(no == 1)
         {
             m_Timer = 0;
-            m_ProgressBar.KillClone(PBC_CLONE1);
+            m_HealthBar.KillClone(PBC_CLONE1);
         }
         //STUB:
         if(m_ParentBase->GetSide() == PLAYER_SIDE)
@@ -2184,5 +2184,5 @@ void CBuildingQueue::ReturnTurretResources(CMatrixCannon* turret)
 
 void CBuildingQueue::KillBar()
 {
-    m_ProgressBar.KillClone(PBC_CLONE1);
+    m_HealthBar.KillClone(PBC_CLONE1);
 }

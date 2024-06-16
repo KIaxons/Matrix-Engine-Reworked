@@ -376,7 +376,7 @@ public:
      bool CheckShowHintLogic(const CWStr& element_name);
      void ExitArcadeMode();
      void EnterArcadeMode(bool pos = false);
-     void BeginBuildTurret(int no);
+     void CreatePhantomCannonForBuild(int turret_type);
 
      void CreateDynamicTurrets(CMatrixBuilding* building);
      void DeleteDynamicTurrets();

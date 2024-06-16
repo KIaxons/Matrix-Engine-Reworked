@@ -29,7 +29,7 @@ void CLoadProgress::SetCurLPPos(int i)
     int ac = Float2Int(k * LPACCURACY);
     if(ac > m_lastacc)
     {
-        if(g_RangersInterface) g_RangersInterface->m_ProgressBar(float(ac) / LPACCURACY);
+        if(g_RangersInterface) g_RangersInterface->m_HealthBar(float(ac) / LPACCURACY);
 
 #ifdef _DEBUG
         OutputDebugStringW(L"\n" + CWStr(ac));

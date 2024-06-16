@@ -21,7 +21,7 @@ float CMatrixCannon::GetSeekRadius(void)
 
 float CMatrixCannon::GetStrength(void)
 {
-    return g_Config.m_TurretsConsts[m_TurretKind].strength * (0.4f + 0.6f * (m_HitPoint / m_HitPointMax));
+    return g_Config.m_TurretsConsts[m_TurretKind].strength * (0.4f + 0.6f * (m_Hitpoints / m_MaxHitpoints));
 }
 
 void CMatrixCannon::FireHandler(CMatrixMapStatic* hit, const D3DXVECTOR3& pos, dword user, dword flags)
@@ -228,13 +228,14 @@ void CMatrixCannon::GetResources(dword need)
         mp = g_MatrixMap->PointGetTest(px + 1, py + 1); if(mp) { ++cnt; rv += mp->z; }
 
         if(cnt) m_Core->m_Matrix._43 = rv / cnt + m_AddH;
+        //Крашит в этом месте, если вынести фантомную турель (появляется при выборе места постройки) за границу карты
         else ERROR_S(L"Divide by zero probability in CMatrixCannon::GetResources!");
 
         D3DXMatrixInverse(&m_Core->m_IMatrix, nullptr, &m_Core->m_Matrix);
 
         D3DXMATRIX mx, m;
         const D3DXMATRIX* tm;
-        D3DXVECTOR3 p(0, 0, 0);
+        D3DXVECTOR3 p = { 0.0f, 0.0f, 0.0f };
 
         for(int i = 0; i < m_ModulesCount; ++i)
         {
@@ -445,6 +446,7 @@ bool CMatrixCannon::Pick(const D3DXVECTOR3& orig, const D3DXVECTOR3& dir, float*
             if(m_Module[i].m_Graph->Pick(m_Module[i].m_Matrix, m_Module[i].m_IMatrix, orig, dir, outt)) return true;
 		}
 	}
+
 	return false;
 }
 
@@ -470,13 +472,13 @@ void CMatrixCannon::BeforeDraw()
     dword sh = (g_Config.m_ShowProjShadows ? (MR_ShadowProjGeom | MR_ShadowProjTex) : 0) | (g_Config.m_ShowStencilShadows ? MR_ShadowStencil : 0);
     GetResources(MR_Matrix | MR_Graph | sh);
 
-    if(m_ShowHitpointTime > 0 && m_HitPoint > 0 && m_CurrState != CANNON_DIP)
+    if(m_ShowHitpointsTime > 0 && m_Hitpoints > 0 && m_CurrState != CANNON_DIP)
     {
         D3DXVECTOR3 pos(GetGeoCenter());
         if(TRACE_STOP_NONE == g_MatrixMap->Trace(nullptr, g_MatrixMap->m_Camera.GetFrustumCenter(), pos, TRACE_LANDSCAPE, nullptr))
         {
             D3DXVECTOR2 p = g_MatrixMap->m_Camera.Project(pos, g_MatrixMap->GetIdentityMatrix());
-            m_ProgressBar.Modify(p.x - (PB_CANNON_WIDTH * 0.5f), p.y - GetRadius(), m_HitPoint * m_MaxHitPointInversed);
+            m_HealthBar.Modify(p.x - (PB_CANNON_WIDTH * 0.5f), p.y - GetRadius(), m_Hitpoints * m_MaxHitpointsInversed);
         }
     }
 
@@ -504,6 +506,7 @@ void CMatrixCannon::Draw()
         if(m_CurrState == CANNON_UNDER_CONSTRUCTION) g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, 0xFF00FF00);
         else g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, m_Core->m_TerrainColor);
 
+        CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
         for(int i = 0; i < m_ModulesCount; ++i)
         {
             SMatrixCannonUnit* cur_part = &m_Module[i];
@@ -511,7 +514,7 @@ void CMatrixCannon::Draw()
             ASSERT(cur_part->m_Graph);
             ASSERT_DX(g_D3DD->SetTransform(D3DTS_WORLD, &(cur_part->m_Matrix)));
             cur_part->m_Graph->Draw(coltex);
-            if(m_CurrState != CANNON_UNDER_CONSTRUCTION && this != g_MatrixMap->GetPlayerSide()->m_CannonForBuild.m_Cannon && !FLAG(g_MatrixMap->m_Flags, MMFLAG_DISABLE_DRAW_OBJECT_LIGHTS))
+            if(m_CurrState != CANNON_UNDER_CONSTRUCTION && (ps->m_CurrentAction != BUILDING_TURRET || this != ps->m_CannonForBuild.m_Cannon) && !FLAG(g_MatrixMap->m_Flags, MMFLAG_DISABLE_DRAW_OBJECT_LIGHTS))
             {
                 cur_part->m_Graph->DrawLightSprites(false, cur_part->m_Matrix, nullptr);
             }
@@ -574,7 +577,7 @@ void CMatrixCannon::DrawShadowProj()
 
 void CMatrixCannon::OnLoad()
 {
-    UnitInit(m_TurretKind);
+    ModelInit(m_TurretKind);
 }
 
 
@@ -783,13 +786,13 @@ void CMatrixCannon::PauseTact(int tact)
     if(m_CurrState == CANNON_DIP) return;
     if(m_CurrState != CANNON_UNDER_CONSTRUCTION)
     {
-        if(m_ShowHitpointTime > 0)
+        if(m_ShowHitpointsTime > 0)
         {
-            m_ShowHitpointTime -= tact;
-            if(m_ShowHitpointTime < 0) m_ShowHitpointTime = 0;
+            m_ShowHitpointsTime -= tact;
+            if(m_ShowHitpointsTime < 0) m_ShowHitpointsTime = 0;
         }
     }
-    else m_ShowHitpointTime = 1;
+    else m_ShowHitpointsTime = 1;
 }
 
 
@@ -850,10 +853,10 @@ void CMatrixCannon::LogicTact(int tact)
 
     if(m_CurrState != CANNON_UNDER_CONSTRUCTION)
     {
-        if(m_ShowHitpointTime > 0)
+        if(m_ShowHitpointsTime > 0)
         {
-            m_ShowHitpointTime -= tact;
-            if(m_ShowHitpointTime < 0) m_ShowHitpointTime = 0;
+            m_ShowHitpointsTime -= tact;
+            if(m_ShowHitpointsTime < 0) m_ShowHitpointsTime = 0;
         }
     }
     else
@@ -869,7 +872,7 @@ void CMatrixCannon::LogicTact(int tact)
         }
         */
 
-        m_ShowHitpointTime = 1;
+        m_ShowHitpointsTime = 1;
         return;
     }
 
@@ -1241,16 +1244,16 @@ bool CMatrixCannon::TakingDamage(
 
     if(g_Config.m_WeaponsConsts[weap].is_repairer)
     {
-        m_HitPoint = min(m_HitPoint + g_Config.m_WeaponsConsts[weap].damage.to_turrets, m_HitPointMax);
-        m_ProgressBar.Modify(m_HitPoint * m_MaxHitPointInversed);
+        m_Hitpoints = min(m_Hitpoints + g_Config.m_WeaponsConsts[weap].damage.to_turrets, m_MaxHitpoints);
+        m_HealthBar.Modify(m_Hitpoints * m_MaxHitpointsInversed);
 
         return false;
     }
 
-    //m_HitPoint = max(m_HitPoint - damage_coef * friendly_fire ? g_Config.m_WeaponsConsts[weap].friendly_damage.to_turrets : g_Config.m_WeaponsConsts[weap].damage.to_turrets, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_turrets);
-    m_HitPoint = max(m_HitPoint - damage_coef * g_Config.m_WeaponsConsts[weap].damage.to_turrets, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_turrets);
-    if(m_HitPoint >= 0) m_ProgressBar.Modify(m_HitPoint * m_MaxHitPointInversed);
-    else m_ProgressBar.Modify(0);
+    //m_Hitpoints = max(m_Hitpoints - damage_coef * friendly_fire ? g_Config.m_WeaponsConsts[weap].friendly_damage.to_turrets : g_Config.m_WeaponsConsts[weap].damage.to_turrets, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_turrets);
+    m_Hitpoints = max(m_Hitpoints - damage_coef * g_Config.m_WeaponsConsts[weap].damage.to_turrets, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_turrets);
+    if(m_Hitpoints >= 0) m_HealthBar.Modify(m_Hitpoints * m_MaxHitpointsInversed);
+    else m_HealthBar.Modify(0);
 
     if(!friendly_fire) m_MiniMapFlashTime = FLASH_PERIOD;
     if(FLAG(g_MatrixMap->m_Flags, MMFLAG_FLYCAM))
@@ -1321,7 +1324,7 @@ bool CMatrixCannon::TakingDamage(
     }
     else m_LastDelayDamageSide = 0;
 
-    if(m_HitPoint > 0)
+    if(m_Hitpoints > 0)
     {
         if(g_Config.m_WeaponsConsts[weap].explosive_hit) CMatrixEffect::CreateExplosion(pos, ExplosionRobotHit);
     }

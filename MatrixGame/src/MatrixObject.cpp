@@ -75,10 +75,10 @@ bool CMatrixMapObject::TakingDamage(
     {
         m_BreakHitPoint = max(m_BreakHitPoint - g_Config.m_WeaponsConsts[weap].damage.to_objects, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_objects);
 
-        if(m_ProgressBar == nullptr)
+        if(m_HealthBar == nullptr)
         {
-            m_ProgressBar = HNew(g_MatrixHeap) CMatrixProgressBar();
-            m_ProgressBar->Modify(1000000, 0, GetRadius() * 1.2f, 1);
+            m_HealthBar = HNew(g_MatrixHeap) CMatrixProgressBar();
+            m_HealthBar->Modify(1000000, 0, GetRadius() * 1.2f, 1);
         }
 
         if(!m_Graph->IsAnim(L"Pain"))
@@ -111,10 +111,10 @@ bool CMatrixMapObject::TakingDamage(
             m_NextExplosionTimeSound = g_MatrixMap->GetTime();
             g_MatrixMap->RemoveEffectSpawnerByObject(this);
 
-            if(m_ProgressBar != nullptr)
+            if(m_HealthBar != nullptr)
             {
-                HDelete(CMatrixProgressBar, m_ProgressBar, g_MatrixHeap);
-                m_ProgressBar = nullptr;
+                HDelete(CMatrixProgressBar, m_HealthBar, g_MatrixHeap);
+                m_HealthBar = nullptr;
             }
         }
     }
@@ -122,10 +122,10 @@ bool CMatrixMapObject::TakingDamage(
     {
         m_BreakHitPoint = max(m_BreakHitPoint - g_Config.m_WeaponsConsts[weap].damage.to_objects, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_objects);
 
-        if(FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_ProgressBar == nullptr)
+        if(FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_HealthBar == nullptr)
         {
-            m_ProgressBar = HNew(g_MatrixHeap) CMatrixProgressBar();
-            m_ProgressBar->Modify(1000000, 0, PB_SPECIAL_WIDTH, 1);
+            m_HealthBar = HNew(g_MatrixHeap) CMatrixProgressBar();
+            m_HealthBar->Modify(1000000, 0, PB_SPECIAL_WIDTH, 1);
         }
 
         if(m_BreakHitPoint <= 0)
@@ -145,10 +145,10 @@ bool CMatrixMapObject::TakingDamage(
 
             g_MatrixMap->RemoveEffectSpawnerByObject(this);
 
-            if(m_ProgressBar != nullptr)
+            if(m_HealthBar != nullptr)
             {
-                HDelete(CMatrixProgressBar, m_ProgressBar, g_MatrixHeap);
-                m_ProgressBar = nullptr;
+                HDelete(CMatrixProgressBar, m_HealthBar, g_MatrixHeap);
+                m_HealthBar = nullptr;
             }
 
             CWStr temp(g_MatrixMap->IdsGet(m_Type).GetStrPar(OTP_BEHAVIOUR, L"*"), g_CacheHeap);
@@ -167,10 +167,10 @@ bool CMatrixMapObject::TakingDamage(
     {
         m_BreakHitPoint = max(m_BreakHitPoint - g_Config.m_WeaponsConsts[weap].damage.to_objects, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_objects);
 
-        if(FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_ProgressBar == nullptr)
+        if(FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_HealthBar == nullptr)
         {
-            m_ProgressBar = HNew(g_MatrixHeap) CMatrixProgressBar();
-            m_ProgressBar->Modify(1000000, 0, PB_SPECIAL_WIDTH, 1);
+            m_HealthBar = HNew(g_MatrixHeap) CMatrixProgressBar();
+            m_HealthBar->Modify(1000000, 0, PB_SPECIAL_WIDTH, 1);
         }
 
         if(m_BreakHitPoint <= 0)
@@ -188,10 +188,10 @@ bool CMatrixMapObject::TakingDamage(
                 }
             }
 
-            if(m_ProgressBar != nullptr)
+            if(m_HealthBar != nullptr)
             {
-                HDelete(CMatrixProgressBar, m_ProgressBar, g_MatrixHeap);
-                m_ProgressBar = nullptr;
+                HDelete(CMatrixProgressBar, m_HealthBar, g_MatrixHeap);
+                m_HealthBar = nullptr;
             }
 
             CWStr temp(g_MatrixMap->IdsGet(m_Type).GetStrPar(OTP_BEHAVIOUR, L"*").GetStrPar(1, L","), g_CacheHeap);
@@ -715,7 +715,7 @@ void CMatrixMapObject::BeforeDraw()
         m_BurnSkin->m_Preload(m_BurnSkin);
     }
 
-    if(m_BehaviorFlag == BEHF_TERRON && m_ProgressBar && m_BreakHitPoint > 0)
+    if(m_BehaviorFlag == BEHF_TERRON && m_HealthBar && m_BreakHitPoint > 0)
     {
         D3DXVECTOR3 temp = g_MatrixMap->m_Camera.GetFrustumCenter() - GetGeoCenter();
         float dist = D3DXVec3Length(&temp);
@@ -731,12 +731,12 @@ void CMatrixMapObject::BeforeDraw()
             if(TRACE_STOP_NONE == g_MatrixMap->Trace(nullptr, g_MatrixMap->m_Camera.GetFrustumCenter(), pos, TRACE_LANDSCAPE, nullptr))
             {
                 D3DXVECTOR2 p = g_MatrixMap->m_Camera.Project(pos, g_MatrixMap->GetIdentityMatrix());
-                m_ProgressBar->Modify(p.x - r, p.y - r * 0.5f, float(m_BreakHitPoint) / float(m_BreakHitPointMax));
+                m_HealthBar->Modify(p.x - r, p.y - r * 0.5f, float(m_BreakHitPoint) / float(m_BreakHitPointMax));
             }
         }
     }
    
-    if(m_BehaviorFlag == BEHF_BREAK && FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_ProgressBar && m_BreakHitPoint > 0)
+    if(m_BehaviorFlag == BEHF_BREAK && FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_HealthBar && m_BreakHitPoint > 0)
     {
         D3DXVECTOR3 temp = g_MatrixMap->m_Camera.GetFrustumCenter() - GetGeoCenter();
         float dist = D3DXVec3Length(&temp);
@@ -750,12 +750,12 @@ void CMatrixMapObject::BeforeDraw()
             if(TRACE_STOP_NONE == g_MatrixMap->Trace(nullptr, g_MatrixMap->m_Camera.GetFrustumCenter(), pos, TRACE_LANDSCAPE, nullptr))
             {
                 D3DXVECTOR2 p = g_MatrixMap->m_Camera.Project(pos, g_MatrixMap->GetIdentityMatrix());
-                m_ProgressBar->Modify(p.x - (PB_SPECIAL_WIDTH*0.5f), p.y - GetRadius(), float(m_BreakHitPoint) / float(m_BreakHitPointMax));
+                m_HealthBar->Modify(p.x - (PB_SPECIAL_WIDTH*0.5f), p.y - GetRadius(), float(m_BreakHitPoint) / float(m_BreakHitPointMax));
             }
         }
     }
 
-    if(m_BehaviorFlag == BEHF_ANIM && FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_ProgressBar && m_BreakHitPoint > 0)
+    if(m_BehaviorFlag == BEHF_ANIM && FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_HealthBar && m_BreakHitPoint > 0)
     {
         D3DXVECTOR3 temp = g_MatrixMap->m_Camera.GetFrustumCenter() - GetGeoCenter();
         float dist = D3DXVec3Length(&temp);
@@ -769,7 +769,7 @@ void CMatrixMapObject::BeforeDraw()
             if(TRACE_STOP_NONE == g_MatrixMap->Trace(nullptr, g_MatrixMap->m_Camera.GetFrustumCenter(), pos, TRACE_LANDSCAPE, nullptr))
             {
                 D3DXVECTOR2 p = g_MatrixMap->m_Camera.Project(pos, g_MatrixMap->GetIdentityMatrix());
-                m_ProgressBar->Modify(p.x - (PB_SPECIAL_WIDTH*0.5f), p.y - GetRadius(), float(m_BreakHitPoint) / float(m_BreakHitPointMax));
+                m_HealthBar->Modify(p.x - (PB_SPECIAL_WIDTH*0.5f), p.y - GetRadius(), float(m_BreakHitPoint) / float(m_BreakHitPointMax));
             }
         }
     }
@@ -830,17 +830,17 @@ void CMatrixMapObject::Init(int ids)
     {
         SETFLAG(g_MatrixMap->m_Flags, MMFLAG_TERRON_ONMAP);
 
-        if(m_ProgressBar != nullptr) HDelete(CMatrixProgressBar, m_ProgressBar, g_MatrixHeap);
+        if(m_HealthBar != nullptr) HDelete(CMatrixProgressBar, m_HealthBar, g_MatrixHeap);
     }
     
     if(m_BehaviorFlag == BEHF_BREAK)
     {
-        if(m_ProgressBar != nullptr) HDelete(CMatrixProgressBar, m_ProgressBar, g_MatrixHeap);
+        if(m_HealthBar != nullptr) HDelete(CMatrixProgressBar, m_HealthBar, g_MatrixHeap);
     }
 
     if(m_BehaviorFlag == BEHF_ANIM)
     {
-        if(m_ProgressBar != nullptr) HDelete(CMatrixProgressBar, m_ProgressBar, g_MatrixHeap);
+        if(m_HealthBar != nullptr) HDelete(CMatrixProgressBar, m_HealthBar, g_MatrixHeap);
     }
 
     if(m_BehaviorFlag == BEHF_SPAWNER && m_SpawnRobotCore)
@@ -947,13 +947,13 @@ void CMatrixMapObject::Init(int ids)
         if(temp.GetStrPar(3, L",") == STR_BREAK_TYPE_TERRON)
         {
             m_BehaviorFlag = BEHF_TERRON;
-            m_ProgressBar = nullptr;
+            m_HealthBar = nullptr;
             AddLT();
         }
         else
         {
             m_BehaviorFlag = BEHF_BREAK;
-            m_ProgressBar = nullptr;
+            m_HealthBar = nullptr;
             AddLT();
         }
     }
@@ -970,7 +970,7 @@ void CMatrixMapObject::Init(int ids)
         {
             m_BehaviorFlag = BEHF_ANIM;
             ApplyAnimState(0);
-            m_ProgressBar = nullptr;
+            m_HealthBar = nullptr;
             AddLT();
         }
     }
@@ -1086,19 +1086,19 @@ bool CMatrixMapObject::CalcBounds(D3DXVECTOR3 &minv, D3DXVECTOR3 &maxv)
 
 void CMatrixMapObject::PauseTact(int cms)
 {
-    if(m_BehaviorFlag == BEHF_TERRON && m_ProgressBar)
+    if(m_BehaviorFlag == BEHF_TERRON && m_HealthBar)
     {
-        m_ProgressBar->Modify(100000.0f, 0);
+        m_HealthBar->Modify(100000.0f, 0);
     }
     
-    if(m_BehaviorFlag == BEHF_BREAK && FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_ProgressBar)
+    if(m_BehaviorFlag == BEHF_BREAK && FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_HealthBar)
     {
-        m_ProgressBar->Modify(100000.0f, 0);
+        m_HealthBar->Modify(100000.0f, 0);
     }
 
-    if(m_BehaviorFlag == BEHF_ANIM && FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_ProgressBar)
+    if(m_BehaviorFlag == BEHF_ANIM && FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_HealthBar)
     {
-        m_ProgressBar->Modify(100000.0f, 0);
+        m_HealthBar->Modify(100000.0f, 0);
     }
 }
 
@@ -1127,7 +1127,7 @@ void CMatrixMapObject::LogicTact(int cms)
 {
     if(m_BehaviorFlag == BEHF_TERRON)
     {
-        if(m_ProgressBar) m_ProgressBar->Modify(100000.0f, 0);
+        if(m_HealthBar) m_HealthBar->Modify(100000.0f, 0);
 
         if(FLAG(m_ObjectFlags, OBJECT_STATE_TERRON_EXPL))
         {
@@ -1224,11 +1224,11 @@ void CMatrixMapObject::LogicTact(int cms)
     }
     else if(m_BehaviorFlag == BEHF_BREAK)
     {
-        if(m_ProgressBar) m_ProgressBar->Modify(100000.0f, 0);
+        if(m_HealthBar) m_HealthBar->Modify(100000.0f, 0);
     }
     else if(m_BehaviorFlag == BEHF_ANIM)
     {
-        if(m_ProgressBar) m_ProgressBar->Modify(100000.0f, 0);
+        if(m_HealthBar) m_HealthBar->Modify(100000.0f, 0);
     }
     else if(m_BehaviorFlag == BEHF_SPAWNER)
     {

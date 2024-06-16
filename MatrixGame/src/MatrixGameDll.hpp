@@ -89,7 +89,7 @@ struct SMGDRangersInterface
     void(__stdcall*   m_RangersText)(wchar* text, wchar* font, dword color, int sizex, int sizey, int alignx, int aligny, int wordwrap, int smex, int smy, CRect* clipr, SMGDRangersInterfaceText* it);
     void(__stdcall*   m_RangersTextClear)(SMGDRangersInterfaceText* it);
 
-    void(__stdcall*   m_ProgressBar)(float val);
+    void(__stdcall*   m_HealthBar)(float val);
 
     void(__stdcall*   m_Tact)(void);
 

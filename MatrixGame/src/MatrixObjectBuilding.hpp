@@ -113,7 +113,7 @@ class CBuildingQueue : public CMain //Очередь строительства 
     CMatrixMapStatic*  m_Top = nullptr;
     CMatrixMapStatic*  m_Bottom = nullptr;
     CMatrixBuilding*   m_ParentBase = nullptr;
-    CMatrixProgressBar m_ProgressBar;
+    CMatrixProgressBar m_HealthBar;
 
 public:
     CBuildingQueue(CMatrixBuilding* base) : m_ParentBase(base) {}
@@ -226,11 +226,11 @@ public:
     CMatrixMapStatic* m_Capturer = nullptr; // used only for check
 
     // hitpoint
-    CMatrixProgressBar m_ProgressBar;
-    int         m_ShowHitpointTime = 0;
-    float       m_HitPoint = 0.0f;
-    float       m_HitPointMax = 0.0f;
-    float       m_MaxHitPointInversed = 0.0f; // for normalized calcs
+    CMatrixProgressBar m_HealthBar;
+    int         m_ShowHitpointsTime = 0;
+    float       m_Hitpoints = 0.0f;
+    float       m_MaxHitpoints = 0.0f;
+    float       m_MaxHitpointsInversed = 0.0f; // for normalized calcs
 
     EShadowType m_ShadowType = SHADOW_OFF; // 0-off 1-proj 2-proj with anim 3-stencil
     int         m_ShadowSize = 128; // texture size for proj
@@ -327,21 +327,21 @@ public:
 
     void ShowHitpoint()
     {
-        m_ShowHitpointTime = HITPOINT_SHOW_TIME;
+        m_ShowHitpointsTime = HITPOINT_SHOW_TIME;
     }
     void InitMaxHitpoint(float hp)
     {
-        m_HitPoint = hp;
-        m_HitPointMax = hp;
-        m_MaxHitPointInversed = 1.0f / hp;
+        m_Hitpoints = hp;
+        m_MaxHitpoints = hp;
+        m_MaxHitpointsInversed = 1.0f / hp;
     }
     float GetMaxHitPoint()
     {
-        return m_HitPointMax / 10;
+        return m_MaxHitpoints / 10;
     }
     float GetHitPoint()
     {
-        return m_HitPoint / 10;
+        return m_Hitpoints / 10;
     }
     void ReleaseMe();
 
@@ -380,7 +380,7 @@ public:
     virtual bool CalcBounds(D3DXVECTOR3& omin, D3DXVECTOR3& omax);
 
     virtual int  GetSide() const { return m_Side; };
-    virtual bool NeedRepair() const { return m_HitPoint < m_HitPointMax; }
+    virtual bool NeedRepair() const { return m_Hitpoints < m_MaxHitpoints; }
     virtual bool InRect(const CRect& rect) const;
 
     void OnOutScreen();

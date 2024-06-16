@@ -75,14 +75,14 @@ class CMatrixCannon : public CMatrixMapStatic
 
 protected:
     // hitpoint
-    CMatrixProgressBar m_ProgressBar;
-    int         m_ShowHitpointTime = 0;
-    float       m_HitPoint = 0.0f;
-	float       m_HitPointMax = 0.0f;  // Максимальное кол-во здоровья
+    CMatrixProgressBar m_HealthBar;
+    int       m_ShowHitpointsTime = 0;
+    float     m_Hitpoints = 0.0f;      //Текущее количество здоровья
+	float     m_MaxHitpoints = 0.0f;   //Максимальное количество здоровья
     union
     {
-        float m_MaxHitPointInversed = 0.0f; // for normalized calcs
-        float m_AngleMustBe;// = 0.0f;
+        float m_MaxHitpointsInversed = 0.0f; // for normalized calcs
+        float m_TargetAngle;// = 0.0f;
     };
 
     int m_UnderAttackTime = 0;
@@ -156,33 +156,33 @@ public:
         m_Core->m_Type = OBJECT_TYPE_CANNON;
 
         InitMaxHitpoint(8000);
-        m_ProgressBar.Modify(1000000, 0, PB_CANNON_WIDTH, 1);
+        m_HealthBar.Modify(1000000, 0, PB_CANNON_WIDTH, 1);
         if(g_Config.m_BuildingShadows) m_ShadowType = SHADOW_STENCIL;
     }
 	~CMatrixCannon();
 
     void DIPTact(float ms);
 
-    void  ShowHitpoint()            { m_ShowHitpointTime = HITPOINT_SHOW_TIME; }
-    float GetHitPoint() const       { return m_HitPoint; }
-    float GetMaxHitPoint()          { return m_HitPointMax; }
-    void  InitMaxHitpoint(float hp) { m_HitPoint = hp; m_HitPointMax = hp; m_MaxHitPointInversed = 1.0f / hp; }
-    void  SetHitPoint(float hp)     { m_HitPoint = hp; }
-    float GetMaxHitPointInversed()  { return m_MaxHitPointInversed; }
+    void  ShowHitpoint()            { m_ShowHitpointsTime = HITPOINT_SHOW_TIME; }
+    float GetHitPoint() const       { return m_Hitpoints; }
+    float GetMaxHitPoint()          { return m_MaxHitpoints; }
+    void  InitMaxHitpoint(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
+    void  SetHitPoint(float hp)     { m_Hitpoints = hp; }
+    float GetMaxHitPointInversed()  { return m_MaxHitpointsInversed; }
     float GetSeekRadius();
     float GetFireRadius()           { return m_TurretWeaponsTopRange; }
 
     bool IsRefProtect() const       { return FLAG(m_ObjectFlags, OBJECT_CANNON_REF_PROTECTION); }
     void SetRefProtectHit()         { SETFLAG(m_ObjectFlags, OBJECT_CANNON_REF_PROTECTION_HIT); }
 
-    void SetPBOutOfScreen()         { m_ProgressBar.Modify(100000.0f, 0); }
+    void SetPBOutOfScreen()         { m_HealthBar.Modify(100000.0f, 0); }
 
-    void  SetMustBeAngle(float a)   { m_AngleMustBe = a; }
-    float GetMustBeAngle()          { return m_AngleMustBe; }
+    void  SetMustBeAngle(float a)   { m_TargetAngle = a; }
+    float GetMustBeAngle()          { return m_TargetAngle; }
 
     void SetSide(int id)            { m_Side = id; }
 
-    void UnitInit(int num)          { m_TurretKind = num; RChange(MR_ShadowStencil | MR_ShadowProjGeom | MR_ShadowProjTex | MR_Graph); }
+    void ModelInit(int num)          { m_TurretKind = num; RChange(MR_ShadowStencil | MR_ShadowProjGeom | MR_ShadowProjTex | MR_Graph); }
 
 	void ModuleClear();
 
@@ -208,7 +208,7 @@ public:
 
     virtual bool CalcBounds(D3DXVECTOR3& omin, D3DXVECTOR3& omax);
     virtual int GetSide() const     { return m_Side; };
-    virtual bool NeedRepair() const { return m_CurrState != CANNON_UNDER_CONSTRUCTION && (m_HitPoint < m_HitPointMax); }
+    virtual bool NeedRepair() const { return m_CurrState != CANNON_UNDER_CONSTRUCTION && (m_Hitpoints < m_MaxHitpoints); }
         
     virtual bool InRect(const CRect &rect)const;
 

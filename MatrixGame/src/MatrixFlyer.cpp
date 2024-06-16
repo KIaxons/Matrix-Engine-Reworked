@@ -30,7 +30,7 @@ CMatrixFlyer::CMatrixFlyer() : CMatrixMapStatic()
     InitBuffers();
     ++m_VB_ref;
 
-    m_ProgressBar.Modify(1000000, 0, PB_FLYER_WIDTH, 1);
+    m_HealthBar.Modify(1000000, 0, PB_FLYER_WIDTH, 1);
 
     if(g_Config.m_UnitShadows) m_ShadowType = SHADOW_STENCIL;
 }
@@ -637,10 +637,10 @@ DTRACE();
         }
     }
 
-    if(m_ShowHitpointTime > 0 && m_HitPoint > 0)
+    if(m_ShowHitpointsTime > 0 && m_Hitpoints > 0)
     {
         D3DXVECTOR2 p = g_MatrixMap->m_Camera.Project(GetPos(), g_MatrixMap->GetIdentityMatrix());
-        m_ProgressBar.Modify(p.x-(PB_FLYER_WIDTH*0.5f), p.y-FLYER_RADIUS*2, m_HitPoint * m_MaxHitPointInversed);
+        m_HealthBar.Modify(p.x-(PB_FLYER_WIDTH*0.5f), p.y-FLYER_RADIUS*2, m_Hitpoints * m_MaxHitpointsInversed);
     }
 }
 
@@ -1196,12 +1196,12 @@ DTRACE();
     td.ms = float(tact);
 
     // pb
-    m_ShowHitpointTime -= tact;
-    if(m_ShowHitpointTime <= 0)
+    m_ShowHitpointsTime -= tact;
+    if(m_ShowHitpointsTime <= 0)
     {
-        m_ShowHitpointTime = 0;
+        m_ShowHitpointsTime = 0;
     }
-    m_ProgressBar.Modify(100000.0f, 0);
+    m_HealthBar.Modify(100000.0f, 0);
 
     if(FLAG(m_Flags, FLYER_IN_SPAWN))
     {
@@ -1704,9 +1704,9 @@ DTRACE();
 
     CMatrixEffectWeapon::SoundHit(weap, pos);
 
-    m_HitPoint = max(m_HitPoint - g_Config.m_WeaponsConsts[weap].damage.to_flyers, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_flyers);
-    if(m_HitPoint >= 0) m_ProgressBar.Modify(m_HitPoint * m_MaxHitPointInversed);
-    else m_ProgressBar.Modify(0);
+    m_Hitpoints = max(m_Hitpoints - g_Config.m_WeaponsConsts[weap].damage.to_flyers, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_flyers);
+    if(m_Hitpoints >= 0) m_HealthBar.Modify(m_Hitpoints * m_MaxHitpointsInversed);
+    else m_HealthBar.Modify(0);
 
     //Проверяем, какие эффекты накладывает попавшее в вертолёт оружие
     if(g_Config.m_WeaponsConsts[weap].extra_effects.size())
@@ -1744,7 +1744,7 @@ DTRACE();
     else m_LastDelayDamageSide = 0;
 
     //Если вертолёт ещё жив, рисуем проходящий по нему урон
-    if(m_HitPoint > 0)
+    if(m_Hitpoints > 0)
     {
         if(g_Config.m_WeaponsConsts[weap].explosive_hit)
         {
@@ -2115,12 +2115,12 @@ void CMatrixFlyer::ReleaseMe()
 
 void CMatrixFlyer::CreateProgressBarClone(float x, float y, float width, EPBCoord clone_type)
 {
-    m_ProgressBar.CreateClone(clone_type, x, y, width);
+    m_HealthBar.CreateClone(clone_type, x, y, width);
 }
 
 void CMatrixFlyer::DeleteProgressBarClone(EPBCoord clone_type)
 {
-    m_ProgressBar.KillClone(clone_type);
+    m_HealthBar.KillClone(clone_type);
 }
 
 void CMatrixFlyer::CreateTextures()
