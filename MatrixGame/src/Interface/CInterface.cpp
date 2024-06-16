@@ -4562,9 +4562,9 @@ void __stdcall CIFaceList::PlayerAction(void* object)
         CMatrixBuilding* base = (CMatrixBuilding*)ps->m_ActiveObject;
 
         //Нажали кнопку постройки конкретной турели
-        if(element->m_strName.GetLen() == 4 && !wcsncmp(element->m_strName, IF_BUILD_TUR, 3))
+        if((element->m_strName.GetLen() == 4 || element->m_strName.GetLen() == 5) && !wcsncmp(element->m_strName, IF_BUILD_TUR, 3))
         {
-            int turr_num = wcstol(&element->m_strName[3], nullptr, 0); //Конверт цифры из символа wchar в int
+            int turr_num = wcstol(element->m_strName.Get() + 3, nullptr, 0); //Конверт цифры из символа wchar в int
             if(ps->IsEnoughResourcesForTurret(&g_Config.m_TurretsConsts[turr_num])) CreatePhantomCannonForBuild(turr_num);
             else CSound::Play(S_CANT_BE_DONE, SL_INTERFACE);
         }
