@@ -3294,8 +3294,6 @@ CIFaceImage* CInterface::FindImageByName(CWStr name)
 
 CIFaceStatic* CInterface::CreateStaticFromImage(float x, float y, float z, const CIFaceImage& image, bool full_size)
 {
-DTRACE();
-
     CIFaceStatic* stat = HNew(Base::g_MatrixHeap) CIFaceStatic;
 
     stat->m_strName = image.m_strName;
@@ -3385,8 +3383,6 @@ void CInterface::MoveDown()
 
 void CInterface::ReCalcElementsPos()
 {
-DTRACE();
-
     CIFaceElement* pElement = m_FirstElement;
 
     if(m_strName == IF_MAIN)
@@ -4557,7 +4553,7 @@ void __stdcall CIFaceList::PlayerAction(void* object)
         SETFLAG(m_IfListFlags, PREORDER_BUILD_REPAIR);       
     }
 
-    if(ps->m_CurrSel == BASE_SELECTED  || ps->m_CurrSel == BUILDING_SELECTED)
+    if(ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED)
     {
         CMatrixBuilding* base = (CMatrixBuilding*)ps->m_ActiveObject;
 

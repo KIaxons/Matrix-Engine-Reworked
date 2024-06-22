@@ -199,7 +199,6 @@ void CMatrixMap::RobotPreload(void)
     }
 }
 
-
 void CMatrixMap::ModuleClear(void)
 {
     if(m_Module != nullptr) { HFree(m_Module, Base::g_MatrixHeap); m_Module = nullptr; }

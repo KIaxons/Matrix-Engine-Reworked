@@ -77,7 +77,7 @@ public:
     }
 
     friend class CMatrixEffect;
-    friend class CMatrixEffectZahvat;
+    friend class CMatrixEffectCaptureCircles;
     friend class CMatrixEffectDust;
     friend class CMatrixEffectMoveto;
 

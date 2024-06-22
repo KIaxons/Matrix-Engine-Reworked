@@ -11,7 +11,7 @@
 
 #define BASE_FLOOR_Z        (-63.0f) //Высота подъёма готового юнита из недр базы (на визуальную глубину залегания подъемника не влияет)
 #define BASE_FLOOR_SPEED    0.0008f  //Скорость воспроизведения подъёма лифта и юнита на нём (так можно ускорить спавн)
-#define MAX_ZAHVAT_POINTS   14
+#define MAX_CAPTURE_CIRCLES 14       //Максимальное число кругов захвата на площадках заводов
 
 #define BUILDING_EXPLOSION_PERIOD_SND_1    100
 #define BUILDING_EXPLOSION_PERIOD_SND_2    500
@@ -212,7 +212,7 @@ public:
 
     EBaseState m_State = BASE_CLOSING;
 
-    CMatrixEffectZahvat* m_Capture = nullptr;
+    CMatrixEffectCaptureCircles* m_CaptureCircles = nullptr;
     STrueColor m_TrueColor;
 
     int m_InCaptureTime = 0;
@@ -276,6 +276,8 @@ public:
         g_MatrixMap->RemoveGatheringPoint(this);
     }
     void ShowGatheringPointTact(int cms);
+
+    bool CreateCaptureCirclesEffect();
 
     bool HaveMaxTurrets() const { return m_TurretsHave >= (int)m_TurretsLimit; }
 

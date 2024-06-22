@@ -42,7 +42,7 @@
 
 #define TEXTURE_PATH_KEELWATER                  L"Matrix\\Textures\\Billboard\\keelwater"
 #define TEXTURE_PATH_WAVE                       L"Matrix\\Textures\\Billboard\\kryg00"
-#define TEXTURE_PATH_ZAHVAT                     L"Matrix\\Textures\\Billboard\\zahspot"
+#define CAPTURE_CIRCLE_TEXTURE_PATH             L"Sprites.CaptureCircle"
 #define TEXTURE_PATH_OBJSEL                     L"Matrix\\Textures\\Billboard\\selection"
 
 #define TEXTURE_PATH_MOVETO                     L"Mods\\PlanetaryBattles\\PBEngine\\Matrix\\Textures\\Sprites\\way_point"

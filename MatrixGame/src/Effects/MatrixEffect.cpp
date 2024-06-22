@@ -1101,25 +1101,19 @@ void CMatrixEffect::CreateSpritesLine(SEffectHandler* eh, const D3DXVECTOR3& pos
     if(!g_MatrixMap->AddEffect(e)) e = nullptr;
     if(eh && e)
     {
-#ifdef _DEBUG
-        eh->Release(DEBUG_CALL_INFO);
-#else
         eh->Release();
-#endif
         eh->effect = e;
         e->SetHandler(eh);
     }
 }
 
-CMatrixEffect * CMatrixEffect::CreateZahvat(const D3DXVECTOR3 &pos, float radius, float angle, int cnt)
+CMatrixEffect* CMatrixEffect::CreateCaptureCircles(const D3DXVECTOR3 &pos, float radius, float angle, int cnt)
 {
-DTRACE();
-
-    CMatrixEffectZahvat *e = HNew(m_Heap) CMatrixEffectZahvat(pos, radius, angle, cnt);
+    CMatrixEffectCaptureCircles* e = HNew(m_Heap) CMatrixEffectCaptureCircles(pos, radius, angle, cnt);
     return e;
 }
 
-CMatrixEffect * CMatrixEffect::CreateElevatorField(const D3DXVECTOR3 &pos0,const D3DXVECTOR3 &pos1, float radius, const D3DXVECTOR3 & fwd)
+CMatrixEffect* CMatrixEffect::CreateElevatorField(const D3DXVECTOR3 &pos0,const D3DXVECTOR3 &pos1, float radius, const D3DXVECTOR3 & fwd)
 {
     CMatrixEffectElevatorField *e = HNew(m_Heap) CMatrixEffectElevatorField(pos0, pos1, radius, fwd);
     return e;

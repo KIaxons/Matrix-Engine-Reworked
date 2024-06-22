@@ -8,72 +8,66 @@
 #include "../MatrixMap.hpp"
 #include <math.h>
 
-CMatrixEffectZahvat::CMatrixEffectZahvat(const D3DXVECTOR3 &pos, float radius, float angle, int cnt):
-CMatrixEffect(), m_Count(cnt)
+CMatrixEffectCaptureCircles::CMatrixEffectCaptureCircles(const D3DXVECTOR3& pos, float radius, float angle, int cnt) : m_Count(cnt)
 {
-    DTRACE();
-    m_EffectType = EFFECT_ZAHVAT;
+    m_EffectType = EFFECT_CAPTURE_CIRCLES;
 
-    m_BBoards = (CMatrixEffectBillboard *)HAlloc(sizeof(CMatrixEffectBillboard) * cnt, m_Heap);
-    
+    m_Sprites = (CMatrixEffectBillboard*)HAlloc(sizeof(CMatrixEffectBillboard) * cnt, m_Heap);
+
     float da = float(2 * M_PI / double(cnt));
     float s, c;
-    
-    for (int i=0;i<m_Count; ++i)
+
+    CWStr tex_path = g_CacheData->ParPathGet(CAPTURE_CIRCLE_TEXTURE_PATH);
+    for(int i = 0; i < m_Count; ++i)
     {
         SinCos(angle, &s, &c);
-        m_BBoards[i].CMatrixEffectBillboard::CMatrixEffectBillboard(pos + D3DXVECTOR3(c*radius, s*radius,0), ZAHVAT_SPOT_SIZE, ZAHVAT_SPOT_SIZE, ZAHVAT_SPOT_GRAY1,ZAHVAT_SPOT_GRAY2,ZAHVAT_FLASH_PERIOD,0, TEXTURE_PATH_ZAHVAT, D3DXVECTOR3(1,0,0));
-        m_BBoards[i].m_Intense = false;
+        m_Sprites[i].CMatrixEffectBillboard::CMatrixEffectBillboard(pos + D3DXVECTOR3(c * radius, s * radius, 0), CAPTURE_CIRCLE_SIZE, CAPTURE_CIRCLE_SIZE, CAPTURE_CIRCLE_GRAY_1, CAPTURE_CIRCLE_GRAY_2, CAPTURE_CIRCLE_FLASH_PERIOD, 0, tex_path, D3DXVECTOR3(1.0f, 0.0f, 0.0f));
+        m_Sprites[i].m_Intense = false;
         angle += da;
     }
 
-    UpdateData(0,0);
-}
-CMatrixEffectZahvat::~CMatrixEffectZahvat()
-{
-    DTRACE();
-    for (int i=0;i<m_Count; ++i) m_BBoards[i].~CMatrixEffectBillboard();
-    HFree(m_BBoards, m_Heap);
+    UpdateData(0, 0);
 }
 
-void CMatrixEffectZahvat::UpdateData(dword color, int count)
+CMatrixEffectCaptureCircles::~CMatrixEffectCaptureCircles()
 {
-    DTRACE();
+    for(int i = 0; i < m_Count; ++i) m_Sprites[i].~CMatrixEffectBillboard();
+    HFree(m_Sprites, m_Heap);
+}
+
+void CMatrixEffectCaptureCircles::UpdateData(dword color, int count)
+{
     ASSERT(count <= m_Count);
-    int count1 = m_Count-count;
+    int count1 = m_Count - count;
     int i = 0;
-    while (count-- > 0)
+
+    while(count-- > 0)
     {
-        m_BBoards[i++].SetColor(color, ZAHVAT_SPOT_GRAY2);
+        m_Sprites[i++].SetColor(color, CAPTURE_CIRCLE_GRAY_2);
     }
-    while (count1-- > 0)
+    while(count1-- > 0)
     {
-        m_BBoards[i++].SetColor(ZAHVAT_SPOT_GRAY1, ZAHVAT_SPOT_GRAY2);
+        m_Sprites[i++].SetColor(CAPTURE_CIRCLE_GRAY_1, CAPTURE_CIRCLE_GRAY_2);
     }
 }
 
-void CMatrixEffectZahvat::BeforeDraw(void)
+void CMatrixEffectCaptureCircles::BeforeDraw()
 {
-    DTRACE();
-
-    if(m_Count>0) m_BBoards[0].BeforeDraw();
+    if(m_Count > 0) m_Sprites[0].BeforeDraw();
 }
 
-void CMatrixEffectZahvat::Draw(void)
+void CMatrixEffectCaptureCircles::Draw()
 {
-    DTRACE();
+    for(int i = 0; i < m_Count; ++i) m_Sprites[i].Draw();
+}
 
-    for (int i=0;i<m_Count; ++i) m_BBoards[i].Draw();
-}
-void CMatrixEffectZahvat::Tact(float)
+void CMatrixEffectCaptureCircles::Tact(float step)
 {
-    DTRACE();
-    //for (int i=0;i<m_Count; ++i) m_BBoards[i].Tact2(step);
+    //for(int i = 0; i < m_Count; ++i) m_Sprites[i].Tact2(step);
 }
-void CMatrixEffectZahvat::Release(void)
+
+void CMatrixEffectCaptureCircles::Release()
 {
-    DTRACE();
     SetDIP();
-    HDelete(CMatrixEffectZahvat, this, m_Heap);
+    HDelete(CMatrixEffectCaptureCircles, this, m_Heap);
 }
-

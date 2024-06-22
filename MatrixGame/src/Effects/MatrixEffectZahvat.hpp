@@ -5,32 +5,28 @@
 
 #pragma once
 
+#define CAPTURE_CIRCLE_SIZE         6
+#define CAPTURE_CIRCLE_GRAY_1       0x00ffffff
+#define CAPTURE_CIRCLE_GRAY_2       0xf0808080
+#define CAPTURE_CIRCLE_FLASH_PERIOD 3000
 
-#define ZAHVAT_SPOT_SIZE        6
-#define ZAHVAT_SPOT_GRAY1       0x00ffffff
-#define ZAHVAT_SPOT_GRAY2       0xf0808080
-#define ZAHVAT_FLASH_PERIOD     3000
-
-class CMatrixEffectZahvat : public CMatrixEffect
+class CMatrixEffectCaptureCircles : public CMatrixEffect
 {
-    int         m_Count;
-    CMatrixEffectBillboard *m_BBoards;
+    int m_Count = 0;
+    CMatrixEffectBillboard* m_Sprites = nullptr;
 
-    CMatrixEffectZahvat(const D3DXVECTOR3 &pos, float radius, float angle, int cnt);
-	virtual ~CMatrixEffectZahvat();
+    CMatrixEffectCaptureCircles(const D3DXVECTOR3& pos, float radius, float angle, int cnt);
+	virtual ~CMatrixEffectCaptureCircles();
 
 public:
     friend class CMatrixEffect;
 
     void UpdateData(dword color, int count);
 
-    virtual void BeforeDraw(void);
-    virtual void Draw(void);
+    virtual void BeforeDraw();
+    virtual void Draw();
     virtual void Tact(float step);
-    virtual void Release(void);
+    virtual void Release();
 
-    virtual int  Priority(void) {return MAX_EFFECT_PRIORITY;};
+    virtual int  Priority() { return MAX_EFFECT_PRIORITY; };
 };
-
-
-

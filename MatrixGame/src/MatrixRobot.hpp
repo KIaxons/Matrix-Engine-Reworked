@@ -431,7 +431,7 @@ public:
                 if(cf->IsBase()) return false;
                 if(cf->GetSide() != robot->GetSide())
                 {
-                    if((float(cf->m_TrueColor.m_ColoredCnt) / MAX_ZAHVAT_POINTS) > (1.0 - (robot->AsRobot()->GetHitPoint() * 1.1f) / robot->AsRobot()->GetMaxHitPoint())) return false;
+                    if((float(cf->m_TrueColor.m_ColoredCnt) / MAX_CAPTURE_CIRCLES) > (1.0 - (robot->AsRobot()->GetHitPoint() * 1.1f) / robot->AsRobot()->GetMaxHitPoint())) return false;
                 }
                 */
             }

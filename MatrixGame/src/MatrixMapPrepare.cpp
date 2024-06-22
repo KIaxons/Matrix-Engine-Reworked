@@ -1139,10 +1139,10 @@ int CMatrixMap::PrepareMap(CStorage& stor, const CWStr& map_name)
     ic = prop_key->FindAsWStr(DATA_SKYNAME);
     if(ic >= 0)
     {
-        CWStr skyname = prop_val->GetAsWStr(ic);
+        CWStr sky_name = prop_val->GetAsWStr(ic);
 
-        CBlockPar* skbp = g_CacheData->BlockPathGet(L"Map.Textures.Sky")->BlockGetNE(skyname);
-        if(!skbp) ERROR_S3(L"Skybox textures in section \"", skyname, L"\" in cache.txt was not found!");
+        CBlockPar* skbp = g_CacheData->BlockPathGet(L"Map.Textures.Sky")->BlockGetNE(sky_name);
+        if(!skbp) ERROR_S3(L"Skybox textures in section \"", sky_name, L"\" in cache.txt was not found!");
 
         m_SkyAngle = GRAD2RAD(skbp->ParGet(L"Angle").GetFloat());
         m_SkyDeltaAngle = GRAD2RAD(skbp->ParGet(L"DeltaAngle").GetFloat());
@@ -1156,27 +1156,27 @@ int CMatrixMap::PrepareMap(CStorage& stor, const CWStr& map_name)
                 //Блядская пирамида, вместо нормального скайбокса
                 switch(idx)
                 {
-                    case 0: skyname = L"Front"; break;
-                    case 1: skyname = L"Back"; break;
-                    case 2: skyname = L"Left"; break;
-                    case 3: skyname = L"Right"; break;
-                    //case 4: skyname = L"Up"; break;
-                    //case 5: skyname = L"Down"; break;
+                    case 0: sky_name = L"Front"; break;
+                    case 1: sky_name = L"Back"; break;
+                    case 2: sky_name = L"Left"; break;
+                    case 3: sky_name = L"Right"; break;
+                    //case 4: sky_name = L"Up"; break;
+                    //case 5: sky_name = L"Down"; break;
                 }
 
-                CWStr texname(skbp->ParGet(skyname).GetStrPar(0, L","), g_CacheHeap);
+                CWStr tex_name(skbp->ParGet(sky_name).GetStrPar(0, L","), g_CacheHeap);
 
-                if(g_Config.m_SkyBox == 2) texname += L"_high"; //Если выставлена настройка на использование более качественных текстур скайбоксов
+                if(g_Config.m_SkyBox == 2) tex_name += L"_high"; //Если выставлена настройка на использование более качественных текстур скайбоксов
 
-                m_SkyTex[idx].tex = (CTextureManaged*)g_Cache->Get(cc_TextureManaged, texname.Get());
+                m_SkyTex[idx].tex = (CTextureManaged*)g_Cache->Get(cc_TextureManaged, tex_name.Get());
                 CTextureManaged* tex = m_SkyTex[idx].tex;
                 tex->MipmapOff();
                 tex->Prepare();
 
-                m_SkyTex[idx].u0 = float(skbp->ParGet(skyname).GetIntPar(1, L",")) / float(tex->GetSizeX());
-                m_SkyTex[idx].v0 = float(skbp->ParGet(skyname).GetIntPar(2, L",")) / float(tex->GetSizeY());
-                m_SkyTex[idx].u1 = float(skbp->ParGet(skyname).GetIntPar(3, L",")) / float(tex->GetSizeX());
-                m_SkyTex[idx].v1 = float(skbp->ParGet(skyname).GetIntPar(4, L",")) / float(tex->GetSizeY());
+                m_SkyTex[idx].u0 = float(skbp->ParGet(sky_name).GetIntPar(1, L",")) / float(tex->GetSizeX());
+                m_SkyTex[idx].v0 = float(skbp->ParGet(sky_name).GetIntPar(2, L",")) / float(tex->GetSizeY());
+                m_SkyTex[idx].u1 = float(skbp->ParGet(sky_name).GetIntPar(3, L",")) / float(tex->GetSizeX());
+                m_SkyTex[idx].v1 = float(skbp->ParGet(sky_name).GetIntPar(4, L",")) / float(tex->GetSizeY());
             }
         }
     }
@@ -1777,39 +1777,41 @@ void CMatrixMap::StaticPrepare(int ocnt, bool skip_progress)
 
             if((*sb)->IsBuilding())
             {
+                CMatrixBuilding* building = (*sb)->AsBuilding();
+
                 SObjectCore* core = (*sb)->GetCore(DEBUG_CALL_INFO);
                 D3DXVECTOR3 temp;
 
-                switch((*sb)->AsBuilding()->m_Kind)
+                switch(building->m_Kind)
                 {
                     case BUILDING_BASE:
                     {
                         temp = { -8.896f, -68.774f, 55.495f };
-                        D3DXVec3TransformCoord(&(*sb)->AsBuilding()->m_TopPoint, &temp, &core->m_Matrix);
+                        D3DXVec3TransformCoord(&building->m_TopPoint, &temp, &core->m_Matrix);
                         break;
                     }
                     case BUILDING_TITAN:
                     {
                         temp = { 0.455f, 58.688f, 73.993f };
-                        D3DXVec3TransformCoord(&(*sb)->AsBuilding()->m_TopPoint, &temp, &core->m_Matrix);
+                        D3DXVec3TransformCoord(&building->m_TopPoint, &temp, &core->m_Matrix);
                         break;
                     }
                     case BUILDING_ELECTRONIC:
                     {
                         temp = { 0.124f, 64.68f, 75.081f };
-                        D3DXVec3TransformCoord(&(*sb)->AsBuilding()->m_TopPoint, &temp, &core->m_Matrix);
+                        D3DXVec3TransformCoord(&building->m_TopPoint, &temp, &core->m_Matrix);
                         break;
                     }
                     case BUILDING_ENERGY:
                     {
                         temp = { 0.1f, 110.0f, 51.103f };
-                        D3DXVec3TransformCoord(&(*sb)->AsBuilding()->m_TopPoint, &temp, &core->m_Matrix);
+                        D3DXVec3TransformCoord(&building->m_TopPoint, &temp, &core->m_Matrix);
                         break;
                     }
                     case BUILDING_PLASMA:
                     {
                         temp = { -0.149f, 105.0f, 72.981f };
-                        D3DXVec3TransformCoord(&(*sb)->AsBuilding()->m_TopPoint, &temp, &core->m_Matrix);
+                        D3DXVec3TransformCoord(&building->m_TopPoint, &temp, &core->m_Matrix);
                         break;
                     }
                 }
@@ -1939,13 +1941,17 @@ void CMatrixMap::Restart()
     {
         if(ms->GetObjectType() == OBJECT_TYPE_BUILDING)
         {
-            if(ms->AsBuilding()->GatheringPointIsSet()) ms->AsBuilding()->ClearGatheringPoint();
+            CMatrixBuilding* building = ms->AsBuilding();
+
+            if(building->GatheringPointIsSet()) building->ClearGatheringPoint();
             if(ms->IsBuildingAlive())
             {
-                ms->AsBuilding()->LogicTact(100000);
+                building->LogicTact(100000);
                 ms->GetResources(MR_Matrix | MR_Graph | MR_MiniMap);
+                if(!building->IsBase()) building->CreateCaptureCirclesEffect();
             }
         }
+
         ms = ms->GetNextLogic();
     }
 
@@ -2051,8 +2057,11 @@ void CMatrixMap::CreatePoolDefaultResources(bool loading)
         {
             if(ms->IsBuildingAlive())
             {
-                ms->AsBuilding()->LogicTact(100000);
+                CMatrixBuilding* building = ms->AsBuilding();
+
+                building->LogicTact(100000);
                 ms->GetResources(MR_Matrix | MR_Graph | MR_MiniMap);
+                if(!building->IsBase()) building->CreateCaptureCirclesEffect();
             }
 
             ms = ms->GetNextLogic();

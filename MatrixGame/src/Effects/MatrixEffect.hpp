@@ -203,7 +203,7 @@ enum EEffectType
     /* 10 */ EFFECT_SELECTION_LAND,
     /* 11 */ EFFECT_MOVETO,
     /* 12 */ EFFECT_PATH,
-    /* 13 */ EFFECT_ZAHVAT,
+    /* 13 */ EFFECT_CAPTURE_CIRCLES,
     /* 14 */ EFFECT_ELEVATOR_FIELD,
     /* 15 */ EFFECT_POINT_LIGHT,
     /* 16 */ EFFECT_KONUS,
@@ -424,7 +424,7 @@ public:
     static void            CreateBillboardScore(const wchar* n, const D3DXVECTOR3& pos, dword color);
     static void            CreateSpritesLine(SEffectHandler* eh, const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, float width, dword color1, dword color2, float ttl, CTextureManaged* tex); // automaticaly adds to Effects list; can return nullptr
     
-    static CMatrixEffect*  CreateZahvat(const D3DXVECTOR3& pos, float radius, float angle, int cnt);
+    static CMatrixEffect*  CreateCaptureCircles(const D3DXVECTOR3& pos, float radius, float angle, int cnt);
     static CMatrixEffect*  CreateElevatorField(const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, float radius, const D3DXVECTOR3& fwd);
     static void            CreateDust(SEffectHandler* eh, const D3DXVECTOR2& pos, const D3DXVECTOR2& add_dir, float ttl); // automaticaly adds to Effects list; can return nullptr
     static CMatrixEffectFireStream* CreateFireStream(const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, float width, dword color, const std::vector<int>& sprites_num = { SPR_JET_STREAM_ANIM_FRAME_1, SPR_JET_STREAM_ANIM_FRAME_2, SPR_JET_STREAM_ANIM_FRAME_3, SPR_JET_STREAM_ANIM_FRAME_4, SPR_JET_STREAM_ANIM_FRAME_5 });

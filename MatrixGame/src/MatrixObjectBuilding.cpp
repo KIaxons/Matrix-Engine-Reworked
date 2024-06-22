@@ -49,7 +49,7 @@ CMatrixBuilding::~CMatrixBuilding()
     if(m_GGraph) { HDelete(CVectorObjectGroup, m_GGraph, Base::g_MatrixHeap); }
     if(m_ShadowProj) { HDelete(CMatrixShadowProj, m_ShadowProj, Base::g_MatrixHeap); m_ShadowProj = nullptr; }
 
-    if(m_Capture) g_MatrixMap->SubEffect(m_Capture);
+    if(m_CaptureCircles) g_MatrixMap->SubEffect(m_CaptureCircles);
     //if(m_Places) HFree(m_Places, g_MatrixHeap);
 
     DeletePlacesShow();
@@ -429,9 +429,9 @@ void CMatrixBuilding::Tact(int cms)
         }
     }
 
-    if(m_Capture) m_Capture->UpdateData(m_TrueColor.m_Color, m_TrueColor.m_ColoredCnt);
+    //Регулярно обновляем цвета кругов захвата завода
+    if(m_CaptureCircles && !IsBase()) m_CaptureCircles->UpdateData(m_TrueColor.m_Color, m_TrueColor.m_ColoredCnt);
 
-    
 	if(m_GGraph)
     {
         //Здесь постоянно крутим анимации всех анимированных объектов на здании
@@ -475,48 +475,51 @@ void CMatrixBuilding::Tact(int cms)
             }
         }
 	}
+}
 
-    if(!m_Capture && !IsBase())
+bool CMatrixBuilding::CreateCaptureCirclesEffect()
+{
+    if(m_Core->m_Matrix._22 > 0)
     {
-        if(m_Core->m_Matrix._22 > 0)
-        {
-            m_Capture = (CMatrixEffectZahvat*)CMatrixEffect::CreateZahvat(
-                D3DXVECTOR3(m_Pos.x + m_Core->m_Matrix._21 * 2.7f, m_Pos.y + m_Core->m_Matrix._22 * 2.7f, m_Core->m_Matrix._43 + 0.8f), 24, GRAD2RAD(102), MAX_ZAHVAT_POINTS);
-        }
-        else if(m_Core->m_Matrix._21 > 0)
-        {
-            m_Capture = (CMatrixEffectZahvat*)CMatrixEffect::CreateZahvat(
-                D3DXVECTOR3(m_Pos.x + m_Core->m_Matrix._21 * 2.7f, m_Pos.y + m_Core->m_Matrix._22 * 2.7f, m_Core->m_Matrix._43 + 0.8f), 24, GRAD2RAD(12), MAX_ZAHVAT_POINTS);
-        }
-        else if(m_Core->m_Matrix._21 < 0)
-        {
-            m_Capture = (CMatrixEffectZahvat*)CMatrixEffect::CreateZahvat(
-                D3DXVECTOR3(m_Pos.x + m_Core->m_Matrix._21 * 2.7f, m_Pos.y + m_Core->m_Matrix._22 * 2.7f, m_Core->m_Matrix._43 + 0.8f), 24, GRAD2RAD(192), MAX_ZAHVAT_POINTS);
-        }
-        else if(m_Core->m_Matrix._22 < 0)
-        {
-            m_Capture = (CMatrixEffectZahvat*)CMatrixEffect::CreateZahvat(
-                D3DXVECTOR3(m_Pos.x + m_Core->m_Matrix._21 * 2.7f, m_Pos.y + m_Core->m_Matrix._22 * 2.7f, m_Core->m_Matrix._43 + 0.8f), 24, GRAD2RAD(-79), MAX_ZAHVAT_POINTS);
-        }
-
-        if(!g_MatrixMap->AddEffect(m_Capture))
-        {
-            m_Capture = nullptr;
-        }
-        else
-        {
-            if(!m_Side)
-            {
-                m_TrueColor.m_Color = 0;
-                m_TrueColor.m_ColoredCnt = 0;
-            }
-            else
-            {
-                m_TrueColor.m_Color = (0xFF000000) | g_MatrixMap->GetSideColor(m_Side);
-                m_TrueColor.m_ColoredCnt = MAX_ZAHVAT_POINTS;
-            }
-        }
+        m_CaptureCircles = (CMatrixEffectCaptureCircles*)CMatrixEffect::CreateCaptureCircles(
+            D3DXVECTOR3(m_Pos.x + m_Core->m_Matrix._21 * 2.7f, m_Pos.y + m_Core->m_Matrix._22 * 2.7f, m_Core->m_Matrix._43 + 0.8f), 24, GRAD2RAD(102), MAX_CAPTURE_CIRCLES);
     }
+    else if(m_Core->m_Matrix._21 > 0)
+    {
+        m_CaptureCircles = (CMatrixEffectCaptureCircles*)CMatrixEffect::CreateCaptureCircles(
+            D3DXVECTOR3(m_Pos.x + m_Core->m_Matrix._21 * 2.7f, m_Pos.y + m_Core->m_Matrix._22 * 2.7f, m_Core->m_Matrix._43 + 0.8f), 24, GRAD2RAD(12), MAX_CAPTURE_CIRCLES);
+    }
+    else if(m_Core->m_Matrix._21 < 0)
+    {
+        m_CaptureCircles = (CMatrixEffectCaptureCircles*)CMatrixEffect::CreateCaptureCircles(
+            D3DXVECTOR3(m_Pos.x + m_Core->m_Matrix._21 * 2.7f, m_Pos.y + m_Core->m_Matrix._22 * 2.7f, m_Core->m_Matrix._43 + 0.8f), 24, GRAD2RAD(192), MAX_CAPTURE_CIRCLES);
+    }
+    else if(m_Core->m_Matrix._22 < 0)
+    {
+        m_CaptureCircles = (CMatrixEffectCaptureCircles*)CMatrixEffect::CreateCaptureCircles(
+            D3DXVECTOR3(m_Pos.x + m_Core->m_Matrix._21 * 2.7f, m_Pos.y + m_Core->m_Matrix._22 * 2.7f, m_Core->m_Matrix._43 + 0.8f), 24, GRAD2RAD(-79), MAX_CAPTURE_CIRCLES);
+    }
+
+    if(!g_MatrixMap->AddEffect(m_CaptureCircles))
+    {
+        m_CaptureCircles = nullptr;
+        return false;
+    }
+
+    if(!m_Side)
+    {
+        m_TrueColor.m_Color = 0;
+        m_TrueColor.m_ColoredCnt = 0;
+    }
+    else
+    {
+        m_TrueColor.m_Color = (0xFF000000) | g_MatrixMap->GetSideColor(m_Side);
+        m_TrueColor.m_ColoredCnt = MAX_CAPTURE_CIRCLES;
+    }
+
+    m_CaptureCircles->UpdateData(m_TrueColor.m_Color, m_TrueColor.m_ColoredCnt);
+
+    return true;
 }
 
 struct SFindRobotForCaptureAny
@@ -561,8 +564,8 @@ void CMatrixBuilding::PauseTact(int cms)
 
 void CMatrixBuilding::LogicTact(int cms)
 {
-    m_HealthBar.Modify(100000.0f, 0);
-    CMatrixMapStatic* obj;
+    m_HealthBar.Modify(100000.0f, 0.0f);
+    CMatrixMapStatic* obj = nullptr;
 
     if(IsAblaze())
     {
@@ -636,11 +639,11 @@ void CMatrixBuilding::LogicTact(int cms)
             {
                 SFindRobotForCaptureAny data;
                 data.found = nullptr;
-                data.dist2 = CAPTURE_RADIUS*CAPTURE_RADIUS;
+                data.dist2 = CAPTURE_RADIUS * CAPTURE_RADIUS;
 
                 //CHelper::Create(300, 0)->Line(D3DXVECTOR3(m_Pos.x, m_Pos.y, 0), D3DXVECTOR3(m_Pos.x, m_Pos.y, 1000));
 
-                g_MatrixMap->FindObjects(m_Pos, CAPTURE_RADIUS, 1, TRACE_ROBOT, nullptr, FindRobotForCaptureAny, (dword)&data);
+                g_MatrixMap->FindObjects(m_Pos, CAPTURE_RADIUS, 1, TRACE_ROBOT, nullptr, FindRobotForCaptureAny, dword(&data));
 
                 if(data.found && m_Side != data.found->GetSide())
                 {
@@ -678,9 +681,9 @@ void CMatrixBuilding::LogicTact(int cms)
                         --m_TrueColor.m_ColoredCnt;
                     }
                 }
-                else if(m_Side != NEUTRAL_SIDE && m_TrueColor.m_ColoredCnt < MAX_ZAHVAT_POINTS)
+                else if(m_Side != NEUTRAL_SIDE && m_TrueColor.m_ColoredCnt < MAX_CAPTURE_CIRCLES)
                 {
-                    while(m_CaptureNextTimeRollback < g_MatrixMap->GetTime() && m_TrueColor.m_ColoredCnt < MAX_ZAHVAT_POINTS)
+                    while(m_CaptureNextTimeRollback < g_MatrixMap->GetTime() && m_TrueColor.m_ColoredCnt < MAX_CAPTURE_CIRCLES)
                     {
                         m_CaptureNextTimeRollback += g_Config.m_CaptureTimeRolback;
                         ++m_TrueColor.m_ColoredCnt;
@@ -1256,7 +1259,7 @@ ECaptureStatus CMatrixBuilding::Capture(CMatrixRobotAI* by)
                 m_InCaptureNextTimePaint += g_Config.m_CaptureTimePaint;
                 m_InCaptureNextTimeErase = g_MatrixMap->GetTime();
 
-                if(m_TrueColor.m_ColoredCnt == MAX_ZAHVAT_POINTS)
+                if(m_TrueColor.m_ColoredCnt == MAX_CAPTURE_CIRCLES)
                 {
                     int side = by->GetSide();
                     if(side == PLAYER_SIDE) CSound::Play(S_ENEMY_FACTORY_CAPTURED);
@@ -1275,7 +1278,7 @@ ECaptureStatus CMatrixBuilding::Capture(CMatrixRobotAI* by)
                 m_InCaptureNextTimeErase += g_Config.m_CaptureTimeErase;
                 m_InCaptureNextTimePaint = g_MatrixMap->GetTime();
 
-                if(m_TrueColor.m_ColoredCnt == 0)
+                if(!m_TrueColor.m_ColoredCnt)
                 {
                     m_TrueColor.m_Color = 0;
                     return CAPTURE_IN_PROGRESS;
@@ -1293,7 +1296,7 @@ ECaptureStatus CMatrixBuilding::Capture(CMatrixRobotAI* by)
                 m_InCaptureNextTimePaint += g_Config.m_CaptureTimePaint;
                 m_InCaptureNextTimeErase = g_MatrixMap->GetTime();
 
-                if(m_TrueColor.m_ColoredCnt == MAX_ZAHVAT_POINTS)
+                if(m_TrueColor.m_ColoredCnt == MAX_CAPTURE_CIRCLES)
                 {
                     //дозахват
                     int side = by->GetSide();
