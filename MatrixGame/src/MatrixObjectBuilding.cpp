@@ -453,7 +453,7 @@ void CMatrixBuilding::Tact(int cms)
         }
         else
         {
-            //Здесь прокручиваем анимации здания эпизодически, только если m_OccasionalAnimRun было выставлено в true (если здание должно реагировать на игровые события)
+            //Здесь прокручиваем анимации здания эпизодически, только если m_OccasionalAnimRun было выставлено в true (если здание должно реагировать прокруткой анимации на игровые события)
             if(m_OccasionalAnimRun)
             {
                 //Разово прокручиваем анимацию до конца лупа и останавливаем воспроизведение
@@ -760,10 +760,12 @@ void CMatrixBuilding::LogicTact(int cms)
                             D3DXVECTOR2 temp = (m_Pos + (*(D3DXVECTOR2*)&GetMatrix()._21) * 8.0f);
                             D3DXVECTOR3 dist = D3DXVECTOR3(temp.x, temp.y, 0.0f) - D3DXVECTOR3(robot->m_PosX, robot->m_PosY, 0.0f);
                             dist.z = m_BuildZ - robot->Z_From_Pos();
-                            if(D3DXVec3LengthSq(&dist) <= 5000) robot->ModifyHitpoints(4);
-
-                            //В процессе ремонта прокручиваем анимацию ремонтного завода (луп анимации автоматически завершится, когда вокруг будет некого чинить)
-                            m_OccasionalAnimRun = true;
+                            if(D3DXVec3LengthSq(&dist) <= 5000)
+                            {
+                                robot->ModifyHitpoints(4);
+                                //В процессе ремонта прокручиваем анимацию ремонтного завода (луп анимации автоматически завершится, когда вокруг будет некого чинить)
+                                m_OccasionalAnimRun = true;
+                            }
                         }
 
                         obj = obj->GetNextLogic();
