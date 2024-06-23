@@ -755,7 +755,7 @@ bool CMatrixMapLogic::PlaceFindNear(int nsh, int size, int &mx, int &my, CMatrix
     CMatrixMapStatic *obj = CMatrixMapStatic::GetFirstLogic();
     while(obj)
     {
-        if(obj->GetObjectType() == OBJECT_TYPE_ROBOT_AI && obj->AsRobot()->m_CurrState != ROBOT_DIP && obj != skip)
+        if(obj->GetObjectType() == OBJECT_TYPE_ROBOT_AI && obj->AsRobot()->m_CurrentState != ROBOT_DIP && obj != skip)
         {
             CMatrixRobotAI *r = (CMatrixRobotAI*)obj;
 
@@ -785,7 +785,7 @@ bool CMatrixMapLogic::PlaceFindNear(int nsh, int size, int &mx, int &my, CMatrix
                 ++other_cnt;
             }
         }
-        else if(obj->GetObjectType() == OBJECT_TYPE_CANNON && obj->AsCannon()->m_CurrState != CANNON_DIP && obj != skip)
+        else if(obj->GetObjectType() == OBJECT_TYPE_CANNON && obj->AsCannon()->m_CurrentState != CANNON_DIP && obj != skip)
         {
             // ASSERT(other_cnt<200);
             if(other_cnt >= 200) return false;
@@ -818,7 +818,7 @@ bool CMatrixMapLogic::PlaceFindNearReturn(int nsh, int size, int &mx, int &my, C
     CMatrixMapStatic *obj = CMatrixMapStatic::GetFirstLogic();
     while(obj)
     {
-        if(obj->GetObjectType() == OBJECT_TYPE_ROBOT_AI && obj->AsRobot()->m_CurrState != ROBOT_DIP)
+        if(obj->GetObjectType() == OBJECT_TYPE_ROBOT_AI && obj->AsRobot()->m_CurrentState != ROBOT_DIP)
         {
             CMatrixRobotAI* r = (CMatrixRobotAI*)obj;
 
@@ -863,7 +863,7 @@ bool CMatrixMapLogic::PlaceFindNearReturn(int nsh, int size, int &mx, int &my, C
                 ++other_cnt;
             }
         }
-        else if(obj->GetObjectType() == OBJECT_TYPE_CANNON && obj->AsCannon()->m_CurrState != CANNON_DIP)
+        else if(obj->GetObjectType() == OBJECT_TYPE_CANNON && obj->AsCannon()->m_CurrentState != CANNON_DIP)
         {
             //ASSERT(other_cnt < 200);
             if(other_cnt >= 200) return false;
@@ -886,7 +886,7 @@ bool CMatrixMapLogic::PlaceFindNearReturn(int nsh, int size, int &mx, int &my, C
 //
 //    CMatrixMapStatic * obj = CMatrixMapStatic::GetFirstLogic();
 //    while(obj) {
-//        if(obj->GetObjectType() == OBJECT_TYPE_ROBOT_AI && obj->AsRobot()->m_CurrState != ROBOT_DIP && obj!=skip) {
+//        if(obj->GetObjectType() == OBJECT_TYPE_ROBOT_AI && obj->AsRobot()->m_CurrentState != ROBOT_DIP && obj!=skip) {
 //            CMatrixRobotAI * r=(CMatrixRobotAI*)obj;
 //
 //            CPoint tp;
@@ -938,7 +938,7 @@ bool CMatrixMapLogic::PlaceIsEmpty(int nsh, int size, int mx, int my, CMatrixMap
     {
         if(obj != skip)
         {
-            if(obj->GetObjectType() == OBJECT_TYPE_ROBOT_AI && obj->AsRobot()->m_CurrState != ROBOT_DIP)
+            if(obj->GetObjectType() == OBJECT_TYPE_ROBOT_AI && obj->AsRobot()->m_CurrentState != ROBOT_DIP)
             {
                 CMatrixRobotAI *r = (CMatrixRobotAI*)obj;
 
@@ -3652,7 +3652,7 @@ void CMatrixMapLogic::DumpLogic()
                         if(env->m_Place < 0) fprintf(fi, "            m_Environment.m_Place=%d\n", env->m_Place);
                         else fprintf(fi, "            m_Environment.m_Place=%d    Region=%d\n", env->m_Place, g_MatrixMap->m_RoadNetwork.GetPlace(env->m_Place)->m_Region);
                         fprintf(fi, "            m_Environment.m_OrderNoBreak=%d\n", env->m_OrderNoBreak);
-                        fprintf(fi, "            m_CurrState=%s\n", rss[robot->m_CurrState]);
+                        fprintf(fi, "            m_CurrentState=%s\n", rss[robot->m_CurrentState]);
 
                         for(int i = 0; i < robot->GetOrdersInPool(); ++i)
                         {

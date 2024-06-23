@@ -525,18 +525,18 @@ public:
     void Select(ESelType type, CMatrixMapStatic* object);
     void Reselect();
     void ShowOrderState();
-    bool MouseToLand(const CPoint& mouse, float* pWorldX, float* pWorldY, int* pMapX, int* pMapY);
+    bool MouseToLand(const CPoint& mouse_pos, float* pWorldX, float* pWorldY, int* pMapX, int* pMapY);
     CMatrixMapStatic* MouseToLand();
-    void OnRButtonDown(const CPoint& mouse);
-    void OnRButtonDouble(const CPoint& mouse);
-    void OnLButtonDown(const CPoint& mouse);
-    void OnLButtonDouble(const CPoint& mouse);
-    void OnRButtonUp(const CPoint& mouse);
-    void OnLButtonUp(const CPoint& mouse);
-    void OnForward(bool down);
-    void OnBackward(bool down);
-    //void OnLeft(bool down);
-    //void OnRight(bool down);
+    void OnRButtonDown(const CPoint& mouse_pos);
+    void OnRButtonDouble(const CPoint& mouse_pos);
+    void OnLButtonDown(const CPoint& mouse_pos);
+    void OnLButtonDouble(const CPoint& mouse_pos);
+    void OnRButtonUp(const CPoint& mouse_pos);
+    void OnLButtonUp(const CPoint& mouse_pos);
+    void OnForward(bool is_down);
+    void OnBackward(bool is_down);
+    //void OnLeft(bool is_down);
+    //void OnRight(bool is_down);
     void OnMouseMove();
 
     // Tactics

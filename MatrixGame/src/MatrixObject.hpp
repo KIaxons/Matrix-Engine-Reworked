@@ -111,6 +111,8 @@ public:
         if(m_BehaviorFlag == BEHF_SPAWNER && m_SpawnRobotCore) m_SpawnRobotCore->Release();
     }
 
+    virtual bool IsUnitAlive() { return false; }
+
     static void StaticInit()
     {
         m_ShadowTextures = nullptr;

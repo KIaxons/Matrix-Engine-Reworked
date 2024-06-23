@@ -195,10 +195,10 @@ void CMatrixTactics::LogicTact(CMatrixSideUnit* side, CMatrixGroup* group)
             group->DeInstallTactics();
         }
         else {
-            if (m_Target->GetObjectType() == OBJECT_TYPE_ROBOT_AI && ((CMatrixRobotAI*)m_Target)->m_CurrState == ROBOT_DIP) {
+            if (m_Target->GetObjectType() == OBJECT_TYPE_ROBOT_AI && ((CMatrixRobotAI*)m_Target)->m_CurrentState == ROBOT_DIP) {
                 group->DeInstallTactics();
             }
-            else if (m_Target->GetObjectType() == OBJECT_TYPE_CANNON && ((CMatrixCannon*)m_Target)->m_CurrState == CANNON_DIP) {
+            else if (m_Target->GetObjectType() == OBJECT_TYPE_CANNON && ((CMatrixCannon*)m_Target)->m_CurrentState == CANNON_DIP) {
                 group->DeInstallTactics();
             }
         }

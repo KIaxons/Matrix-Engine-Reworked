@@ -313,7 +313,7 @@ void CMatrixGroup::CalcGroupSpeed()
     while(objects)
     {
         CMatrixMapStatic *ai_object = objects->ReturnObject();
-        if(ai_object->GetObjectType() == OBJECT_TYPE_ROBOT_AI && ((CMatrixRobotAI*)ai_object)->GetMaxSpeed() < lowest_speed && ((CMatrixRobotAI*)ai_object)->m_CurrState == ROBOT_SUCCESSFULLY_BUILD/* || !lowest_speed*/)
+        if(ai_object->GetObjectType() == OBJECT_TYPE_ROBOT_AI && ((CMatrixRobotAI*)ai_object)->GetMaxSpeed() < lowest_speed && ((CMatrixRobotAI*)ai_object)->m_CurrentState == ROBOT_SUCCESSFULLY_BUILD/* || !lowest_speed*/)
         {
             lowest_speed = ((CMatrixRobotAI*)ai_object)->GetMaxSpeed();
         }

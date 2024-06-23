@@ -108,7 +108,7 @@ void CMatrixRobot::ModuleDelete(int module_num)
 	ASSERT(module_num >= 0 && module_num < m_ModulesCount);
 
     //Очищаем объекты реактивных струй и прочих декоративных спрайтовых анимаций для шасси робота
-    if(m_CurrState != ROBOT_DIP && m_Module[module_num].m_Type == MRT_CHASSIS)
+    if(m_CurrentState != ROBOT_DIP && m_Module[module_num].m_Type == MRT_CHASSIS)
     {
         int cnt = g_Config.m_RobotChassisConsts[m_Module[module_num].m_Kind].jet_stream.size();
         if(cnt)
@@ -137,7 +137,7 @@ void CMatrixRobot::ModuleDelete(int module_num)
         m_Module[module_num].m_Graph = nullptr;
     }
 
-    if(m_CurrState == ROBOT_DIP)
+    if(m_CurrentState == ROBOT_DIP)
     {
         if(m_Module[module_num].Smoke().effect)
         {
@@ -163,7 +163,7 @@ void CMatrixRobot::ModuleDelete(int module_num)
 	--m_ModulesCount;
     memset(m_Module + m_ModulesCount, 0, sizeof(SMatrixRobotModule));
 
-    if(m_CurrState == ROBOT_DIP)
+    if(m_CurrentState == ROBOT_DIP)
     {
         while(module_num < m_ModulesCount)
         {
@@ -293,7 +293,7 @@ float CMatrixRobot::Z_From_Pos()
 //Подгружаем необходимые модели и текстуры для роботов
 void CMatrixRobot::GetResources(dword need)
 {
-    if(m_CurrState == ROBOT_DIP || IsMustDie()) return;
+    if(m_CurrentState == ROBOT_DIP || IsMustDie()) return;
 
 	if(need & m_RChange & (MR_Graph))
     {
@@ -360,7 +360,7 @@ void CMatrixRobot::GetResources(dword need)
         m_RChange &= ~MR_Matrix;
         float robot_z;
         D3DXVECTOR3 side, up;
-        if(m_CurrState == ROBOT_IN_SPAWN || m_CurrState == ROBOT_CAPTURING_BASE)
+        if(m_CurrentState == ROBOT_IN_SPAWN || m_CurrentState == ROBOT_CAPTURING_BASE)
         {
             //Получаем базу по текущим координатам робота
             SMatrixMapUnit* mu = g_MatrixMap->UnitGet(TruncFloat(m_PosX * INVERT(GLOBAL_SCALE)), TruncFloat(m_PosY * INVERT(GLOBAL_SCALE)));
@@ -372,7 +372,7 @@ void CMatrixRobot::GetResources(dword need)
             }
             SwitchAnimation(ANIMATION_STAY);
         }
-        else if(m_CurrState == ROBOT_CARRYING)
+        else if(m_CurrentState == ROBOT_CARRYING)
         {
             D3DXVec3Normalize(&up, &m_CargoFlyer->GetCarryData()->m_RobotUp);
             D3DXVec3Cross(&side, &m_ChassisForward, &up);
@@ -391,7 +391,7 @@ void CMatrixRobot::GetResources(dword need)
 
             goto skip_matrix;
         }
-        else if(m_CurrState == ROBOT_BASE_MOVEOUT)
+        else if(m_CurrentState == ROBOT_BASE_MOVEOUT)
         {
             //Получение базы по координатам рождающегося робота (по какой-то убогой причине реализовали именно так)
             SMatrixMapUnit* u = g_MatrixMap->UnitGet(TruncFloat(m_PosX * INVERT(GLOBAL_SCALE)), TruncFloat(m_PosY * INVERT(GLOBAL_SCALE)));
@@ -400,12 +400,12 @@ void CMatrixRobot::GetResources(dword need)
 
             SwitchAnimation(ANIMATION_MOVE);
         }
-        else if(m_CurrState == ROBOT_FALLING)
+        else if(m_CurrentState == ROBOT_FALLING)
         {
             SwitchAnimation(ANIMATION_OFF);
             goto skip_matrix;
         }
-        else if(m_CurrState == ROBOT_EMBRYO)
+        else if(m_CurrentState == ROBOT_EMBRYO)
         {
             robot_z = 0;
             SwitchAnimation(ANIMATION_STAY);
@@ -856,7 +856,7 @@ void CMatrixRobot::ApplyNaklon(const D3DXVECTOR3& dir)
 
 void CMatrixRobot::Tact(int cms)
 {
-    if(m_CurrState != ROBOT_CARRYING && m_CurrState != ROBOT_FALLING && m_CurrState != ROBOT_IN_SPAWN && m_CurrState != ROBOT_CAPTURING_BASE)
+    if(m_CurrentState != ROBOT_CARRYING && m_CurrentState != ROBOT_FALLING && m_CurrentState != ROBOT_IN_SPAWN && m_CurrentState != ROBOT_CAPTURING_BASE)
     {
         //Если робот на воде, он будет оставлять за собой волнение
         if(FLAG(m_ObjectFlags, ROBOT_FLAG_ON_WATER))
@@ -905,7 +905,7 @@ void CMatrixRobot::Tact(int cms)
 
 bool CMatrixRobot::PickFull(const D3DXVECTOR3& orig, const D3DXVECTOR3& dir, float* outt) const
 {
-    if(m_CurrState == ROBOT_DIP) return false;
+    if(m_CurrentState == ROBOT_DIP) return false;
 	for(int i = 0; i < m_ModulesCount; ++i)
     {
 		if(m_Module[i].m_Graph)
@@ -918,7 +918,7 @@ bool CMatrixRobot::PickFull(const D3DXVECTOR3& orig, const D3DXVECTOR3& dir, flo
 
 bool CMatrixRobot::Pick(const D3DXVECTOR3& orig, const D3DXVECTOR3& dir, float* outt) const
 {
-    if(m_CurrState == ROBOT_DIP) return false;
+    if(m_CurrentState == ROBOT_DIP) return false;
 	for(int i = 0; i < m_ModulesCount; ++i)
     {
 		if(m_Module[i].m_Graph)
@@ -972,7 +972,7 @@ void CMatrixRobot::BeforeDraw()
 
     GetResources(MR_Matrix | MR_Graph | sh);
 
-    if(m_ShowHitpointsTime > 0 && m_Hitpoints > 0 && m_CurrState != ROBOT_DIP)
+    if(m_ShowHitpointsTime > 0 && m_Hitpoints > 0 && m_CurrentState != ROBOT_DIP)
     {
         D3DXVECTOR3 pos(*(D3DXVECTOR3*)&m_Core->m_Matrix._41);
         pos.z += 20;
@@ -989,11 +989,11 @@ void CMatrixRobot::BeforeDraw()
 	    for(int i = 0; i < m_ModulesCount; ++i)
         {
             m_Module[i].m_Graph->BeforeDraw();
-            if(m_CurrState != ROBOT_DIP && m_Module[i].m_ShadowStencil) m_Module[i].m_ShadowStencil->BeforeRender();
+            if(m_CurrentState != ROBOT_DIP && m_Module[i].m_ShadowStencil) m_Module[i].m_ShadowStencil->BeforeRender();
 	    }
     }
 
-    if(m_CurrState != ROBOT_DIP && m_ShadowProj && g_Config.m_ShowProjShadows) m_ShadowProj->BeforeRender();
+    if(m_CurrentState != ROBOT_DIP && m_ShadowProj && g_Config.m_ShowProjShadows) m_ShadowProj->BeforeRender();
 }
 
 void CMatrixRobot::Draw()
@@ -1008,7 +1008,7 @@ void CMatrixRobot::Draw()
         ASSERT_DX(g_D3DD->SetSamplerState(i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) (&g_MatrixMap->m_BiasRobots))));
     }
 
-    if(m_CurrState == ROBOT_DIP)
+    if(m_CurrentState == ROBOT_DIP)
     {
         for(int i = 0; i < m_ModulesCount; ++i)
         {
@@ -1056,7 +1056,7 @@ void CMatrixRobot::Draw()
         }
     }
 
-    if(m_CurrState == ROBOT_DIP) return;
+    if(m_CurrentState == ROBOT_DIP) return;
 
     if(m_CamDistSq > MAX_EFFECT_DISTANCE_SQ) return;
 
@@ -1141,7 +1141,7 @@ void CMatrixRobot::DrawShadowStencil()
         if(!g_MatrixMap->m_Camera.IsInFrustum(*(D3DXVECTOR3*)&m_Module[1].m_Matrix._41)) return;
     }
 
-    if(m_CurrState == ROBOT_CARRYING)
+    if(m_CurrentState == ROBOT_CARRYING)
     {
         if(m_PosX < 0 || m_PosY < 0 || m_PosX > (GLOBAL_SCALE * g_MatrixMap->m_Size.x) || m_PosY > (GLOBAL_SCALE * g_MatrixMap->m_Size.y)) return;
     }
@@ -1247,7 +1247,7 @@ bool CMatrixRobot::Carry(CMatrixFlyer* cargo, bool quick_connect)
     }
     */
 
-    if(m_CurrState == ROBOT_CARRYING)
+    if(m_CurrentState == ROBOT_CARRYING)
     {
         CMatrixRobot* r = m_CargoFlyer->GetCarryingRobot();
         if(r != this)
@@ -1270,8 +1270,8 @@ bool CMatrixRobot::Carry(CMatrixFlyer* cargo, bool quick_connect)
     }
     if(cargo == nullptr)
     {
-        //if (m_CurrState == ROBOT_MUST_DIE) return true;
-        m_CurrState = ROBOT_FALLING;
+        //if (m_CurrentState == ROBOT_MUST_DIE) return true;
+        m_CurrentState = ROBOT_FALLING;
         m_Velocity = D3DXVECTOR3(0, 0, 0);
         m_FallingSpeed = 0;
         JoinToGroup();
@@ -1283,7 +1283,7 @@ bool CMatrixRobot::Carry(CMatrixFlyer* cargo, bool quick_connect)
     }
 
     m_CargoFlyer = cargo;
-    m_CurrState = ROBOT_CARRYING;
+    m_CurrentState = ROBOT_CARRYING;
     SwitchAnimation(ANIMATION_OFF);
 
     cargo->GetCarryData()->m_Robot = this;
@@ -1326,7 +1326,7 @@ void CMatrixRobot::SwitchAnimation(EAnimation target_anim)
 
     if(target_anim != ANIMATION_OFF)
     {
-        if(m_CurrState == ROBOT_DIP || m_CurrState == ROBOT_CARRYING || IsShorted()) return;
+        if(m_CurrentState == ROBOT_DIP || m_CurrentState == ROBOT_CARRYING || IsShorted()) return;
         if(target_anim != m_Animation)
         {
             for(int i = 0; i < m_ModulesCount; ++i)
@@ -2004,7 +2004,7 @@ void CMatrixRobot::StepLinkWalkingChassis()
 
 correction:
 
-    if(m_CurrState != ROBOT_CARRYING && !FLAG(m_ObjectFlags, ROBOT_FLAG_COLLISION))
+    if(m_CurrentState != ROBOT_CARRYING && !FLAG(m_ObjectFlags, ROBOT_FLAG_COLLISION))
     {
         D3DXMATRIX m;
         D3DXVECTOR3 tmp_forward, up, side;
@@ -2258,7 +2258,7 @@ void CMatrixRobot::DestroyWalkingChassisData(void)
 
 bool CMatrixRobot::InRect(const CRect& rect) const
 {
-    if(m_CurrState == ROBOT_DIP) return false;
+    if(m_CurrentState == ROBOT_DIP) return false;
 
     D3DXVECTOR3 dir;
     g_MatrixMap->m_Camera.CalcPickVector(CPoint(rect.left, rect.top), dir);

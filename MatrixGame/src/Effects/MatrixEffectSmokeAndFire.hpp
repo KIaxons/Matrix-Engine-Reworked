@@ -208,8 +208,8 @@ class CMatrixEffectFireAnim : public CMatrixEffect
 
     float m_TTLcurr = 0.0f;
     float m_TTL = 0.0f;
-    int m_AnimFrame = 0.0f;
-    int m_NextTime = 0.0f;
+    int m_AnimFrame = 0;
+    int m_NextTime = 0;
     float m_Height = 0.0f;
     float m_Width = 0.0f;
     float m_HeightCurr = 0.0f;

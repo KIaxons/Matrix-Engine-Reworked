@@ -1547,7 +1547,7 @@ CMatrixRobotAI* SRobotTemplate::CreateRobotByTemplate(
 
     //robot sozdan
     GetConstructionName(robot);
-    robot->m_CurrState = ROBOT_SUCCESSFULLY_BUILD;
+    robot->m_CurrentState = ROBOT_SUCCESSFULLY_BUILD;
 
     robot->GetResources(MR_Matrix | MR_Graph);
     //robot->CreateTextures();

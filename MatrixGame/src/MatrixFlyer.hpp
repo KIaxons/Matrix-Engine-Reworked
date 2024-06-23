@@ -344,8 +344,19 @@ public:
     int m_Team = 0;
     int m_Group = 0;
 
-    EFlyerState m_CurrState = STATE_FLYER_IN_SPAWN;
+    EFlyerState m_CurrentState = STATE_FLYER_IN_SPAWN;
 
+    CMatrixFlyer();
+    ~CMatrixFlyer();
+
+    virtual bool IsUnitAlive()
+    {
+        if(m_CurrentState != STATE_FLYER_DIP) return true;
+        return false;
+    }
+
+    float       GetMapPosX() const { return m_Pos.x; }
+    float       GetMapPosY() const { return m_Pos.y; }
     bool        SelectByGroup();
     bool        SelectArcade();
     void        UnSelect();
@@ -376,9 +387,6 @@ public:
 
     static void MarkAllBuffersNoNeed();
     static void InitBuffers();
-
-    CMatrixFlyer();
-    ~CMatrixFlyer();
 
     void ApplyOrder(const D3DXVECTOR2& pos, int side, EFlyerOrder order, float ang, int place, const CPoint& bpos, int robot_template);
 
@@ -487,7 +495,7 @@ public:
 
 inline bool CMatrixMapStatic::IsFlyerControllable() const
 {
-    return IsFlyer() && ((CMatrixFlyer*)this)->m_CurrState != STATE_FLYER_DIP && !FLAG(m_ObjectFlags, FLYER_FLAG_DELIVERY_COPTER);
+    return IsFlyer() && ((CMatrixFlyer*)this)->m_CurrentState != STATE_FLYER_DIP && !FLAG(m_ObjectFlags, FLYER_FLAG_DELIVERY_COPTER);
 }
 
 #endif

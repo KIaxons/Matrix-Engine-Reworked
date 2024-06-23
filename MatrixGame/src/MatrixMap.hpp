@@ -396,7 +396,7 @@ public:
 
     D3DXVECTOR3       m_MouseDir = { 0.0f, 0.0f, 0.0f }; // world direction to mouse cursor
     // trace stop!
-    D3DXVECTOR3       m_TraceStopPos = { 0.0f, 0.0f, 0.0f }; //Последняя координата курсора мыши на поверхности карте, на которой в последний раз находился курсор (может обновиться только при указании существующей поверхности!)
+    D3DXVECTOR3       m_TraceStopPos = { 0.0f, 0.0f, 0.0f }; //Последняя координата курсора мыши на поверхности карты, на которой в последний раз находился курсор (может обновиться только при указании существующей поверхности!)
     CMatrixMapStatic* m_TraceStopObj = nullptr; //Последний CMatrixMapStatic, попавший под курсор мыши
 
     bool IsTraceNonPlayerObj();

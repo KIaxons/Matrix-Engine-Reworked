@@ -918,8 +918,6 @@ DTRACE();
 
 void CMatrixMap::BeforeDraw()
 {
-DTRACE();
-
     ++m_CurFrame; //uniq number per ~500 days
 
     m_Camera.BeforeDraw();
@@ -1477,8 +1475,6 @@ DTRACE();
 
 void CMatrixMap::DrawObjects(void)
 {
-DTRACE();
-
 	//ASSERT_DX(g_D3DD->SetTextureStageState(1, D3DTSS_TEXCOORDINDEX, 0));
 	//ASSERT_DX(g_D3DD->SetTextureStageState(2, D3DTSS_COLOROP, D3DTOP_DISABLE));
 
@@ -2512,7 +2508,7 @@ skip:;
 
                 if(ms->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
                 {
-                    if(((CMatrixRobot *)ms)->m_CurrState == ROBOT_DIP) continue;
+                    if(((CMatrixRobot *)ms)->m_CurrentState == ROBOT_DIP) continue;
                     if(!(mask & TRACE_ROBOT)) continue;
                 }
                 else if(ms->GetObjectType() == OBJECT_TYPE_FLYER)
@@ -2681,7 +2677,7 @@ skip:;
 
                 if(ms->IsRobot())
                 {
-                    if(((CMatrixRobot*)ms)->m_CurrState == ROBOT_DIP) continue;
+                    if(((CMatrixRobot*)ms)->m_CurrentState == ROBOT_DIP) continue;
                     if(!(mask & TRACE_ROBOT)) continue;
                 }
                 else if(ms->IsFlyer())

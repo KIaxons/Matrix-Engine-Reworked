@@ -248,7 +248,9 @@ public:
         if(g_Config.m_BuildingShadows) m_ShadowType = SHADOW_STENCIL;
     }
 	~CMatrixBuilding();
-    
+
+    virtual bool IsUnitAlive() { return false; }
+
     int GetRobotsBuildingQueueCount() const { return m_BuildingQueue.GetRobotsCnt(); }
 
     bool GatheringPointIsSet() { return m_GatheringPoint.IsSet; }

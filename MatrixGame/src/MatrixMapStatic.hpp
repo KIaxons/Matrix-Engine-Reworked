@@ -35,6 +35,30 @@ enum EObjectType
     OBJECT_TYPE_FLYER     = 6,
 };
 
+enum ERobotState
+{
+    ROBOT_EMBRYO = 0,          //Объект для нового робота ещё только начал формироваться (модели робота как таковой ещё не существует)
+    ROBOT_IN_SPAWN,            //Постройка робота завершена, модель отрендерена, но подъёмник базы ещё опущен - начинается подъём робота к свету
+    ROBOT_BASE_MOVEOUT,        //Постройка робота завершена, подъёмник базы поднят - робот делает первые шаги (управлять им в этот момент всё ещё нельзя)
+    ROBOT_SUCCESSFULLY_BUILD,  //Робот успешно построен и готов к получению приказов
+    ROBOT_CARRYING,            //Робот подобран вертолётом и летит
+    ROBOT_FALLING,             //Робот сброшен вертолётом и падает
+    ROBOT_CAPTURING_BASE,      //Робот добрался до точки начала и приступил к непосредственному захвату базы (не завода), с этого момента он может либо захватить базу, либо умереть (управлять им больше невозможно)
+    ROBOT_DIP                  //Запущен процесс уничтожения робота (death in progress), управлять им больше нельзя, да и почти все проверки с этого момента начнут его игнорировать
+};
+
+enum ECannonState
+{
+    CANNON_IDLE,
+    CANNON_UNDER_CONSTRUCTION,
+    CANNON_UNDER_DECONSTRUCTION,
+    CANNON_DIP
+};
+
+#define TURRET_UNDER_CONSTRUCTION_COLOR   0xFF00FF00 //Зелёный цвет
+#define TURRET_UNDER_DECONSTRUCTION_COLOR 0xFFFF4B21 //Оранжевый цвет
+#define TURRET_CANT_BE_CONSTRUCTED_COLOR  0xFFFF0000 //Красный цвет
+
 #define MAX_OBJECTS_PER_SCREEN 5120
 
 #define UNDER_ATTACK_IDLE_TIME 120000
@@ -321,6 +345,11 @@ public:
     CMatrixMapStatic* GetNextLogic() { return m_NextLogicTemp; }
     CMatrixMapStatic* GetPrevLogic() { return m_PrevLogicTemp; }
 
+    inline CMatrixRobotAI* AsRobot() { return (CMatrixRobotAI*)this; }
+    inline CMatrixCannon* AsCannon() { return (CMatrixCannon*)this; }
+    inline CMatrixBuilding* AsBuilding() { return (CMatrixBuilding*)this; }
+    inline CMatrixFlyer* AsFlyer() { return (CMatrixFlyer*)this; }
+
     bool IsBase() const;
     inline bool IsRobot() const { return GetObjectType() == OBJECT_TYPE_ROBOT_AI; };
     bool IsRobotAlive() const;
@@ -331,23 +360,12 @@ public:
     inline bool IsCannon() const { return GetObjectType() == OBJECT_TYPE_CANNON; };
     bool IsCannonAlive() const;
     bool IsActiveCannonAlive() const;
-        
-    inline bool IsUnit() const { return IsRobot() || IsFlyer() || IsCannon(); }
 
+    inline bool IsUnit() const { return IsRobot() || IsFlyer() || IsCannon(); }
     inline bool IsAlive() const { return IsRobotAlive() || IsFlyerControllable() || IsCannonAlive() || IsBuildingAlive(); }
-    /*{
-        if(obj->GetObjectType() == OBJECT_TYPE_ROBOT_AI) return obj->AsRobot()->m_CurrState != ROBOT_DIP;// && (obj->AsRobot()->GetSide() != PLAYER_SIDE || !obj->AsRobot()->IsSelected()) && (g_MatrixMap->GetPlayerSide()->GetUnitUnderManualControl() != obj);
-        else if(obj->GetObjectType() == OBJECT_TYPE_CANNON) return obj->AsCannon()->m_CurrState != CANNON_DIP && obj->AsCannon()->m_CurrState != CANNON_UNDER_CONSTRUCTION;
-        else if(obj->GetObjectType() == OBJECT_TYPE_BUILDING) return (obj->AsBuilding()->m_State != BUILDING_DIP) && (obj->AsBuilding()->m_State != BUILDING_DIP_EXPLODED);
-        else return false;
-    }*/
+    virtual bool IsUnitAlive() = 0;
 
     bool FitToMask(dword mask);
-
-    inline CMatrixRobotAI* AsRobot() { return (CMatrixRobotAI*)this; }
-    inline CMatrixCannon* AsCannon() { return (CMatrixCannon*)this; }
-    inline CMatrixBuilding* AsBuilding() { return (CMatrixBuilding*)this; }
-    inline CMatrixFlyer* AsFlyer() { return (CMatrixFlyer*)this; }
 
     inline bool IsNearBase() const { return m_NearBaseCnt != 0; }
 

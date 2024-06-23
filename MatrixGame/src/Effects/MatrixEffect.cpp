@@ -220,9 +220,9 @@ void CMatrixEffect::InitEffects(CBlockPar& bp_in)
 
     // init weapon range modificators
 
-    g_WeaponDamageNormalCoef = bp_in.BlockGet(BLOCK_PATH_MAIN_CONFIG)->ParGet(L"WeaponDamageNormalCoef").GetDouble();
-    g_WeaponDamageArcadeCoef = bp_in.BlockGet(BLOCK_PATH_MAIN_CONFIG)->ParGet(L"WeaponDamageArcadeCoef").GetDouble();
-    g_UnitSpeedArcadeCoef = bp_in.BlockGet(BLOCK_PATH_MAIN_CONFIG)->ParGet(L"UnitSpeedArcadeCoef").GetDouble();
+    g_WeaponDamageNormalCoef = bp_in.BlockGet(BLOCK_PATH_MAIN_CONFIG)->ParGet(L"WeaponDamageNormalCoef").GetFloat();
+    g_WeaponDamageArcadeCoef = bp_in.BlockGet(BLOCK_PATH_MAIN_CONFIG)->ParGet(L"WeaponDamageArcadeCoef").GetFloat();
+    g_UnitSpeedArcadeCoef = bp_in.BlockGet(BLOCK_PATH_MAIN_CONFIG)->ParGet(L"UnitSpeedArcadeCoef").GetFloat();
 
     // init debris
 
@@ -599,7 +599,7 @@ void CMatrixEffect::CreateExplosion(const D3DXVECTOR3& pos, const SExplosionProp
         int x = TruncFloat(pos.x * INVERT(GLOBAL_SCALE * MAP_GROUP_SIZE));
         int y = TruncFloat(pos.y * INVERT(GLOBAL_SCALE * MAP_GROUP_SIZE));
         CMatrixMapGroup* g = g_MatrixMap->GetGroupByIndexTest(x, y);
-        if(g && !g->IsBaseOn()) CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(pos.x, pos.y), FSRND(M_PI), props.voronka_scale, props.voronka);
+        if(g && !g->IsBaseOn()) CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(pos.x, pos.y), FSRND((float)M_PI), props.voronka_scale, props.voronka);
     }
 }
 

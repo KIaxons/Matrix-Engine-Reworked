@@ -173,7 +173,7 @@ bool SMatrixFlyerUnit::Tact(CMatrixFlyer* owner, float ms)
                 m_Propeller.m_SpinupCountdown = 0;
                 RESETFLAG(owner->m_Flags, FLYER_IN_SPAWN_SPINUP);
                 RESETFLAG(owner->m_Flags, FLYER_IN_SPAWN);
-                owner->m_CurrState = STATE_FLYER_READY_TO_ORDERS;
+                owner->m_CurrentState = STATE_FLYER_READY_TO_ORDERS;
                 owner->SetManualControlLocked(false);
                 owner->m_Base->SetSpawningUnit(false);
                 owner->m_Base->CloseAssemblyChamber(); //Опускаем подъёмник базы
@@ -1077,7 +1077,7 @@ void CMatrixFlyer::ApplyOrder(
 {
     RESETFLAG(m_Flags, FLYER_IN_SPAWN);
     SetDeliveryCopter(true);
-    m_CurrState = STATE_FLYER_IS_BUSY;
+    m_CurrentState = STATE_FLYER_IS_BUSY;
 
     m_Side = side;
     m_TrajectoryTargetAngle = ang;
@@ -1210,7 +1210,7 @@ DTRACE();
         if(m_Base->State() == BASE_OPENED && !FLAG(m_Flags, FLYER_IN_SPAWN_SPINUP))
         {
             SETFLAG(m_Flags, FLYER_IN_SPAWN_SPINUP);
-            m_CurrState = STATE_FLYER_BASE_TAKE_OFF;
+            m_CurrentState = STATE_FLYER_BASE_TAKE_OFF;
             m_Sound = CSound::Play(m_Sound, S_FLYER_PROPELLER_START, m_Pos);
         }
 
@@ -1306,7 +1306,7 @@ DTRACE();
     m_Roll += dang * td.mul;
 
     //Здесь происходит корректировка высоты полёта
-    if(m_CurrState > STATE_FLYER_IN_SPAWN)//!FLAG(m_Flags, FLYER_IN_SPAWN))
+    if(m_CurrentState > STATE_FLYER_IN_SPAWN)//!FLAG(m_Flags, FLYER_IN_SPAWN))
     {
         //Сюда необходимо добавить коллизии по Z
 
@@ -1926,7 +1926,7 @@ void CMatrixFlyer::Begin(CMatrixBuilding* b)
 {
     m_Base = b;
     SETFLAG(m_Flags, FLYER_IN_SPAWN);
-    m_CurrState = STATE_FLYER_IN_SPAWN;
+    m_CurrentState = STATE_FLYER_IN_SPAWN;
     SetManualControlLocked(true);
 
     m_Pos.x = b->m_Pos.x + FSRND(0.01);
@@ -2063,7 +2063,7 @@ void CMatrixFlyer::ReleaseMe()
 
         if(GetBase())
         {
-            if(m_CurrState == STATE_FLYER_IN_SPAWN || m_CurrState == STATE_FLYER_BASE_TAKE_OFF)
+            if(m_CurrentState == STATE_FLYER_IN_SPAWN || m_CurrentState == STATE_FLYER_BASE_TAKE_OFF)
             {
                 //Если вертолёт уничтожили, пока тот взлетал с базы, принудительно опускаем подъёмник
                 GetBase()->SetSpawningUnit(false);

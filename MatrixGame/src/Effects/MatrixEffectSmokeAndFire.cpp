@@ -131,7 +131,7 @@ void CMatrixEffectSmoke::Tact(float step)
 void CMatrixEffectSmoke::SpawnPuff()
 {
     if(m_PuffCnt >= MAX_PUFF_COUNT) return;
-    m_Puffs[m_PuffCnt].m_PuffAngle = FRND(M_PI);
+    m_Puffs[m_PuffCnt].m_PuffAngle = FRND((float)M_PI);
 
     ESpriteTextureSort tex = SPR_SMOKE_PART;
     switch(m_EffectType)
@@ -207,7 +207,7 @@ void CMatrixEffectFire::Draw()
 void CMatrixEffectFire::SpawnPuff()
 {
     if(m_PuffCnt >= MAX_PUFF_COUNT) return;
-    m_Puffs[m_PuffCnt].m_PuffAngle = FRND(M_PI);
+    m_Puffs[m_PuffCnt].m_PuffAngle = FRND((float)M_PI);
 
     ESpriteTextureSort tex = SPR_FIRE_PART;
     switch(m_EffectType)
@@ -218,8 +218,8 @@ void CMatrixEffectFire::SpawnPuff()
         case EFFECT_BRIGHT_SMOKE:  tex = SPR_BRIGHT_SMOKE_PART; break;
     }
 
-    if(m_SpriteTextures[tex].IsSingleBrightTexture()) m_Puffs[m_PuffCnt].m_Puff.CSprite::CSprite(TRACE_PARAM_CALL m_Pos, 5 - FRND(2), m_Puffs[m_PuffCnt].m_PuffAngle, 0xFFFFFFFF, m_SpriteTextures[tex].tex);
-    else m_Puffs[m_PuffCnt].m_Puff.CSprite::CSprite(TRACE_PARAM_CALL m_Pos,5 - FRND(2), m_Puffs[m_PuffCnt].m_PuffAngle, 0xFFFFFFFF, &m_SpriteTextures[tex].spr_tex);
+    if(m_SpriteTextures[tex].IsSingleBrightTexture()) m_Puffs[m_PuffCnt].m_Puff.CSprite::CSprite(TRACE_PARAM_CALL m_Pos, 5 - FRND(2.0f), m_Puffs[m_PuffCnt].m_PuffAngle, 0xFFFFFFFF, m_SpriteTextures[tex].tex);
+    else m_Puffs[m_PuffCnt].m_Puff.CSprite::CSprite(TRACE_PARAM_CALL m_Pos, 5 - FRND(2.0f), m_Puffs[m_PuffCnt].m_PuffAngle, 0xFFFFFFFF, &m_SpriteTextures[tex].spr_tex);
     
     m_Puffs[m_PuffCnt].m_PuffOrig = m_Pos;
     m_Puffs[m_PuffCnt].m_PuffTTL = m_PuffTTL;
@@ -324,7 +324,7 @@ void CMatrixEffectFire::Tact(float step)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Анимация эффекта огненной струи, которые используются в двигателях вертолётов и для антигравов
 CMatrixEffectFireStream::CMatrixEffectFireStream(const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, float width, dword color, const std::vector<int>& sprites_num) :
-    CMatrixEffect(), m_SpritesCount(sprites_num.size()), m_Sprites(new CSpriteSequence[m_SpritesCount])
+    CMatrixEffect(), m_SpritesCount((byte)sprites_num.size()), m_Sprites(new CSpriteSequence[m_SpritesCount])
 {
     for(int i = 0; i < m_SpritesCount; ++i)
     {

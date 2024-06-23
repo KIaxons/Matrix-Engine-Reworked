@@ -339,6 +339,12 @@ public:
     CMatrixRobotAI() = default; //Задаём указатель на этот подкласс из родительсокго CMatrixRobot, а то уже заебло, чесслово
     ~CMatrixRobotAI() { ReleaseMe(); }
 
+    virtual bool IsUnitAlive()
+    {
+        if(m_CurrentState != ROBOT_DIP/* && (GetSide() != PLAYER_SIDE || !IsSelected()) && (g_MatrixMap->GetPlayerSide()->GetUnitUnderManualControl() != this)*/) return true;
+        return false;
+    }
+
     int         GetCols() { return m_Cols; }
     void        IncCols() { ++m_Cols; }
     int         GetColsWeight() { return m_ColsWeight; }
@@ -418,7 +424,7 @@ public:
     void PlayHullSound();
     bool CheckFireDist(const D3DXVECTOR3 &point);
 
-    bool IsAutomaticMode() const { return m_CurrState == ROBOT_IN_SPAWN || m_CurrState == ROBOT_BASE_MOVEOUT || m_CurrState == ROBOT_CAPTURING_BASE; }
+    bool IsAutomaticMode() const { return m_CurrentState == ROBOT_IN_SPAWN || m_CurrentState == ROBOT_BASE_MOVEOUT || m_CurrentState == ROBOT_CAPTURING_BASE; }
     bool CanBreakOrder()
     {
         if(m_Side != PLAYER_SIDE || FLAG(g_MatrixMap->m_Flags, MMFLAG_FULLAUTO))

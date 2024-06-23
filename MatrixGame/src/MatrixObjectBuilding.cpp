@@ -1773,7 +1773,7 @@ void CBuildingQueue::TickTimer(int ms)
     CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
     m_Timer += ms;
 
-    //На идёт постройка робота
+    //Идёт постройка робота
     if(m_Top->IsRobot())
     {
         float x = g_IFaceList->GetMainX() + 283;
@@ -1828,7 +1828,7 @@ void CBuildingQueue::TickTimer(int ms)
             --m_Items;
         }
     }
-    //На идёт постройка вертолёта
+    //Идёт постройка вертолёта
     else if(m_Top->GetObjectType() == OBJECT_TYPE_FLYER)
     {
         float x = g_IFaceList->GetMainX() + 283;
@@ -1881,7 +1881,7 @@ void CBuildingQueue::TickTimer(int ms)
             --m_Items;
         }
     }
-    //На идёт постройка турели
+    //Идёт постройка турели
     else if(m_Top->IsCannon())
     {
         float x = g_IFaceList->GetMainX() + 283;
@@ -1946,7 +1946,7 @@ void CBuildingQueue::TickTimer(int ms)
             }
 
             g_MatrixMap->m_Minimap.AddEvent(m_Top->GetGeoCenter().x, m_Top->GetGeoCenter().y, 0xffffff00, 0xffffff00);
-            m_Top->AsCannon()->m_CurrState = CANNON_IDLE;
+            m_Top->AsCannon()->m_CurrentState = CANNON_IDLE;
             int ss = m_Top->GetSide();
             if(ss != 0) g_MatrixMap->GetSideById(ss)->IncStatValue(STAT_TURRET_BUILD);
 
@@ -1956,21 +1956,6 @@ void CBuildingQueue::TickTimer(int ms)
             --m_Items;
         }
     }
-
-    /*
-    if(m_Top)
-    {
-        CMatrixMapStatic* o = m_Top->m_NextQueueItem;
-        while(o)
-        {
-            if(o->GetObjectType() == OBJECT_TYPE_CANNON)
-            {
-                ((CMatrixCannon*)o)->SetTerainColor(0xFF00FF00);
-            }
-            o = o->m_NextQueueItem;
-        }
-    }
-    */
 }
 
 void CBuildingQueue::AddItem(CMatrixMapStatic* item)

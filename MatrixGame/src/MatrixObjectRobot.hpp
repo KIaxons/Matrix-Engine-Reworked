@@ -13,18 +13,6 @@
 
 class CMatrixFlyer;
 
-enum ERobotState
-{
-    ROBOT_EMBRYO = 0,          //Объект для нового робота ещё только начал формироваться (модели робота как таковой ещё не существует)
-	ROBOT_IN_SPAWN,            //Постройка робота завершена, модель отрендерена, но подъёмник базы ещё опущен - начинается подъём робота к свету
-	ROBOT_BASE_MOVEOUT,        //Постройка робота завершена, подъёмник базы поднят - робот делает первые шаги (управлять им в этот момент всё ещё нельзя)
-	ROBOT_SUCCESSFULLY_BUILD,  //Робот успешно построен и готов к получению приказов
-    ROBOT_CARRYING,            //Робот подобран вертолётом и летит
-    ROBOT_FALLING,             //Робот сброшен вертолётом и падает
-    ROBOT_DIP,                 //Запущен процесс уничтожения робота (death in progress), управлять им больше нельзя, да и почти все проверки с этого момента начнут его игнорировать
-    ROBOT_CAPTURING_BASE       //Робот добрался до точки начала и приступил к непосредственному захвату базы (не завода), с этого момента он может либо захватить базу, либо умереть (управлять им больше невозможно)
-};
-
 #define CARRYING_DISTANCE       20.0f
 #define CARRYING_SPEED          0.996
 
@@ -187,7 +175,7 @@ public:
 
     CVOShadowProj* m_ShadowProj = nullptr;
 
-	ERobotState    m_CurrState = ROBOT_IN_SPAWN;
+	ERobotState    m_CurrentState = ROBOT_IN_SPAWN;
 
     float          m_FallingSpeed = 0.0f;
 
@@ -313,5 +301,5 @@ public:
 
 inline bool CMatrixMapStatic::IsRobotAlive() const
 {
-    return IsRobot() && ((CMatrixRobot*)this)->m_CurrState != ROBOT_DIP;
+    return IsRobot() && ((CMatrixRobot*)this)->m_CurrentState != ROBOT_DIP;
 }

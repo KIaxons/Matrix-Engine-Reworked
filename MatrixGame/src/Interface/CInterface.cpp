@@ -4032,7 +4032,7 @@ DTRACE();
                     if(cnt == TITAN)
                     {
                         s = interfaces->CreateStaticFromImage(x, y, z, titan_image);
-                        player_side->m_ConstructPanel->m_TitanResCountX = x;
+                        player_side->m_ConstructPanel->m_TitanResCountX = (int)x;
                         prev_res = cnt;
                     }
                     else if(cnt == ELECTRONICS)
@@ -4044,7 +4044,7 @@ DTRACE();
                             else if(res[prev_res] >= 100) x += 6;
                         }
                         s = interfaces->CreateStaticFromImage(x, y, z, electronics_image);
-                        player_side->m_ConstructPanel->m_ElectronicsResCountX = x;
+                        player_side->m_ConstructPanel->m_ElectronicsResCountX = (int)x;
                         prev_res = cnt;
                     }
                     else if(cnt == ENERGY)
@@ -4056,7 +4056,7 @@ DTRACE();
                             else /*if(res[prev_res] >= 100)*/ x += 7;
                         }
                         s = interfaces->CreateStaticFromImage(x, y, z, energy_image);
-                        player_side->m_ConstructPanel->m_EnergyResCountX = x;
+                        player_side->m_ConstructPanel->m_EnergyResCountX = (int)x;
                         prev_res = cnt;
                     }
                     else if(cnt == PLASMA)
@@ -4068,7 +4068,7 @@ DTRACE();
                             else /*if(res[prev_res] >= 100)*/ x += 4;
                         }
                         s = interfaces->CreateStaticFromImage(x, y, z, plasma_image);
-                        player_side->m_ConstructPanel->m_PlasmaResCountX = x;
+                        player_side->m_ConstructPanel->m_PlasmaResCountX = (int)x;
                         prev_res = cnt;
                     }
 

@@ -200,7 +200,7 @@
 //{
 //    DTRACE();
 //    m_ContextEnemy = nullptr;
-//    if(robot->m_CurrState != ROBOT_SUCCESSFULLY_BUILD)
+//    if(robot->m_CurrentState != ROBOT_SUCCESSFULLY_BUILD)
 //        return false;
 //    if(robot == (CMatrixRobotAI*)g_MatrixMap->GetPlayerSide()->GetUnitUnderManualControl())
 //        return false;
@@ -247,7 +247,7 @@
 //void CMatrixRule::Do(CMatrixRobotAI *robot, CMatrixGroup* group)
 //{
 //    DTRACE();
-//    if(robot->m_CurrState != ROBOT_SUCCESSFULLY_BUILD)
+//    if(robot->m_CurrentState != ROBOT_SUCCESSFULLY_BUILD)
 //        return;
 //    CMatrixTactics* parent_tactics = ((CMatrixTactics*)((CMatrixLogicSlot*)((CMatrixState*)GetParent())->GetParent())->GetParent());    
 //    

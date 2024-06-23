@@ -17,12 +17,6 @@ class CMatrixRovotAI;
 #define CANNON_TIME_FROM_FIRE       1000
 
 #define CANNON_COLLIDE_R            20
-enum ECannonState
-{
-    CANNON_IDLE,
-    CANNON_UNDER_CONSTRUCTION,
-    CANNON_DIP
-};
 
 enum ECannonUnitType
 {
@@ -114,11 +108,12 @@ public:
 
 	CMatrixShadowProj* m_ShadowProj = nullptr;
 
-	ECannonState m_CurrState = CANNON_IDLE;
+	ECannonState m_CurrentState = CANNON_IDLE;
 
     int m_NextTimeAblaze = 0;
     int m_NextTimeShorted = 0;
 
+    CMatrixMapStatic* m_TargetOverride = nullptr; //Цель, которая была задана турели принудительно извне (вероятнее всего, игроком)
     D3DXVECTOR3 m_TargetDisp = { 0.0f, 0.0f, 0.0f };
     D3DXVECTOR3 m_FireCenter = { 0.0f, 0.0f, 0.0f };
 
@@ -160,6 +155,12 @@ public:
         if(g_Config.m_BuildingShadows) m_ShadowType = SHADOW_STENCIL;
     }
 	~CMatrixCannon();
+
+    virtual bool IsUnitAlive()
+    {
+        if(m_CurrentState != CANNON_DIP && m_CurrentState != CANNON_UNDER_CONSTRUCTION && m_CurrentState != CANNON_UNDER_DECONSTRUCTION) return true;
+        return false;
+    }
 
     void DIPTact(float ms);
 
@@ -208,7 +209,7 @@ public:
 
     virtual bool CalcBounds(D3DXVECTOR3& omin, D3DXVECTOR3& omax);
     virtual int GetSide() const     { return m_Side; };
-    virtual bool NeedRepair() const { return m_CurrState != CANNON_UNDER_CONSTRUCTION && (m_Hitpoints < m_MaxHitpoints); }
+    virtual bool NeedRepair() const { return m_Hitpoints < m_MaxHitpoints && m_CurrentState != CANNON_UNDER_CONSTRUCTION && m_CurrentState != CANNON_UNDER_DECONSTRUCTION; }
         
     virtual bool InRect(const CRect &rect)const;
 
@@ -219,10 +220,10 @@ public:
 
 inline bool CMatrixMapStatic::IsCannonAlive() const
 {
-    return IsCannon() && ((CMatrixCannon*)this)->m_CurrState != CANNON_DIP; 
+    return IsCannon() && ((CMatrixCannon*)this)->m_CurrentState != CANNON_DIP && ((CMatrixCannon*)this)->m_CurrentState != CANNON_UNDER_DECONSTRUCTION;
 }
 
 inline bool CMatrixMapStatic::IsActiveCannonAlive() const
 {
-    return IsCannon() && ((CMatrixCannon*)this)->m_CurrState != CANNON_DIP && ((CMatrixCannon*)this)->m_CurrState != CANNON_UNDER_CONSTRUCTION; 
+    return IsCannon() && ((CMatrixCannon*)this)->m_CurrentState != CANNON_DIP && ((CMatrixCannon*)this)->m_CurrentState != CANNON_UNDER_CONSTRUCTION && ((CMatrixCannon*)this)->m_CurrentState != CANNON_UNDER_DECONSTRUCTION;
 }

@@ -220,7 +220,7 @@ static bool CollisionRobots(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dwo
 void CMatrixRobotAI::PauseTact(int cms)
 {
     m_HealthBar.Modify(100000.0f, 0.0f);
-    if(m_CurrState == ROBOT_DIP) return;
+    if(m_CurrentState == ROBOT_DIP) return;
     if(m_ShowHitpointsTime > 0)
     {
         m_ShowHitpointsTime -= cms;
@@ -269,7 +269,7 @@ void CMatrixRobotAI::LogicTact(int ms)
     }
 
     //Срабатывает мгновенное уничтожение робота, если он должен умереть, но не был помечен маркером Death in progress (видимо)
-    if(IsMustDie() && m_CurrState != ROBOT_DIP && GetBombStatus() != BS_COUNTDOWN_STARTED)
+    if(IsMustDie() && m_CurrentState != ROBOT_DIP && GetBombStatus() != BS_COUNTDOWN_STARTED)
     {
         TakingDamage(WEAPON_INSTANT_DEATH, GetGeoCenter(), D3DXVECTOR3(0, 0, 0));
         return;
@@ -301,7 +301,7 @@ void CMatrixRobotAI::LogicTact(int ms)
     m_HealthBar.Modify(100000.0f, 0);
 
     //Death in progress - "протокол смерти" запущен, робот готовиться к уничтожению
-    if(m_CurrState == ROBOT_DIP)
+    if(m_CurrentState == ROBOT_DIP)
     {
         DIPTact(float(ms));
         return;
@@ -483,7 +483,7 @@ void CMatrixRobotAI::LogicTact(int ms)
     }
 
     //Если робот был сброшен с вертолёта и в данный момент летит вниз
-    if(m_CurrState == ROBOT_FALLING)
+    if(m_CurrentState == ROBOT_FALLING)
     {
         float dtime = float(ms) * 0.013f;
         m_FallingSpeed += dtime;
@@ -494,15 +494,15 @@ void CMatrixRobotAI::LogicTact(int ms)
         if(m_Core->m_Matrix._43 < z)
         {
             m_Core->m_Matrix._43 = z;
-            m_CurrState = ROBOT_SUCCESSFULLY_BUILD; //Маркер о готовности робота к получению дальнейших приказов
-            m_KeelWaterCount = 0;
+            m_CurrentState = ROBOT_SUCCESSFULLY_BUILD; //Маркер о готовности робота к получению дальнейших приказов
+            m_KeelWaterCount = 0.0f;
 
-            m_FallingSpeed = 0;
+            m_FallingSpeed = 0.0f;
 
-            CMatrixEffect::CreateDust(nullptr, *(D3DXVECTOR2*)&GetGeoCenter(), D3DXVECTOR2(0, 0), 3000);
-            CMatrixEffect::CreateDust(nullptr, *(D3DXVECTOR2*)&GetGeoCenter(), D3DXVECTOR2(0, 0), 3000);
-            CMatrixEffect::CreateDust(nullptr, *(D3DXVECTOR2*)&GetGeoCenter(), D3DXVECTOR2(0, 0), 3000);
-            CMatrixEffect::CreateDust(nullptr, *(D3DXVECTOR2*)&GetGeoCenter(), D3DXVECTOR2(0, 0), 3000);
+            CMatrixEffect::CreateDust(nullptr, *(D3DXVECTOR2*)&GetGeoCenter(), D3DXVECTOR2(0.0f, 0.0f), 3000.0f);
+            CMatrixEffect::CreateDust(nullptr, *(D3DXVECTOR2*)&GetGeoCenter(), D3DXVECTOR2(0.0f, 0.0f), 3000.0f);
+            CMatrixEffect::CreateDust(nullptr, *(D3DXVECTOR2*)&GetGeoCenter(), D3DXVECTOR2(0.0f, 0.0f), 3000.0f);
+            CMatrixEffect::CreateDust(nullptr, *(D3DXVECTOR2*)&GetGeoCenter(), D3DXVECTOR2(0.0f, 0.0f), 3000.0f);
             JoinToGroup();
 
             //Определяем место, в которое упадёт робот для последующей отрисовки следов от колёсного/гусеничного типа шасси
@@ -520,11 +520,11 @@ void CMatrixRobotAI::LogicTact(int ms)
     }
 
     //Робот болтается в вертолётной "авоське", ожидает сброса
-    if(m_CurrState == ROBOT_CARRYING)
+    if(m_CurrentState == ROBOT_CARRYING)
     {
         RCData data;
 
-        float mul = 1.0 - float(pow(CARRYING_SPEED, double(ms)));
+        float mul = 1.0f - float(pow(CARRYING_SPEED, double(ms)));
         CMatrixFlyer::SCarryData* carry_data = m_CargoFlyer->GetCarryData();
         if(carry_data->m_RobotElevatorField && m_CargoFlyer->GetCarryData()->m_RobotElevatorField->m_Activated)
         {
@@ -618,12 +618,12 @@ void CMatrixRobotAI::LogicTact(int ms)
 
     //normal...
 
-    float mul = 1.0 - float(pow(0.996, double(ms)));
+    float mul = 1.0f - float(pow(0.996, double(ms)));
     D3DXVECTOR3 up;
     g_MatrixMap->GetNormal(&up, m_PosX, m_PosY, true);
     *(D3DXVECTOR3*)&m_Core->m_Matrix._31 = LERPVECTOR(mul, *(D3DXVECTOR3*)&m_Core->m_Matrix._31, up);
     
-    if(m_CurrState != ROBOT_IN_SPAWN)
+    if(m_CurrentState != ROBOT_IN_SPAWN)
     {
         //Создаём на земле эффекты следов от колёсного/гусеничного типа шасси
         if(IsRollingChassis())
@@ -649,14 +649,14 @@ void CMatrixRobotAI::LogicTact(int ms)
     }
 
     //Если готовый робот в данный момент собирается покинуть базу
-    if(m_CurrState == ROBOT_IN_SPAWN)
+    if(m_CurrentState == ROBOT_IN_SPAWN)
     {
         if(GetBase())
         {
             //И база уже готова выпустить его на свет, выставляем роботу маркер выезда с подъёмника базы
             if(GetBase()->m_State == BASE_OPENED)
             {
-                m_CurrState = ROBOT_BASE_MOVEOUT;
+                m_CurrentState = ROBOT_BASE_MOVEOUT;
                 SetAfterManual(false);
             }
         }
@@ -664,7 +664,7 @@ void CMatrixRobotAI::LogicTact(int ms)
 
     //Если ранее робот уже получил маркер выезда с базы, то отдаём необходимые команды
     //Начальный вейпоинт, используемый сразу после выхода с базы, робот получает в функции RobotSpawn
-    else if(m_CurrState == ROBOT_BASE_MOVEOUT)
+    else if(m_CurrentState == ROBOT_BASE_MOVEOUT)
     {
         //Робот как бы "выталкивается" с базы, получая команду продвинутся вперёд
         LowLevelMove(ms, m_ChassisForward * 100, true, false);
@@ -680,7 +680,7 @@ void CMatrixRobotAI::LogicTact(int ms)
             {
                 GetLost(m_ChassisForward); //Вот эта строка, вероятно, лишняя, либо используется только для подстраховки нештатных ситуаций (тупо направляет робота вперёд)
                 D3DXVec2Normalize(&dist, &dist);
-                m_CurrState = ROBOT_SUCCESSFULLY_BUILD;
+                m_CurrentState = ROBOT_SUCCESSFULLY_BUILD;
                 SetManualControlLocked(false);
 
                 if(!m_OrdersInPool) LowLevelStop();
@@ -702,10 +702,10 @@ void CMatrixRobotAI::LogicTact(int ms)
     }
 
     //////////////// Real-deal logic starts here :))) /////////////////////////////////////////////////////////////////////////	
-    if(m_CurrState != ROBOT_SUCCESSFULLY_BUILD)
+    if(m_CurrentState != ROBOT_SUCCESSFULLY_BUILD)
     {
         RChange(MR_Matrix | MR_ShadowProjGeom | MR_ShadowProjTex | MR_ShadowStencil);
-        if(m_CurrState != ROBOT_CAPTURING_BASE) goto do_animation;
+        if(m_CurrentState != ROBOT_CAPTURING_BASE) goto do_animation;
     }
 
     //GatherInfo(ms);
@@ -714,7 +714,7 @@ void CMatrixRobotAI::LogicTact(int ms)
     //if(IsInManualControl())
     //CDText::T("Velocity", CStr(m_Speed));
 
-    if(m_Side == PLAYER_SIDE && IsInManualControl() && m_CurrState == ROBOT_SUCCESSFULLY_BUILD)
+    if(m_Side == PLAYER_SIDE && IsInManualControl() && m_CurrentState == ROBOT_SUCCESSFULLY_BUILD)
     {
         if(g_IFaceList->m_InFocus != INTERFACE)
         {
@@ -732,7 +732,7 @@ void CMatrixRobotAI::LogicTact(int ms)
 
         if(cur_target->IsRobotAlive()) //Если целью робота выбран другой робот
         {
-            if(cur_target->AsRobot()->m_CurrState != ROBOT_SUCCESSFULLY_BUILD) goto no_target;
+            if(cur_target->AsRobot()->m_CurrentState != ROBOT_SUCCESSFULLY_BUILD) goto no_target;
         
             bool capturing = FindOrderLikeThat(ROT_CAPTURE_BUILDING);
 
@@ -1227,7 +1227,7 @@ void CMatrixRobotAI::LogicTact(int ms)
                     {
                         if(building->m_State != BASE_CLOSED && building->m_State != BASE_CLOSING)
                         {
-                            m_CurrState = ROBOT_CAPTURING_BASE;
+                            m_CurrentState = ROBOT_CAPTURING_BASE;
                             building->CloseAssemblyChamber();
                         }
                         else if(building->m_State == BASE_CLOSED)
@@ -1885,7 +1885,7 @@ void CMatrixRobotAI::MoveToRndBuilding()
         float x = (ms->AsRobot()->m_PosX);
         float y = (ms->AsRobot()->m_PosY + 30);
 
-        if(ms->AsRobot()->m_CurrState == ROBOT_SUCCESSFULLY_BUILD && ((x - m_PosX) * (x - m_PosX) + (y - m_PosY) * (y - m_PosY)) > 100 * 100)
+        if(ms->AsRobot()->m_CurrentState == ROBOT_SUCCESSFULLY_BUILD && ((x - m_PosX) * (x - m_PosX) + (y - m_PosY) * (y - m_PosY)) > 100 * 100)
         {
             int mx = int(x / GLOBAL_SCALE);
             int my = int(y / GLOBAL_SCALE);
@@ -1912,7 +1912,7 @@ bool CMatrixRobotAI::TakingDamage(
 )
 {
     ASSERT(this);
-    if(m_CurrState == ROBOT_DIP) return true;
+    if(m_CurrentState == ROBOT_DIP) return true;
 
     bool friendly_fire = false;
     float damage;
@@ -2049,7 +2049,7 @@ bool CMatrixRobotAI::TakingDamage(
                             else danger += robot->GetStrength();
                         }
                     }
-                    else if(ms->IsCannonAlive() && ms->AsCannon()->m_CurrState != CANNON_UNDER_CONSTRUCTION)
+                    else if(ms->IsActiveCannonAlive())
                     {
                         CMatrixCannon* cannon = ms->AsCannon();
                         if((POW2(cannon->m_Pos.x - m_PosX) + POW2(cannon->m_Pos.y - m_PosY)) < POW2(m_BombRange * 1.0f))
@@ -2104,7 +2104,7 @@ bool CMatrixRobotAI::TakingDamage(
         {
             if(GetBase())
             {
-                if(m_CurrState == ROBOT_BASE_MOVEOUT || m_CurrState == ROBOT_IN_SPAWN)
+                if(m_CurrentState == ROBOT_BASE_MOVEOUT || m_CurrentState == ROBOT_IN_SPAWN)
                 {
                     //Если робота уничтожили, пока тот выходил с базы, в любом случае опускаем подъёмник
                     GetBase()->SetSpawningUnit(false);
@@ -2118,7 +2118,7 @@ bool CMatrixRobotAI::TakingDamage(
         if(FLAG(m_ObjectFlags, ROBOT_FLAG_ON_WATER)) cstay = false;
 
         SwitchAnimation(ANIMATION_OFF);
-        m_CurrState = ROBOT_DIP;
+        m_CurrentState = ROBOT_DIP;
 
         bool onair = false;
 
@@ -2183,67 +2183,6 @@ bool CMatrixRobotAI::TakingDamage(
 
     return false;
 }
-
-
-#ifdef _DEBUG
-void CMatrixRobotAI::Draw()
-{
-    //if(m_CurrState != ROBOT_DIP)
-    // {
-    //    CPoint tp;
-    //    if(!GetMoveToCoords(tp)) {
-    //        tp.x=m_MapX; tp.y=m_MapY;
-    //    }
-
-    //    D3DXVECTOR3 v1,v2,v3,v4;
-    //    v1.x=tp.x*GLOBAL_SCALE_MOVE; v1.y=tp.y*GLOBAL_SCALE_MOVE; v1.z=g_MatrixMap->GetZ(v1.x,v1.y)+1.0f;
-    //    v2.x=(tp.x+4)*GLOBAL_SCALE_MOVE; v2.y=tp.y*GLOBAL_SCALE_MOVE; v2.z=g_MatrixMap->GetZ(v2.x,v2.y)+1.0f;
-    //    v3.x=(tp.x+4)*GLOBAL_SCALE_MOVE; v3.y=(tp.y+4)*GLOBAL_SCALE_MOVE; v3.z=g_MatrixMap->GetZ(v3.x,v3.y)+1.0f;
-    //    v4.x=(tp.x)*GLOBAL_SCALE_MOVE; v4.y=(tp.y+4)*GLOBAL_SCALE_MOVE; v4.z=g_MatrixMap->GetZ(v4.x,v4.y)+1.0f;
-
-    //    CHelper::Create(1)->Triangle(v1,v2,v3,0x8000ff00);
-    //    CHelper::Create(1)->Triangle(v1,v3,v4,0x8000ff00);
-    //}
-
-    //if(m_CurrState != ROBOT_DIP) {
-       // if(m_ZonePathCnt>0) {
-          //  for(int i=1;i<m_ZonePathCnt; ++i)
-          // {
-             //   D3DXVECTOR3 vfrom,vto;
-             //   vfrom.x=GLOBAL_SCALE_MOVE*float(g_MatrixMap->m_RoadNetwork.m_Zone[m_ZonePath[i-1]].m_Center.x)+GLOBAL_SCALE_MOVE/2;
-             //   vfrom.y=GLOBAL_SCALE_MOVE*float(g_MatrixMap->m_RoadNetwork.m_Zone[m_ZonePath[i-1]].m_Center.y)+GLOBAL_SCALE_MOVE/2;
-             //   vfrom.z=g_MatrixMap->GetZ(vfrom.x,vfrom.y)+50.0f;
-
-             //   vto.x=GLOBAL_SCALE_MOVE*float(g_MatrixMap->m_RoadNetwork.m_Zone[m_ZonePath[i]].m_Center.x)+GLOBAL_SCALE_MOVE/2;
-             //   vto.y=GLOBAL_SCALE_MOVE*float(g_MatrixMap->m_RoadNetwork.m_Zone[m_ZonePath[i]].m_Center.y)+GLOBAL_SCALE_MOVE/2;
-             //   vto.z=g_MatrixMap->GetZ(vto.x,vto.y)+50.0f;
-
-    //            CHelper::Create(1)->Cone(vfrom,vto,0.5f,0.5f,0xffff0000,0xffff0000,6);
-             //   CHelper::Create(1)->Cone(vto+(vfrom-vto)*0.1f,vto,1.5f,0.5f,0xffff0000,0xffffff00,6);
-             //   CHelper::Create(1)->Cone(vto,vto-D3DXVECTOR3(0.0f,0.0f,50.0f),0.5f,0.5f,0xffff0000,0xffff0000,6);
-          //  }
-       // }
-
-       // if(m_MovePathCnt>0) {
-          //  for(int i=1;i<m_MovePathCnt; ++i)
-          // {
-             //   D3DXVECTOR3 vfrom,vto;
-             //   vfrom.x=GLOBAL_SCALE_MOVE*m_MovePath[i-1].x+GLOBAL_SCALE_MOVE/2;
-             //   vfrom.y=GLOBAL_SCALE_MOVE*m_MovePath[i-1].y+GLOBAL_SCALE_MOVE/2;
-             //   vfrom.z=g_MatrixMap->GetZ(vfrom.x,vfrom.y)+2.0f;//+GLOBAL_SCALE_MOVE;
-
-             //   vto.x=GLOBAL_SCALE_MOVE*m_MovePath[i].x+GLOBAL_SCALE_MOVE/2;
-             //   vto.y=GLOBAL_SCALE_MOVE*m_MovePath[i].y+GLOBAL_SCALE_MOVE/2;
-             //   vto.z=g_MatrixMap->GetZ(vto.x,vto.y)+2.0f;//+GLOBAL_SCALE_MOVE;
-
-             //   CHelper::Create(1)->Cone(vfrom,vto,0.5f,0.5f,0xffffffff,0xffff0000,6);
-          //  }
-       // }
-
-    //}
-    CMatrixRobot::Draw();
-}
-#endif
 
 void CMatrixRobotAI::RobotSpawn(CMatrixBuilding* pBase)
 {
@@ -2320,7 +2259,7 @@ void CMatrixRobotAI::RobotSpawn(CMatrixBuilding* pBase)
         if(m_Side != 0) g_MatrixMap->GetSideById(m_Side)->IncStatValue(STAT_ROBOT_BUILD);
     }
 
-    m_CurrState = ROBOT_IN_SPAWN;
+    m_CurrentState = ROBOT_IN_SPAWN;
     pBase->OpenAssemblyChamber();
 }
 
@@ -2520,7 +2459,7 @@ bool CMatrixRobotAI::Seek(
     float rangle = 0.0f;
 
     rotate = true;
-    if(cam_rotation && m_CurrState != ROBOT_BASE_MOVEOUT && moving_direction == UNIT_MOVING_FORWARD)
+    if(cam_rotation && m_CurrentState != ROBOT_BASE_MOVEOUT && moving_direction == UNIT_MOVING_FORWARD)
     {
         if(RotateRobotChassis(dest, CONNECTED_CAM_ROTATION, &rangle))
         {
@@ -2636,7 +2575,7 @@ bool CMatrixRobotAI::Seek(
 //
 //
 //    destRot = D3DXVECTOR3(m_PosX, m_PosY, 0) + destDirN * destLength;
-//    if(m_CurrState == ROBOT_BASE_MOVEOUT){
+//    if(m_CurrentState == ROBOT_BASE_MOVEOUT){
 //		desired_velocity = m_ChassisForward;
 //		accelerating = true;
 //    }else{
@@ -2657,7 +2596,7 @@ bool CMatrixRobotAI::Seek(
 //    float rangle=0.0f;
 //    
 //	m_Velocity.z = 0;
-//    if(m_CurrState == ROBOT_BASE_MOVEOUT/* || RotateRobotChassis(destRot)*/){
+//    if(m_CurrentState == ROBOT_BASE_MOVEOUT/* || RotateRobotChassis(destRot)*/){
 //        m_Velocity = Vec3Truncate(m_Velocity + accel, /*m_MaxSpeed*/m_GroupSpeed);
 //    }else{
 //        float mspeed=m_GroupSpeed;
@@ -3180,7 +3119,7 @@ static bool CollisionCallback(const D3DXVECTOR3& fpos, CMatrixMapStatic* pObject
                 break;
             }
 
-            /*            if(data->robot->m_CurrState == ROBOT_BASE_MOVEOUT || data->robot->FindOrderLikeThat(ROT_MOVE_TO, ROT_GETING_LOST)){
+            /*            if(data->robot->m_CurrentState == ROBOT_BASE_MOVEOUT || data->robot->FindOrderLikeThat(ROT_MOVE_TO, ROT_GETING_LOST)){
                             pCurrBot->GetLost(data->robot->m_ChassisForward);
                             float vel_len1 = D3DXVec3LengthSq(&pCurrBot->m_Velocity);
                             float vel_len2 = D3DXVec3LengthSq(&data->robot->m_Velocity);
@@ -4244,7 +4183,7 @@ bool CMatrixRobotAI::SphereToAABBCheck(const D3DXVECTOR2& p, const D3DXVECTOR2& 
 //  //m_ShadowType=0;
 //	m_Core->m_ShadowSize=buf.Word();
 //
-//    m_CurrState = ROBOT_SUCCESSFULLY_BUILD;
+//    m_CurrentState = ROBOT_SUCCESSFULLY_BUILD;
 //
 //    if(!arm) 
 //    {
@@ -4269,7 +4208,7 @@ void robot_weapon_hit(CMatrixMapStatic* hit, const D3DXVECTOR3& pos, dword user,
     {
         if(user == dword(obj))
         {
-            if(obj->AsRobot()->m_CurrState != ROBOT_DIP) obj->AsRobot()->HitTo(hit, pos);
+            if(obj->AsRobot()->m_CurrentState != ROBOT_DIP) obj->AsRobot()->HitTo(hit, pos);
             return;
         }
         obj = obj->GetNextLogic();
@@ -4557,7 +4496,7 @@ void CMatrixRobotAI::GatherInfo(int type)
 
                 float dist_enemy = D3DXVec3LengthSq(&enemy_napr);
 
-                if(dist_enemy <= POW2(max(robot->m_MaxFireDist, m_MaxFireDist) * 1.1)/*(D3DXVec3LengthSq(&enemy_napr) <= m_MinFireDist*m_MinFireDist) || (D3DXVec3LengthSq(&enemy_napr) <= m_MaxFireDist*m_MaxFireDist && angle_rad <= ROBOT_FOV)*/ && robot->m_CurrState != ROBOT_DIP)
+                if(dist_enemy <= POW2(max(robot->m_MaxFireDist, m_MaxFireDist) * 1.1) /*(D3DXVec3LengthSq(&enemy_napr) <= m_MinFireDist*m_MinFireDist) || (D3DXVec3LengthSq(&enemy_napr) <= m_MaxFireDist*m_MaxFireDist && angle_rad <= ROBOT_FOV)*/ && robot->m_CurrentState != ROBOT_DIP)
                 {
                     if(g_MatrixMap->IsLogicVisible(this, robot, 0.0f))
                     {
@@ -4605,19 +4544,19 @@ void CMatrixRobotAI::GatherInfo(int type)
                     if(/*robot->m_FireTarget != this && */ dist_enemy > POW2(max(robot->m_MaxFireDist, m_MaxFireDist) * 1.4)) m_Environment.RemoveFromListSlowly(obj);
                 }
             }
-            else if (obj->IsCannonAlive() && obj->AsCannon()->m_CurrState != CANNON_UNDER_CONSTRUCTION && obj->GetSide() != m_Side)
+            else if(obj->IsActiveCannonAlive() && obj->GetSide() != m_Side)
             {
                 CMatrixCannon* cannon = (CMatrixCannon*)obj;
                 D3DXVECTOR3 enemy_napr = cannon->GetGeoCenter() - D3DXVECTOR3(m_PosX, m_PosY, 0);
 
-                D3DXVECTOR3 en_norm(0, 0, 0);
+                D3DXVECTOR3 en_norm = { 0.0f, 0.0f, 0.0f };
                 D3DXVec3Normalize(&en_norm, &enemy_napr);
                 float cos = m_HullForward.x * en_norm.x + m_HullForward.y * en_norm.y;
                 float angle_rad = acos(cos);
 
                 float dist_enemy = D3DXVec3LengthSq(&enemy_napr);
 
-                if(dist_enemy <= POW2(max(cannon->GetFireRadius() * 1.01, m_MaxFireDist * 1.1)) /*(D3DXVec3LengthSq(&enemy_napr) <= m_MinFireDist*m_MinFireDist)*//* || (D3DXVec3LengthSq(&enemy_napr) <= m_MaxFireDist*m_MaxFireDist && angle_rad <= ROBOT_FOV) */ && cannon->m_CurrState != CANNON_DIP)
+                if(dist_enemy <= POW2(max(cannon->GetFireRadius() * 1.01, m_MaxFireDist * 1.1)) /*(D3DXVec3LengthSq(&enemy_napr) <= m_MinFireDist*m_MinFireDist)*//* || (D3DXVec3LengthSq(&enemy_napr) <= m_MaxFireDist*m_MaxFireDist && angle_rad <= ROBOT_FOV) */ && cannon->m_CurrentState != CANNON_DIP)
                 {
                     if(g_MatrixMap->IsLogicVisible(this, cannon, 0.0f))
                     {
@@ -4632,14 +4571,14 @@ void CMatrixRobotAI::GatherInfo(int type)
                             side->BufPrepare();
 
                             float d = sqrt(float(p_from.Dist2(p_to)));
-                            //float z=fabs(g_MatrixMap->GetZ(cannon->m_Pos.x,cannon->m_Pos.y)-g_MatrixMap->GetZ(m_PosX,m_PosY));
+                            //float z = fabs(g_MatrixMap->GetZ(cannon->m_Pos.x, cannon->m_Pos.y) - g_MatrixMap->GetZ(m_PosX, m_PosY));
                             float z = fabs(cannon->GetGeoCenter().z - GetGeoCenter().z);
 
                             if((z / (d * GLOBAL_SCALE_MOVE)) >= tan(BARREL_TO_SHOT_ANGLE))
                             {
                                 m_Environment.AddIgnore(cannon);
                             }
-                            else if(g_MatrixMap->PlaceList(m_Module[0].m_Kind - 1, p_from, p_to, Float2Int(GetMaxFireDist() / GLOBAL_SCALE_MOVE/*+ROBOT_MOVECELLS_PER_SIZE*/), false, side->m_PlaceList, &listcnt, &dist))
+                            else if(g_MatrixMap->PlaceList(m_Module[0].m_Kind - 1, p_from, p_to, Float2Int(GetMaxFireDist() / GLOBAL_SCALE_MOVE /* + ROBOT_MOVECELLS_PER_SIZE*/), false, side->m_PlaceList, &listcnt, &dist))
                             {
                                 if(POW2(dist / 4) < p_from.Dist2(p_to))
                                 {
@@ -4653,19 +4592,6 @@ void CMatrixRobotAI::GatherInfo(int type)
                             else m_Environment.AddIgnore(cannon);
                         }
                     }
-                    /*                D3DXVECTOR3 rem;
-
-                                    CMatrixMapStatic* trace_res = nullptr;
-                                    trace_res = g_MatrixMap->Trace(&rem, GetGeoCenter(), cannon->GetGeoCenter(), TRACE_ANYOBJECT|TRACE_NONOBJECT|TRACE_OBJECTSPHERE|TRACE_SKIP_INVISIBLE, this);
-                                    if((IS_TRACE_STOP_OBJECT(trace_res) && trace_res == cannon) && !m_Environment.SearchEnemy(cannon)){
-                                        m_Environment.AddToList(obj);
-                                    } else {
-                                        D3DXVECTOR3 v1=GetGeoCenter(); v1.z+=50.0f;
-                                        trace_res = g_MatrixMap->Trace(&rem, v1, cannon->GetGeoCenter(), TRACE_ANYOBJECT|TRACE_NONOBJECT|TRACE_OBJECTSPHERE|TRACE_SKIP_INVISIBLE, this);
-                                        if((IS_TRACE_STOP_OBJECT(trace_res) && trace_res == cannon) && !m_Environment.SearchEnemy(cannon)){
-                                            m_Environment.AddToList(obj);
-                                        }
-                                    }*/
                 }
                 else
                 {
@@ -5376,7 +5302,7 @@ void CMatrixRobotAI::ReleaseMe()
 
     m_Environment.Clear();
 
-    if(m_CurrState == ROBOT_CARRYING)
+    if(m_CurrentState == ROBOT_CARRYING)
     {
         Carry(nullptr);
     }

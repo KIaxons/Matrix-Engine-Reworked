@@ -108,8 +108,7 @@ void CMatrixMapStatic::StaticTact(int ms)
     LogicTact(ms);
 }
 
-
-void CMatrixMapStatic::RecalcTerainColor(void)
+void CMatrixMapStatic::RecalcTerainColor()
 {
     D3DXVECTOR3 vmin, vmax;
 
@@ -121,7 +120,7 @@ void CMatrixMapStatic::RecalcTerainColor(void)
     m_Core->m_TerrainColor = LIC(tc, g_MatrixMap->m_Terrain2ObjectTargetColor, g_MatrixMap->m_Terrain2ObjectInfluence);
 }
 
-void CMatrixMapStatic::JoinToGroup(void)
+void CMatrixMapStatic::JoinToGroup()
 {
     D3DXVECTOR3 vmin, vmax;
     if(this->CalcBounds(vmin, vmax)) return;

@@ -134,7 +134,7 @@ public:
         m_Robot->m_ShadowSize = 128;
 
         m_Robot->m_ChassisForward = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
-        m_Robot->m_CurrState = ROBOT_EMBRYO;
+        m_Robot->m_CurrentState = ROBOT_EMBRYO;
 
         m_NewBorn = HNew(Base::g_MatrixHeap) SNewBorn;
     }

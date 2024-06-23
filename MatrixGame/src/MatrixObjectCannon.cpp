@@ -77,7 +77,7 @@ void CMatrixCannon::ModuleClear(void)
             m_Module[i].m_Graph = nullptr;
         }
 
-        if(m_CurrState == CANNON_DIP)
+        if(m_CurrentState == CANNON_DIP)
         {
             if(m_Module[i].m_Smoke.effect)
             {
@@ -133,7 +133,7 @@ void CMatrixCannon::BoundGet(D3DXVECTOR3& bmin, D3DXVECTOR3& bmax)
 
 void CMatrixCannon::GetResources(dword need)
 {
-    if(m_CurrState == CANNON_DIP) return;
+    if(m_CurrentState == CANNON_DIP) return;
 
 	if(need & m_RChange & (MR_Graph))
     {
@@ -221,15 +221,17 @@ void CMatrixCannon::GetResources(dword need)
         int py = TruncFloat(m_Pos.y * INVERT(GLOBAL_SCALE));
 
         int cnt = 0;
-        float rv = 0;
+        float rv = 0.0f;
+
         SMatrixMapPoint* mp = g_MatrixMap->PointGetTest(px, py); if(mp) { ++cnt; rv += mp->z; }
         mp = g_MatrixMap->PointGetTest(px + 1, py); if(mp) { ++cnt; rv += mp->z; }
         mp = g_MatrixMap->PointGetTest(px, py + 1); if(mp) { ++cnt; rv += mp->z; }
         mp = g_MatrixMap->PointGetTest(px + 1, py + 1); if(mp) { ++cnt; rv += mp->z; }
 
         if(cnt) m_Core->m_Matrix._43 = rv / cnt + m_AddH;
+        else m_Core->m_Matrix._43 = m_AddH;
         //Крашит в этом месте, если вынести фантомную турель (появляется при выборе места постройки) за границу карты
-        else ERROR_S(L"Divide by zero probability in CMatrixCannon::GetResources!");
+        //else ERROR_S(L"Divide by zero probability in CMatrixCannon::GetResources!");
 
         D3DXMatrixInverse(&m_Core->m_IMatrix, nullptr, &m_Core->m_Matrix);
 
@@ -438,7 +440,7 @@ void CMatrixCannon::Tact(int cms)
 
 bool CMatrixCannon::Pick(const D3DXVECTOR3& orig, const D3DXVECTOR3& dir, float* outt) const
 {
-    if(m_CurrState == CANNON_DIP) return false;
+    if(m_CurrentState == CANNON_DIP) return false;
 	for(int i = 0; i < m_ModulesCount; ++i)
     {
 		if(m_Module[i].m_Graph)
@@ -472,7 +474,7 @@ void CMatrixCannon::BeforeDraw()
     dword sh = (g_Config.m_ShowProjShadows ? (MR_ShadowProjGeom | MR_ShadowProjTex) : 0) | (g_Config.m_ShowStencilShadows ? MR_ShadowStencil : 0);
     GetResources(MR_Matrix | MR_Graph | sh);
 
-    if(m_ShowHitpointsTime > 0 && m_Hitpoints > 0 && m_CurrState != CANNON_DIP)
+    if(m_ShowHitpointsTime > 0 && m_Hitpoints > 0 && m_CurrentState != CANNON_DIP)
     {
         D3DXVECTOR3 pos(GetGeoCenter());
         if(TRACE_STOP_NONE == g_MatrixMap->Trace(nullptr, g_MatrixMap->m_Camera.GetFrustumCenter(), pos, TRACE_LANDSCAPE, nullptr))
@@ -485,10 +487,10 @@ void CMatrixCannon::BeforeDraw()
     for(int i = 0; i < m_ModulesCount; ++i)
     {
         m_Module[i].m_Graph->BeforeDraw();
-        if(m_CurrState != CANNON_DIP && m_Module[i].m_ShadowStencil) m_Module[i].m_ShadowStencil->BeforeRender();
+        if(m_CurrentState != CANNON_DIP && m_Module[i].m_ShadowStencil) m_Module[i].m_ShadowStencil->BeforeRender();
     }
 
-    if(m_CurrState != ROBOT_DIP && m_ShadowProj) m_ShadowProj->BeforeRender();
+    if(m_CurrentState != ROBOT_DIP && m_ShadowProj) m_ShadowProj->BeforeRender();
 }
 
 void CMatrixCannon::Draw()
@@ -501,10 +503,16 @@ void CMatrixCannon::Draw()
         ASSERT_DX(g_D3DD->SetSamplerState(i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) (&g_MatrixMap->m_BiasCannons))));
     }
 
-    if(m_CurrState != CANNON_DIP)
+    if(m_CurrentState != CANNON_DIP)
     {
-        if(m_CurrState == CANNON_UNDER_CONSTRUCTION) g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, 0xFF00FF00);
-        else g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, m_Core->m_TerrainColor);
+        bool lights_on = false;
+        if(m_CurrentState == CANNON_UNDER_CONSTRUCTION) g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, TURRET_UNDER_CONSTRUCTION_COLOR);
+        else if(m_CurrentState == CANNON_UNDER_DECONSTRUCTION) g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, TURRET_UNDER_DECONSTRUCTION_COLOR);
+        else
+        {
+            g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, m_Core->m_TerrainColor);
+            lights_on = true;
+        }
 
         CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
         for(int i = 0; i < m_ModulesCount; ++i)
@@ -514,7 +522,7 @@ void CMatrixCannon::Draw()
             ASSERT(cur_part->m_Graph);
             ASSERT_DX(g_D3DD->SetTransform(D3DTS_WORLD, &(cur_part->m_Matrix)));
             cur_part->m_Graph->Draw(coltex);
-            if(m_CurrState != CANNON_UNDER_CONSTRUCTION && (ps->m_CurrentAction != BUILDING_TURRET || this != ps->m_CannonForBuild.m_Cannon) && !FLAG(g_MatrixMap->m_Flags, MMFLAG_DISABLE_DRAW_OBJECT_LIGHTS))
+            if(lights_on && (ps->m_CurrentAction != BUILDING_TURRET || this != ps->m_CannonForBuild.m_Cannon) && !FLAG(g_MatrixMap->m_Flags, MMFLAG_DISABLE_DRAW_OBJECT_LIGHTS))
             {
                 cur_part->m_Graph->DrawLightSprites(false, cur_part->m_Matrix, nullptr);
             }
@@ -725,7 +733,7 @@ static bool FindTarget(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dword us
     D3DXVECTOR3 dir(ms->GetGeoCenter() - center);
 
     float distc = D3DXVec3LengthSq(&dir);
-    if (distc > d->dist_fire && d->dist_cur < d->dist_fire) return true;
+    if(distc > d->dist_fire && d->dist_cur < d->dist_fire) return true;
     bool match = distc < d->dist_fire && d->dist_cur > d->dist_fire;
     D3DXVec3Normalize(&dir, &dir);
 
@@ -751,7 +759,7 @@ static bool FindTarget(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dword us
     return true;
 }
 
-void CMatrixCannon::BeginFireAnimation(void)
+void CMatrixCannon::BeginFireAnimation()
 {
     for(int i = 0; i < m_ModulesCount; ++i)
     {
@@ -768,7 +776,7 @@ void CMatrixCannon::BeginFireAnimation(void)
     }
 }
 
-void CMatrixCannon::EndFireAnimation(void)
+void CMatrixCannon::EndFireAnimation()
 {
     for(int i = 0; i < m_ModulesCount; ++i)
     {
@@ -783,8 +791,8 @@ void CMatrixCannon::EndFireAnimation(void)
 void CMatrixCannon::PauseTact(int tact)
 {
     SetPBOutOfScreen();
-    if(m_CurrState == CANNON_DIP) return;
-    if(m_CurrState != CANNON_UNDER_CONSTRUCTION)
+    if(m_CurrentState == CANNON_DIP) return;
+    if(m_CurrentState != CANNON_UNDER_CONSTRUCTION && m_CurrentState != CANNON_UNDER_DECONSTRUCTION)
     {
         if(m_ShowHitpointsTime > 0)
         {
@@ -800,7 +808,7 @@ void CMatrixCannon::LogicTact(int tact)
 {
     SetPBOutOfScreen();
 
-    if(m_CurrState == CANNON_DIP)
+    if(m_CurrentState == CANNON_DIP)
     {
         DIPTact(float(tact));
         return;
@@ -851,7 +859,7 @@ void CMatrixCannon::LogicTact(int tact)
         if(!m_EndFireAfterAsync) m_NextGunToShot = 0;
     }
 
-    if(m_CurrState != CANNON_UNDER_CONSTRUCTION)
+    if(m_CurrentState != CANNON_UNDER_CONSTRUCTION && m_CurrentState != CANNON_UNDER_DECONSTRUCTION)
     {
         if(m_ShowHitpointsTime > 0)
         {
@@ -967,12 +975,13 @@ void CMatrixCannon::LogicTact(int tact)
         // Seek new target
         // seek side target
 
-        CMatrixMapStatic* tgt = nullptr;
+        CMatrixMapStatic* target = nullptr;
+        if(m_TargetOverride && m_TargetOverride->IsUnitAlive()) target = m_TargetOverride;
 
         FTData data;
         //data.dist = props->seek_target_range * props->seek_target_range;
         data.coss = -1;
-        data.target = &tgt;
+        data.target = &target;
         data.side = m_Side;
         data.skip = this;
 
@@ -983,26 +992,26 @@ void CMatrixCannon::LogicTact(int tact)
 
         data.cdir = &m_TurretWeapon[0].m_FireDir;
 
-        m_TargetDisp = D3DXVECTOR3(0, 0, 0);
+        m_TargetDisp = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
         g_MatrixMap->FindObjects(GetGeoCenter(), props->seek_target_range, 1, TRACE_ROBOT | TRACE_FLYER, nullptr, FindTarget, (dword)&data);
 
-        if(tgt)
+        if(target)
         {
             if(m_TargetCore) m_TargetCore->Release();
-            m_TargetCore = tgt->GetCore();
+            m_TargetCore = target->GetCore();
         }
         else
         {
             // цель не найдена (уехала далеко наверное)
             if(m_TargetCore) m_TargetCore->Release();
             m_TargetCore = nullptr;
+            m_TargetOverride = nullptr; //На случай, если выставленная принудительно цель покинула зону поражения
         }
     }
 
     if(m_TargetCore == nullptr)
     {
-
 no_target:
         // цели нет. 
 
@@ -1234,7 +1243,7 @@ bool CMatrixCannon::TakingDamage(
 
     if(weap == WEAPON_INSTANT_DEATH) goto inst_death;
     if(IsInvulnerable()) return false;
-    if(m_CurrState == CANNON_DIP) return true;
+    if(m_CurrentState == CANNON_DIP) return true;
 
     friendly_fire = (attacker_side != NEUTRAL_SIDE) && (attacker_side == m_Side);
     damage_coef = (friendly_fire || m_Side != PLAYER_SIDE) ? 1.0f : g_MatrixMap->m_Difficulty.coef_enemy_damage_to_player_side;
@@ -1342,7 +1351,7 @@ inst_death:;
         m_ShadowType = SHADOW_OFF;
         RChange(MR_ShadowProjGeom | MR_ShadowStencil);
         GetResources(MR_ShadowProjGeom | MR_ShadowStencil);
-        m_CurrState = CANNON_DIP;
+        m_CurrentState = CANNON_DIP;
 
         ReleaseMe();
 
@@ -1450,7 +1459,7 @@ void CMatrixCannon::ReleaseMe(void)
 
 bool CMatrixCannon::InRect(const CRect& rect) const
 {
-    if(m_CurrState == CANNON_DIP) return false;
+    if(m_CurrentState == CANNON_DIP) return false;
 
     D3DXVECTOR3 dir;
     g_MatrixMap->m_Camera.CalcPickVector(CPoint(rect.left, rect.top), dir);
