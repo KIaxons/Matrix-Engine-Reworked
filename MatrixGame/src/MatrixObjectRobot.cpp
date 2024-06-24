@@ -300,7 +300,7 @@ void CMatrixRobot::GetResources(dword need)
         m_RChange &= ~MR_Graph;
 
         //float hp = (float)g_Config.m_RobotHitPoint;
-        //InitMaxHitpoint(hp);
+        //InitMaxHitpoints(hp);
 
         CWStr texture(g_CacheHeap), temp(g_CacheHeap);
         CWStr path(g_CacheHeap);//, path_e(g_CacheHeap);

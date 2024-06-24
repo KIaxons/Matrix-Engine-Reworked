@@ -52,6 +52,10 @@ void CMatrixGroup::AddObject(CMatrixMapStatic* object, int team)
     {
         ++m_FlyersCnt;
     }
+    else if(object->GetObjectType() == OBJECT_TYPE_TURRET)
+    {
+        ++m_TurretsCnt;
+    }
     else if(object->GetObjectType() == OBJECT_TYPE_BUILDING)
     {
         ++m_BuildingsCnt;
@@ -80,10 +84,15 @@ void CMatrixGroup::RemoveObject(CMatrixMapStatic* object)
             {
                 --m_FlyersCnt;
             }
+            else if(object->GetObjectType() == OBJECT_TYPE_TURRET)
+            {
+                --m_TurretsCnt;
+            }
             else if(object->GetObjectType() == OBJECT_TYPE_BUILDING)
             {
                 --m_BuildingsCnt;
             }
+
             --m_ObjectsCnt;
 
             CalcGroupPosition();
@@ -115,6 +124,7 @@ void CMatrixGroup::RemoveAll()
     
     m_RobotsCnt = 0;
     m_FlyersCnt = 0;
+    m_TurretsCnt = 0;
     m_BuildingsCnt = 0;
     m_ObjectsCnt = 0;
 }
@@ -327,6 +337,30 @@ void CMatrixGroup::CalcGroupSpeed()
     m_GroupSpeed = lowest_speed;
 }
 
+void CMatrixGroup::RemoveTurrets()
+{
+    if(m_TurretsCnt)
+    {
+        CMatrixGroupObject* go = m_FirstObject;
+
+        while(go)
+        {
+            if(go->ReturnObject()->GetObjectType() == OBJECT_TYPE_TURRET)
+            {
+                CMatrixGroupObject* go2 = go->m_NextObject;
+                LIST_DEL(go, m_FirstObject, m_LastObject, m_PrevObject, m_NextObject);
+                HDelete(CMatrixGroupObject, go, g_MatrixHeap);
+                --m_TurretsCnt;
+                --m_ObjectsCnt;
+                go = go2;
+                continue;
+            }
+
+            go = go->m_NextObject;
+        }
+    }
+}
+
 //Удаляем из выделяемой группы все здания
 void CMatrixGroup::RemoveBuildings()
 {
@@ -342,6 +376,33 @@ void CMatrixGroup::RemoveBuildings()
                 LIST_DEL(go, m_FirstObject, m_LastObject, m_PrevObject, m_NextObject);
                 HDelete(CMatrixGroupObject, go, g_MatrixHeap);
                 --m_BuildingsCnt;
+                --m_ObjectsCnt;
+                go = go2;
+                continue;
+            }
+
+            go = go->m_NextObject;
+        }
+    }
+}
+
+void CMatrixGroup::RemoveTurretsAndBuildings()
+{
+    if(m_TurretsCnt || m_BuildingsCnt)
+    {
+        CMatrixGroupObject* go = m_FirstObject;
+
+        while(go)
+        {
+            EObjectType type = go->ReturnObject()->GetObjectType();
+
+            if(type == OBJECT_TYPE_TURRET || type == OBJECT_TYPE_BUILDING)
+            {
+                CMatrixGroupObject* go2 = go->m_NextObject;
+                LIST_DEL(go, m_FirstObject, m_LastObject, m_PrevObject, m_NextObject);
+                HDelete(CMatrixGroupObject, go, g_MatrixHeap);
+                if(type == OBJECT_TYPE_TURRET) --m_TurretsCnt;
+                else --m_BuildingsCnt;
                 --m_ObjectsCnt;
                 go = go2;
                 continue;

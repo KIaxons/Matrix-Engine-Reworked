@@ -9,29 +9,30 @@
 #include "MatrixProgressBar.hpp"
 #include "MatrixSoundManager.hpp"
 
-#define BASE_FLOOR_Z        (-63.0f) //Высота подъёма готового юнита из недр базы (на визуальную глубину залегания подъемника не влияет)
-#define BASE_FLOOR_SPEED    0.0008f  //Скорость воспроизведения подъёма лифта и юнита на нём (так можно ускорить спавн)
-#define MAX_CAPTURE_CIRCLES 14       //Максимальное число кругов захвата на площадках заводов
+#define BASE_FLOOR_Z         (-63.0f) //Высота подъёма готового юнита из недр базы (на визуальную глубину залегания подъемника не влияет)
+#define BASE_FLOOR_SPEED     0.0008f  //Скорость воспроизведения подъёма лифта и юнита на нём (так можно ускорить спавн)
+#define MAX_CAPTURE_CIRCLES  14       //Максимальное число кругов захвата на площадках заводов
 
-#define BUILDING_EXPLOSION_PERIOD_SND_1    100
-#define BUILDING_EXPLOSION_PERIOD_SND_2    500
-#define BUILDING_EXPLOSION_PERIOD          10
-#define BUILDING_EXPLOSION_TIME            1000
-#define BUILDING_BASE_EXPLOSION_TIME       2000
+#define BUILDING_EXPLOSION_PERIOD_SND_1  100
+#define BUILDING_EXPLOSION_PERIOD_SND_2  500
+#define BUILDING_EXPLOSION_PERIOD        10
+#define BUILDING_EXPLOSION_TIME          1000
+#define BUILDING_BASE_EXPLOSION_TIME     2000
 
-#define RESOURCES_INCOME_FROM_FACTORY            10
+#define RESOURCES_INCOME_FROM_FACTORY    10
 #define RESOURCES_INCOME_FROM_BASE       3
 
-#define GATHERING_POINT_SHOW_TIME   1650
+#define GATHERING_POINT_SHOW_TIME  1650
 
-#define BUILDING_SELECTION_SIZE     50
+#define BUILDING_SELECTION_SIZE    50.0f
+#define TURRET_SELECTION_SIZE      27.5f
 
-#define CAPTURE_RADIUS              50
-#define CAPTURE_SEEK_ROBOT_PERIOD   500
+#define CAPTURE_RADIUS             50
+#define CAPTURE_SEEK_ROBOT_PERIOD  500
 
-#define DISTANCE_CAPTURE_ME         300
+#define DISTANCE_CAPTURE_ME        300
 
-#define MAX_PLACES                  4
+#define MAX_PLACES                 4
 
 //#define RES_TITAN_PERIOD       10000
 //#define RES_PLASMA_PERIOD      5000
@@ -113,7 +114,7 @@ class CBuildingQueue : public CMain //Очередь строительства 
     CMatrixMapStatic*  m_Top = nullptr;
     CMatrixMapStatic*  m_Bottom = nullptr;
     CMatrixBuilding*   m_ParentBase = nullptr;
-    CMatrixProgressBar m_HealthBar;
+    CMatrixProgressBar m_ProgressBar;
 
 public:
     CBuildingQueue(CMatrixBuilding* base) : m_ParentBase(base) {}
@@ -132,7 +133,7 @@ public:
     bool IsMaxItems()                           { return m_Items >= BUILDING_QUEUE_LIMIT; }
 
     void ReturnRobotResources(CMatrixRobotAI* robot);
-    void ReturnTurretResources(CMatrixCannon* turret);
+    void ReturnTurretResources(CMatrixTurret* turret);
 
     int GetRobotsCnt() const;
     void KillBar();
@@ -329,21 +330,21 @@ public:
     bool IsSpawningUnit() const    { return FLAG(m_ObjectFlags, BUILDING_SPAWNING_UNIT); };
     void SetSpawningUnit(bool set) { INITFLAG(m_ObjectFlags, BUILDING_SPAWNING_UNIT, set); };
 
-    void ShowHitpoint()
+    void ShowHitpoints()
     {
         m_ShowHitpointsTime = HITPOINT_SHOW_TIME;
     }
-    void InitMaxHitpoint(float hp)
+    void InitMaxHitpoints(float hp)
     {
         m_Hitpoints = hp;
         m_MaxHitpoints = hp;
         m_MaxHitpointsInversed = 1.0f / hp;
     }
-    float GetMaxHitPoint()
+    float GetMaxHitPoints()
     {
         return m_MaxHitpoints / 10;
     }
-    float GetHitPoint()
+    float GetHitpoints()
     {
         return m_Hitpoints / 10;
     }
@@ -363,8 +364,8 @@ public:
     float GetFloorZ();
     int GetResourcePeriod() { return m_ResourcePeriod; };
 
-    void CreateProgressBarClone(float x, float y, float width, EPBCoord clone_type);
-    void DeleteProgressBarClone(EPBCoord clone_type);
+    void CreateHealthBarClone(float x, float y, float width, EPBCoord clone_type);
+    void DeleteHealthBarClone(EPBCoord clone_type);
 
     bool Select();
     void UnSelect();

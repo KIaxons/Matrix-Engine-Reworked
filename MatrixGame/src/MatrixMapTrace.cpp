@@ -91,10 +91,10 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
     if (minz < data->minz) minz = data->minz;
 
 
-    if (mg->GetMaxZObjRobots() >= minz)
+    if(mg->GetMaxZObjRobots() >= minz)
     {
         // trace objects
-        if((data->mask & (TRACE_OBJECT|TRACE_ROBOT|TRACE_BUILDING|TRACE_CANNON)) != 0)
+        if((data->mask & (TRACE_OBJECT | TRACE_ROBOT | TRACE_FLYER | TRACE_BUILDING | TRACE_TURRET)) != 0)
         {
             int n = mg->ObjectsCnt();
 
@@ -494,7 +494,7 @@ CMatrixMapStatic* CMatrixMap::Trace(
         bool land = (down && (z >= end.z && z < start.z)) || (!down && (z > start.z && z <= end.z));
         bool object_hit = false;
 
-        if((mask & (TRACE_OBJECT | TRACE_BUILDING | TRACE_ROBOT | TRACE_CANNON | TRACE_FLYER)))
+        if((mask & (TRACE_OBJECT | TRACE_BUILDING | TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET)))
         {
             int gx = TruncDouble(start.x * (1.0 / (GLOBAL_SCALE * MAP_GROUP_SIZE)));
             int gy = TruncDouble(start.y * (1.0 / (GLOBAL_SCALE * MAP_GROUP_SIZE)));
@@ -593,7 +593,7 @@ CMatrixMapStatic* CMatrixMap::Trace(
     }
 
 //trace landscape
-    if((mask & (TRACE_LANDSCAPE | TRACE_OBJECT | TRACE_BUILDING | TRACE_ROBOT | TRACE_CANNON | TRACE_FLYER)) != 0)
+    if((mask & (TRACE_LANDSCAPE | TRACE_OBJECT | TRACE_BUILDING | TRACE_ROBOT | TRACE_TURRET)) != 0)
     {
         int gx0 = TruncDouble(start.x * (1.0 / (GLOBAL_SCALE * MAP_GROUP_SIZE)));
         int gy0 = TruncDouble(start.y * (1.0 / (GLOBAL_SCALE * MAP_GROUP_SIZE)));

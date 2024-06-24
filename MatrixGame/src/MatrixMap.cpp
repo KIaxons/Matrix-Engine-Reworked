@@ -726,10 +726,10 @@ void CMatrixMap::StaticDelete(CMatrixMapStatic* ms)
         HDelete(CMatrixRobotAI, (CMatrixRobotAI*)ms, Base::g_MatrixHeap);
         //delete (CMatrixRobotAI*)ms;
     }
-    else if(ms->IsCannon())
+    else if(ms->IsTurret())
     {
-        HDelete(CMatrixCannon, (CMatrixCannon*)ms, Base::g_MatrixHeap);
-        //delete (CMatrixCannon*)ms;
+        HDelete(CMatrixTurret, (CMatrixTurret*)ms, Base::g_MatrixHeap);
+        //delete (CMatrixTurret*)ms;
     }
     else if(ms->IsFlyer())
     {
@@ -752,7 +752,7 @@ void CMatrixMap::StaticDelete(CMatrixMapStatic* ms)
 //	if (type==OBJECT_TYPE_MAPOBJECT) ms=HNew(g_MatrixHeap) CMatrixMapObject();
 //	else if(type==OBJECT_TYPE_ROBOT_AI) ms=HNew(g_MatrixHeap) CMatrixRobotAI();
 //	else if(type==OBJECT_TYPE_BUILDING) ms=HNew(g_MatrixHeap) CMatrixBuilding();
-//    else if(type==OBJECT_TYPE_CANNON) ms=HNew(g_MatrixHeap) CMatrixCannon();
+//    else if(type==OBJECT_TYPE_TURRET) ms=HNew(g_MatrixHeap) CMatrixTurret();
 //    else if(type==OBJECT_TYPE_FLYER) ms=HNew(g_MatrixHeap) CMatrixFlyer();
 //	else ERROR_E;
 //
@@ -761,7 +761,7 @@ void CMatrixMap::StaticDelete(CMatrixMapStatic* ms)
 ////    if (type==OBJECT_TYPE_MAPOBJECT) c+=L" mapobj: ";
 ////	else if(type==OBJECT_TYPE_ROBOT_AI) c+=L" robot: ";
 ////	else if(type==OBJECT_TYPE_BUILDING) c+=L" build: ";
-////    else if(type==OBJECT_TYPE_CANNON) c+=L" cannon: ";
+////    else if(type==OBJECT_TYPE_TURRET) c+=L" cannon: ";
 ////    else if(type==OBJECT_TYPE_FLYER) c+=L" flyer: ";
 ////    c.AddHex(ms);
 ////    c += L"\n";
@@ -960,7 +960,7 @@ void CMatrixMap::BeforeDraw()
             
             CHelper::Create(1,0)->Line(hit-D3DXVECTOR3(0, 0, 100), hit + D3DXVECTOR3(0, 0, 100));
             
-            //CMatrixCannon* ca = (CMatrixCannon*)0x04d58d60;
+            //CMatrixTurret* ca = (CMatrixTurret*)0x04d58d60;
             //CVectorObjectAnim* o = ca->m_Module[1].m_Graph;
             //
             //SVOGeometrySimple* gs = o->VO()->GetGS();
@@ -983,15 +983,15 @@ void CMatrixMap::BeforeDraw()
     {
         if(m_TraceStopObj->GetObjectType() == OBJECT_TYPE_BUILDING)
         {
-            ((CMatrixBuilding*)m_TraceStopObj)->ShowHitpoint();
+            ((CMatrixBuilding*)m_TraceStopObj)->ShowHitpoints();
         }
         else if(m_TraceStopObj->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
         {
-            ((CMatrixRobotAI*)m_TraceStopObj)->ShowHitpoint();
+            ((CMatrixRobotAI*)m_TraceStopObj)->ShowHitpoints();
         }
-        else if(m_TraceStopObj->GetObjectType() == OBJECT_TYPE_CANNON)
+        else if(m_TraceStopObj->GetObjectType() == OBJECT_TYPE_TURRET)
         {
-            ((CMatrixCannon*)m_TraceStopObj)->ShowHitpoint();
+            ((CMatrixTurret*)m_TraceStopObj)->ShowHitpoints();
 
             /*
             for(int i = 0; i < m_TraceStopObj->GetGroupCnt(); ++i)
@@ -1005,7 +1005,7 @@ void CMatrixMap::BeforeDraw()
         }
         else if(m_TraceStopObj->GetObjectType() == OBJECT_TYPE_FLYER)
         {
-            ((CMatrixFlyer*)m_TraceStopObj)->ShowHitpoint();
+            ((CMatrixFlyer*)m_TraceStopObj)->ShowHitpoints();
         }
 
 #ifdef _DEBUG
@@ -1014,7 +1014,7 @@ void CMatrixMap::BeforeDraw()
         {
             m_DI.ShowScreenText(L"Under cursor", CWStr().Format(L"Robot <b=16><u>   S<b=10><i> T<i> G<i>", dword(m_TraceStopObj), m_TraceStopObj->GetSide(), ((CMatrixRobotAI*)m_TraceStopObj)->GetTeam(), ((CMatrixRobotAI*)m_TraceStopObj)->GetGroupLogic()).Get(), 1000);
         }
-        else if(m_TraceStopObj->GetObjectType() == OBJECT_TYPE_CANNON) m_DI.ShowScreenText(L"Under cursor", L"Cannon", 1000);
+        else if(m_TraceStopObj->GetObjectType() == OBJECT_TYPE_TURRET) m_DI.ShowScreenText(L"Under cursor", L"Cannon", 1000);
         else if(m_TraceStopObj->GetObjectType() == OBJECT_TYPE_BUILDING)
         {
 
@@ -3307,7 +3307,7 @@ bool CMatrixMap::IsTraceNonPlayerObj()
         IS_TRACE_STOP_OBJECT(g_MatrixMap->m_TraceStopObj) &&
         (g_MatrixMap->m_TraceStopObj->IsRobot() || 
         g_MatrixMap->m_TraceStopObj->IsBuilding() ||
-        g_MatrixMap->m_TraceStopObj->IsCannon() ||
+        g_MatrixMap->m_TraceStopObj->IsTurret() ||
         g_MatrixMap->m_TraceStopObj->GetObjectType() == OBJECT_TYPE_FLYER ||
         g_MatrixMap->m_TraceStopObj->IsSpecial()) && 
         (g_MatrixMap->m_TraceStopObj->GetSide() != PLAYER_SIDE)

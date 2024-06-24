@@ -193,6 +193,7 @@ enum EKeyAction
     KA_BUILD_ROBOT_CHOOSE_LEFT,
     KA_BUILD_ROBOT_CHOOSE_RIGHT,
     KA_BUILD_TURRET,
+    KA_DISMANTLE_TURRET,
     KA_CALL_REINFORCEMENTS,
 
     KA_TURRET_CANNON,
@@ -213,7 +214,6 @@ enum ETimings
 
     UNIT_ROBOT,
     UNIT_FLYER,
-    UNIT_TURRET,
 
     TIMING_LAST
 };
@@ -519,9 +519,10 @@ struct STurretsConsts
     CWStr chars_description;      //Описание характеристик оружия
     CWStr model_path;
 
-    float strength = 1000.0f;     //Параметр относительной силы турели, по которой её опасность оценивают боты
-
     float structure = 500.0f;     //Запас HP (параметр для турелей)
+    float strength = 1000.0f;     //Параметр относительной силы турели, по которой её опасность оценивают боты
+    int construction_time = 15000;
+    int deconstruction_time = 15000;
 
     struct STurretGun
     {

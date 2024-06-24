@@ -201,6 +201,8 @@ static SKeyActions key_action_codes[] =
     { L"BuildTurrMenuLaserCannon",     KA_TURRET_LASER,               0x4C }, //выбор лазера, клавиша "L"
     { L"BuildTurrMenuMissileCannon",   KA_TURRET_ROCKET,              0x52 }, //выбор ракетницы, клавиша "R"
 
+    { L"DismantleTurret",              KA_DISMANTLE_TURRET,           0x46 }, //запускает демонтаж турели (становитс€ доступна при выделении конкретной турели), клавиша "F"
+
     { L"CallForReinforcements",        KA_CALL_REINFORCEMENTS,        0x48 }, //вызывает подкрепление, клавиша "H"
 
     //¬ыделение/переключение юнитов
@@ -347,6 +349,7 @@ void CMatrixConfig::SetDefaults()
     g_DenseFogDrawDistance = 0.7f;
     g_PlayerRobotsAutoBoom = 0;
     g_EnableFlyers = false;
+    g_BetterTurrets = true;
 
 
     //Camera properties
@@ -1387,6 +1390,8 @@ void CMatrixConfig::ReadParams()
         m_TurretsConsts[i].lowest_vertical_angle = GRAD2RAD(bp->ParGet(L"LowestVerticalBarrelAngle").GetFloat());
         m_TurretsConsts[i].seek_target_range = bp->ParGet(L"SeekTargetRange").GetFloat();
         m_TurretsConsts[i].strength = bp->ParGet(L"Strength").GetFloat();
+        m_TurretsConsts[i].construction_time = int(max(1000.0f * bp->ParGet(L"ConstructionTime").GetFloat(), 0.0f));
+        m_TurretsConsts[i].deconstruction_time = int(max(1000.0f * bp->ParGet(L"DeconstructionTime").GetFloat(), 0.0f));
 
         //«аписываем число стволов и их матрицы
         {
@@ -1459,7 +1464,6 @@ void CMatrixConfig::ReadParams()
     bp_tmp = g_MatrixData->BlockGet(PAR_SOURCE_TIMINGS)->BlockGet(PAR_SOURCE_TIMINGS_UNITS);
     m_Timings[UNIT_ROBOT] = bp_tmp->ParGet(PAR_SOURCE_TIMINGS_ROBOT).GetInt();
     m_Timings[UNIT_FLYER] = bp_tmp->ParGet(PAR_SOURCE_TIMINGS_FLYER).GetInt();
-    m_Timings[UNIT_TURRET] = bp_tmp->ParGet(PAR_SOURCE_TIMINGS_TURRET).GetInt();
 
     bp_tmp = g_MatrixData->BlockGet(PAR_SOURCE_TIMINGS)->BlockGet(PAR_SOURCE_TIMINGS_CAPTURE);
     m_CaptureTimeErase = bp_tmp->ParGet(PAR_SOURCE_TIMINGS_ERASE).GetInt();

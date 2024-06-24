@@ -27,12 +27,12 @@ class CMatrixMapGroup;
 
 enum EObjectType
 {
-    OBJECT_TYPE_EMPTY     = 0,
-    OBJECT_TYPE_MAPOBJECT = 2,
-    OBJECT_TYPE_ROBOT_AI   = 3,
-    OBJECT_TYPE_BUILDING  = 4,
-    OBJECT_TYPE_CANNON    = 5,
-    OBJECT_TYPE_FLYER     = 6,
+    OBJECT_TYPE_EMPTY = 0,
+    OBJECT_TYPE_MAPOBJECT,
+    OBJECT_TYPE_ROBOT_AI,
+    OBJECT_TYPE_FLYER,
+    OBJECT_TYPE_TURRET,
+    OBJECT_TYPE_BUILDING
 };
 
 enum ERobotState
@@ -49,19 +49,19 @@ enum ERobotState
 
 enum ECannonState
 {
-    CANNON_IDLE,
-    CANNON_UNDER_CONSTRUCTION,
-    CANNON_UNDER_DECONSTRUCTION,
-    CANNON_DIP
+    TURRET_IDLE,
+    TURRET_UNDER_CONSTRUCTION,
+    TURRET_UNDER_DECONSTRUCTION,
+    TURRET_DIP
 };
 
 #define TURRET_UNDER_CONSTRUCTION_COLOR   0xFF00FF00 //Зелёный цвет
-#define TURRET_UNDER_DECONSTRUCTION_COLOR 0xFFFF4B21 //Оранжевый цвет
+#define TURRET_UNDER_DECONSTRUCTION_COLOR 0xFFFF3B00 //Оранжевый цвет
 #define TURRET_CANT_BE_CONSTRUCTED_COLOR  0xFFFF0000 //Красный цвет
 
-#define MAX_OBJECTS_PER_SCREEN 5120
+#define MAX_OBJECTS_PER_SCREEN            5120
 
-#define UNDER_ATTACK_IDLE_TIME 120000
+#define UNDER_ATTACK_IDLE_TIME            120000
 
 #define OBJECT_STATE_INVISIBLE           SETBIT(0)   // невидимый
 #define OBJECT_STATE_INTERFACE           SETBIT(1)   // рисуется в интерфейсе
@@ -156,7 +156,7 @@ struct SObjectCore
     D3DXMATRIX   m_IMatrix = {}; //Inverted matrix
     float        m_Radius = 0.0f;
     D3DXVECTOR3  m_GeoCenter = { 0.0f, 0.0f, 0.0f };
-    EObjectType  m_Type = OBJECT_TYPE_EMPTY; // 0 - empty, 2 - CMatrixMapObject, 3 - CMatrixRobotAI, 4 - CMatrixBuilding, 5 - CMatrixCannon
+    EObjectType  m_Type = OBJECT_TYPE_EMPTY; // 0 - empty, 2 - CMatrixMapObject, 3 - CMatrixRobotAI, 4 - CMatrixBuilding, 5 - CMatrixTurret
     dword        m_TerrainColor = 0;
     int          m_Ref = 0;
 
@@ -195,7 +195,7 @@ struct SRenderTexture
 };
 
 class CMatrixRobotAI;
-class CMatrixCannon;
+class CMatrixTurret;
 class CMatrixBuilding;
 class CMatrixFlyer;
 
@@ -346,7 +346,7 @@ public:
     CMatrixMapStatic* GetPrevLogic() { return m_PrevLogicTemp; }
 
     inline CMatrixRobotAI* AsRobot() { return (CMatrixRobotAI*)this; }
-    inline CMatrixCannon* AsCannon() { return (CMatrixCannon*)this; }
+    inline CMatrixTurret* AsTurret() { return (CMatrixTurret*)this; }
     inline CMatrixBuilding* AsBuilding() { return (CMatrixBuilding*)this; }
     inline CMatrixFlyer* AsFlyer() { return (CMatrixFlyer*)this; }
 
@@ -354,15 +354,16 @@ public:
     inline bool IsRobot() const { return GetObjectType() == OBJECT_TYPE_ROBOT_AI; };
     bool IsRobotAlive() const;
     inline bool IsFlyer() const { return GetObjectType() == OBJECT_TYPE_FLYER; };
+    bool IsFlyerAlive() const;
     bool IsFlyerControllable() const;
     inline bool IsBuilding() const { return GetObjectType() == OBJECT_TYPE_BUILDING; };
     bool IsBuildingAlive() const;
-    inline bool IsCannon() const { return GetObjectType() == OBJECT_TYPE_CANNON; };
-    bool IsCannonAlive() const;
-    bool IsActiveCannonAlive() const;
+    inline bool IsTurret() const { return GetObjectType() == OBJECT_TYPE_TURRET; };
+    bool IsTurretAlive() const;
+    bool IsActiveTurretAlive() const;
 
-    inline bool IsUnit() const { return IsRobot() || IsFlyer() || IsCannon(); }
-    inline bool IsAlive() const { return IsRobotAlive() || IsFlyerControllable() || IsCannonAlive() || IsBuildingAlive(); }
+    inline bool IsUnit() const { return IsRobot() || IsFlyer() || IsTurret(); }
+    inline bool IsAlive() const { return IsRobotAlive() || IsFlyerControllable() || IsTurretAlive() || IsBuildingAlive(); }
     virtual bool IsUnitAlive() = 0;
 
     bool FitToMask(dword mask);

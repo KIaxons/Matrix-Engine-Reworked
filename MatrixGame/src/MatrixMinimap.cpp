@@ -534,9 +534,9 @@ void CMinimap::DrawRadar(float x, float y, float radius)
                 }
                 break;
             }
-            case OBJECT_TYPE_CANNON:
+            case OBJECT_TYPE_TURRET:
             {
-                if(!ms->IsCannonAlive()) continue;
+                if(!ms->IsTurretAlive()) continue;
 
                 D3DXVECTOR2 temp = *(D3DXVECTOR2*)&ms->GetGeoCenter() - *(D3DXVECTOR2*)&arcaded->GetGeoCenter();
                 if(r2 < D3DXVec2LengthSq(&temp)) continue;
@@ -709,12 +709,12 @@ void CMinimap::Draw(void)
                     r = MINIMAP_BUILDING_R;
                 }
                 break;
-            case OBJECT_TYPE_CANNON:
-                if (!ms->IsCannonAlive()) continue;
+            case OBJECT_TYPE_TURRET:
+                if (!ms->IsTurretAlive()) continue;
                 tex = MMT_TURRET;
                 r = MINIMAP_CANNON_R;
 
-                if (ms->AsCannon()->m_MiniMapFlashTime > 0)
+                if (ms->AsTurret()->m_MiniMapFlashTime > 0)
                     flash = (g_MatrixMap->GetTime() & 128) == 0 && ms->GetSide() == PLAYER_SIDE;
 
                 break;

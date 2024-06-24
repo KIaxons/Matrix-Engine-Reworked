@@ -198,7 +198,7 @@ void CMatrixTactics::LogicTact(CMatrixSideUnit* side, CMatrixGroup* group)
             if (m_Target->GetObjectType() == OBJECT_TYPE_ROBOT_AI && ((CMatrixRobotAI*)m_Target)->m_CurrentState == ROBOT_DIP) {
                 group->DeInstallTactics();
             }
-            else if (m_Target->GetObjectType() == OBJECT_TYPE_CANNON && ((CMatrixCannon*)m_Target)->m_CurrentState == CANNON_DIP) {
+            else if (m_Target->GetObjectType() == OBJECT_TYPE_TURRET && ((CMatrixTurret*)m_Target)->m_CurrentState == TURRET_DIP) {
                 group->DeInstallTactics();
             }
         }
@@ -329,8 +329,8 @@ void CMatrixTactics::CalcNearestToTargetBot()
     else if (m_Target->GetObjectType() == OBJECT_TYPE_ROBOT_AI) {
         targ_pos = D3DXVECTOR3(((CMatrixRobotAI*)m_Target)->m_PosX, ((CMatrixRobotAI*)m_Target)->m_PosY, 0);
     }
-    else if (m_Target->GetObjectType() == OBJECT_TYPE_CANNON) {
-        targ_pos = D3DXVECTOR3(((CMatrixCannon*)m_Target)->m_Pos.x, ((CMatrixCannon*)m_Target)->m_Pos.x, 0);
+    else if (m_Target->GetObjectType() == OBJECT_TYPE_TURRET) {
+        targ_pos = D3DXVECTOR3(((CMatrixTurret*)m_Target)->m_Pos.x, ((CMatrixTurret*)m_Target)->m_Pos.x, 0);
     }
 
     while (slots) {

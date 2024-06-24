@@ -463,31 +463,10 @@ void CFormMatrixGame::Tact(int step)
 static int g_LastPosX;
 static int g_LastPosY;
 
-
-#if (defined _DEBUG) &&  !(defined _RELDEBUG)
-static SEffectHandler point(DEBUG_CALL_INFO);
-static CMatrixEffectPath* path = 0;
-static CMatrixEffectSelection* sel = 0;
-static CMatrixEffectRepair* repair = 0;
-
-void selcallback(CMatrixMapStatic *ms, dword param)
-{
-    if(ms->GetObjectType() == OBJECT_TYPE_MAPOBJECT) g_MatrixMap->m_DI.ShowScreenText(CWStr((int)ms).Get(), L"Mesh", 1000);
-    else if(ms->IsRobot()) g_MatrixMap->m_DI.ShowScreenText(CWStr((int)ms).Get(), L"Robot", 1000);
-    else if(ms->IsCannon()) g_MatrixMap->m_DI.ShowScreenText(CWStr((int)ms).Get(), L"Cannon", 1000);
-    else if(ms->IsBuilding()) g_MatrixMap->m_DI.ShowScreenText(CWStr((int)ms).Get(), L"BuildinCMultiSelection::m_GameSelection->Update(g_MatrixMap->m_Cursor.GetPos(), TRACE_ROBOT | TRACE_FLYER | TRACE_BUILDING, SideSelectionCallBack, g",1000);
-    else if(ms->GetObjectType() == OBJECT_TYPE_FLYER) g_MatrixMap->m_DI.ShowScreenText(CWStr((int)ms).Get(), L"Flyer", 1000);
-    SideSelectionCallBack(ms, param);
-}
-#else
-
-void selcallback(CMatrixMapStatic *ms, dword param)
+void selcallback(CMatrixMapStatic* ms, dword param)
 {
     SideSelectionCallBack(ms, param);
 }
-
-#endif
-
 
 void CFormMatrixGame::MouseMove(int x, int y)
 {
@@ -541,7 +520,11 @@ void CFormMatrixGame::MouseMove(int x, int y)
         SCallback cbs;
         cbs.mp = CPoint(x, y);
         cbs.calls = 0;
-        CMultiSelection::m_GameSelection->Update(g_MatrixMap->m_Cursor.GetPos(), TRACE_ROBOT | TRACE_BUILDING, selcallback, (dword)&cbs);
+
+        dword mask = 0;
+        if(g_BetterTurrets) mask = TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET | TRACE_BUILDING;
+        else mask = TRACE_ROBOT | TRACE_FLYER | TRACE_BUILDING;
+        CMultiSelection::m_GameSelection->Update(g_MatrixMap->m_Cursor.GetPos(), mask, selcallback, (dword)&cbs);
     }
 
     //Interface
@@ -562,27 +545,6 @@ void CFormMatrixGame::MouseMove(int x, int y)
         CDText::T("CELL", (CStr((int)xx) + "," + CStr((int)yy)).Get());
     }
     */
-
-#if(defined _DEBUG) && !(defined _RELDEBUG)
-    if(point.effect)
-    {
-        D3DXVECTOR3 pos = g_MatrixMap->m_TraceStopPos;
-        pos.z += 10.0f;
-        ((CMatrixEffectPointLight *)point.effect)->SetPos(pos);
-    }
-    if(sel)
-    {
-        D3DXVECTOR3 pos = g_MatrixMap->m_TraceStopPos;
-        pos.z += 10.0f;
-        sel->SetPos(pos);
-    }
-    if(repair)
-    {
-        D3DXVECTOR3 pos = g_MatrixMap->m_TraceStopPos;
-        pos.z += 10.0f;
-        repair->UpdateData(pos, D3DXVECTOR3(1, 0, 0));
-    }
-#endif
 }
 
 void CFormMatrixGame::MouseKey(ButtonStatus status, int key, int x, int y)
@@ -652,11 +614,12 @@ void CFormMatrixGame::MouseKey(ButtonStatus status, int key, int x, int y)
                 //Если в текущей выделяемой группе имеется либо несколько роботов, либо несколько вертолётов, либо как минимум один робот и один вертолёт
                 int robots_cnt = ps->GetCurSelGroup()->GetRobotsCnt();
                 int flyers_cnt = ps->GetCurSelGroup()->GetFlyersCnt();
+                int turrets_cnt = ps->GetCurSelGroup()->GetTurretsCnt();
                 int buildings_cnt = ps->GetCurSelGroup()->GetBuildingsCnt();
 
                 if(robots_cnt > 1 || flyers_cnt > 1 || (robots_cnt + flyers_cnt) > 1)
                 {
-                    if(buildings_cnt) ps->GetCurSelGroup()->RemoveBuildings();
+                    ps->GetCurSelGroup()->RemoveTurretsAndBuildings();
 
                     //Если игрок выделяет юнитов с зажатым Shift
                     if((GetAsyncKeyState(g_Config.m_KeyActions[KA_SHIFT]) & 0x8000) == 0x8000 && ps->GetCurGroup())
@@ -687,7 +650,7 @@ void CFormMatrixGame::MouseKey(ButtonStatus status, int key, int x, int y)
                 //Если в текущей выделяемой группе находится всего один робот
                 else if(robots_cnt == 1 && !flyers_cnt)
                 {
-                    if(buildings_cnt) ps->GetCurSelGroup()->RemoveBuildings();
+                    ps->GetCurSelGroup()->RemoveTurretsAndBuildings();
 
                     //Если игрок выделяет юнитов с зажатым Shift
                     if((GetAsyncKeyState(g_Config.m_KeyActions[KA_SHIFT]) & 0x8000) == 0x8000 && ps->GetCurGroup())
@@ -718,7 +681,7 @@ void CFormMatrixGame::MouseKey(ButtonStatus status, int key, int x, int y)
                 //Если в текущей выделяемой группе находится всего один вертолёт
                 else if(flyers_cnt == 1 && !robots_cnt)
                 {
-                    if(buildings_cnt) ps->GetCurSelGroup()->RemoveBuildings();
+                    ps->GetCurSelGroup()->RemoveTurretsAndBuildings();
 
                     //Если игрок выделяет юнитов с зажатым Shift
                     if((GetAsyncKeyState(g_Config.m_KeyActions[KA_SHIFT]) & 0x8000) == 0x8000 && ps->GetCurGroup())
@@ -746,10 +709,20 @@ void CFormMatrixGame::MouseKey(ButtonStatus status, int key, int x, int y)
                         ps->Select(FLYER, nullptr);
                     }
                 }
-                //Если в текущей выделяемой группе находится здание
-                else if(buildings_cnt && !robots_cnt && !flyers_cnt)
+                //Если в текущей выделяемой группе находится турель
+                else if(turrets_cnt && !robots_cnt && !flyers_cnt)
                 {
-                    CMatrixMapStatic* build = ps->GetCurSelGroup()->m_FirstObject->ReturnObject();
+                    if(buildings_cnt) ps->GetCurSelGroup()->RemoveBuildings();
+
+                    ps->Select(TURRET, ps->GetCurSelGroup()->m_FirstObject->ReturnObject());
+                    ps->GroupsUnselectSoft(); //Это какое-то дерьмо бесполезное
+                    ps->GetCurSelGroup()->RemoveAll();
+                    ps->SetCurGroup(nullptr);
+                    ps->Reselect();
+                }
+                //Если в текущей выделяемой группе находится здание (выделяется с наименьшим приоритетом)
+                else if(buildings_cnt && !robots_cnt && !flyers_cnt && !turrets_cnt)
+                {
                     ps->Select(BUILDING, ps->GetCurSelGroup()->m_FirstObject->ReturnObject());
                     ps->GroupsUnselectSoft(); //Это какое-то дерьмо бесполезное
                     ps->GetCurSelGroup()->RemoveAll();
@@ -798,12 +771,15 @@ void CFormMatrixGame::MouseKey(ButtonStatus status, int key, int x, int y)
             //(если ещё не была создана область выделения, игрок не в режиме прямого управления, игрок не выбрал приказ из панели на интерфейсе и не находится в процессе выбора места для постройки турели)
             if(CMultiSelection::m_GameSelection == nullptr && !g_MatrixMap->GetPlayerSide()->IsArcadeMode() && !IS_PREORDERING_NOSELECT && !(g_MatrixMap->GetPlayerSide()->m_CurrentAction == BUILDING_TURRET))
             {
-                int dx = 0, dy = 0;
+                int dx = 0;
+                int dy = 0;
+
                 if(IS_TRACE_STOP_OBJECT(g_MatrixMap->m_TraceStopObj) && IS_TRACE_UNIT(g_MatrixMap->m_TraceStopObj))
                 {
                     dx = 2;
                     dy = 2;
                 }
+
                 CMultiSelection::m_GameSelection = CMultiSelection::Begin(CPoint(g_MatrixMap->m_Cursor.GetPos().x - dx, g_MatrixMap->m_Cursor.GetPos().y - dy));
                 if(CMultiSelection::m_GameSelection)
                 {
@@ -811,7 +787,10 @@ void CFormMatrixGame::MouseKey(ButtonStatus status, int key, int x, int y)
                     cbs.mp = g_MatrixMap->m_Cursor.GetPos();
                     cbs.calls = 0;
 
-                    CMultiSelection::m_GameSelection->Update(g_MatrixMap->m_Cursor.GetPos(), TRACE_ROBOT | TRACE_BUILDING, selcallback, (dword)&cbs);
+                    dword mask = 0;
+                    if(g_BetterTurrets) mask = TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET | TRACE_BUILDING;
+                    else mask = TRACE_ROBOT | TRACE_FLYER | TRACE_BUILDING;
+                    CMultiSelection::m_GameSelection->Update(g_MatrixMap->m_Cursor.GetPos(), mask, selcallback, (dword)&cbs);
                 }
             }
 
@@ -1047,7 +1026,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                                         //CSound::Play(S_REINFORCEMENTS_READY, SL_INTERFACE);
                                         //CSound::Play(S_ROBOT_BUILD_END, SL_ALL);
                                         //CSound::Play(S_TERRON_KILLED, SL_ALL);
-                                        //CSound::Play(S_TURRET_BUILD_2, SL_ALL);
+                                        //CSound::Play(S_TURRET_BUILD_3, SL_ALL);
 
                                         if(FLAG(g_MatrixMap->m_Flags, MMFLAG_MEGABUSTALREADY))
                                         //if(0)
@@ -1059,8 +1038,8 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                                                 {
                                                     if(s->IsRobot() && !s->AsRobot()->IsAutomaticMode()) s->AsRobot()->MustDie();
                                                     /*
-                                                    else if(s->IsCannon()) s->AsCannon()->InitMaxHitpoint(s->AsCannon()->GetMaxHitPoint() * 20);
-                                                    else if(s->IsBuilding()) s->AsBuilding()->InitMaxHitpoint(s->AsBuilding()->GetMaxHitPoint() * 20);
+                                                    else if(s->IsTurret()) s->AsTurret()->InitMaxHitpoints(s->AsTurret()->GetMaxHitPoints() * 20);
+                                                    else if(s->IsBuilding()) s->AsBuilding()->InitMaxHitpoints(s->AsBuilding()->GetMaxHitPoints() * 20);
                                                     */
                                                 }
                                             }
@@ -1072,9 +1051,9 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                                             {
                                                 if(s->GetSide() == PLAYER_SIDE)
                                                 {
-                                                    if(s->IsRobot()) s->AsRobot()->InitMaxHitpoint(s->AsRobot()->GetMaxHitPoint() * 20);
-                                                    else if(s->IsCannon()) s->AsCannon()->InitMaxHitpoint(s->AsCannon()->GetMaxHitPoint() * 20);
-                                                    else if(s->IsBuilding()) s->AsBuilding()->InitMaxHitpoint(s->AsBuilding()->GetMaxHitPoint() * 20);
+                                                    if(s->IsRobot()) s->AsRobot()->InitMaxHitpoints(s->AsRobot()->GetMaxHitPoints() * 20);
+                                                    else if(s->IsTurret()) s->AsTurret()->InitMaxHitpoints(s->AsTurret()->GetMaxHitPoints() * 20);
+                                                    else if(s->IsBuilding()) s->AsBuilding()->InitMaxHitpoints(s->AsBuilding()->GetMaxHitPoints() * 20);
                                                 }
                                             }
 
@@ -1643,13 +1622,29 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                         SETFLAG(g_IFaceList->m_IfListFlags, ORDERING_MODE);        
                     }
                 }
+                else if(ps->m_CurrSel == TURRET_SELECTED)
+                {
+                    CMatrixTurret* turret = ps->m_ActiveObject->AsTurret();
+                    if((GetAsyncKeyState(g_Config.m_KeyActions[KA_DISMANTLE_TURRET]) & 0x8000) == 0x8000)
+                    {
+                        if(turret->m_CurrentState != TURRET_DIP && turret->m_CurrentState != TURRET_UNDER_DECONSTRUCTION)
+                        {
+                            if(!turret->m_ParentBuilding->m_BuildingQueue.IsMaxItems())
+                            {
+                                turret->Dismantle();
+                                ps->Select(NOTHING, nullptr);
+                                CSound::Play(S_TURRET_BUILD_START, SL_ALL);
+                            }
+                        }
+                    }
+                }
                 else if(ps->m_CurrSel == BUILDING_SELECTED || ps->m_CurrSel == BASE_SELECTED)
                 {
                     //Стратегический режим - выбрана база или завод
-                    CMatrixBuilding* bld = (CMatrixBuilding*)ps->m_ActiveObject;
+                    CMatrixBuilding* building = ps->m_ActiveObject->AsBuilding();
                     
                     //Быстрые клавиши для базы и заводов
-                    if(!bld->IsBase() || !ps->m_ConstructPanel->IsActive())
+                    if(!building->IsBase() || !ps->m_ConstructPanel->IsActive())
                     {
                         if((GetAsyncKeyState(g_Config.m_KeyActions[KA_BUILD_TURRET]) & 0x8000) == 0x8000)
                         {
@@ -1663,7 +1658,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                                   ps->IsEnoughResourcesForTurret(&g_Config.m_TurretsConsts[TURRET_HEAVY_CANNON]) ||
                                   ps->IsEnoughResourcesForTurret(&g_Config.m_TurretsConsts[TURRET_LASER_CANNON]) ||
                                   ps->IsEnoughResourcesForTurret(&g_Config.m_TurretsConsts[TURRET_MISSILE_CANNON])
-                                ) && (bld->GetPlacesForTurrets(pl) > 0) && !bld->m_BuildingQueue.IsMaxItems()
+                                ) && (building->GetPlacesForTurrets(pl) > 0) && !building->m_BuildingQueue.IsMaxItems()
                               )
                             {
                                 ps->m_ConstructPanel->ResetGroupNClose();
@@ -1684,12 +1679,12 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                         else if((GetAsyncKeyState(g_Config.m_KeyActions[KA_CALL_REINFORCEMENTS]) & 0x8000) == 0x8000)
                         {
                             //"Н"elp - Вызов подкрепления
-                            bld->Reinforcements();
+                            building->Reinforcements();
                         }
                     }
 
                     //Быстрые клавиши только для базы
-                    if(bld->IsBase())
+                    if(building->IsBase())
                     {
                         //Игрок выбрал базу и находится на её общем экране
                         if(!ps->m_ConstructPanel->IsActive())
@@ -1704,7 +1699,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                             //"G"athering point - установка точки сбора базы
                             else if((GetAsyncKeyState(g_Config.m_KeyActions[KA_GATHERING_POINT]) & 0x8000) == 0x8000)
                             {
-                                bld->SetGatheringPoint(Float2Int(g_MatrixMap->m_TraceStopPos.x), Float2Int(g_MatrixMap->m_TraceStopPos.y));
+                                building->SetGatheringPoint(Float2Int(g_MatrixMap->m_TraceStopPos.x), Float2Int(g_MatrixMap->m_TraceStopPos.y));
                                 //Первоначальная отрисовка точки сбора (перенесена в функцию общей постоянной отрисовки)
                                 //CMatrixEffect::CreateMoveToAnim(2);
                             }
@@ -1973,6 +1968,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                     g_IFaceList->ResetOrderingMode();
                 }
             }
+
             //Общее для стратегического режима
             if((GetAsyncKeyState(g_Config.m_KeyActions[KA_MINIMAP_ZOOMIN]) & 0x8000) == 0x8000)
             {
@@ -1992,6 +1988,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                 {
                     obj = ps->GetCurGroup()->m_FirstObject->ReturnObject()->GetPrevLogic();
                 }
+
                 int cnt = 0;
                 while(true)
                 {
@@ -2009,11 +2006,9 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                     }
                     else
                     {
-                        if(cnt > 0)
-                        {
-                            return;
-                        }
+                        if(cnt > 0) return;
                         ++cnt;
+
                         obj = CMatrixMapStatic::GetLastLogic();
                     }
                 }
@@ -2044,11 +2039,9 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                     }
                     else
                     {
-                        if(cnt > 0)
-                        {
-                            return;
-                        }
+                        if(cnt > 0) return;
                         ++cnt;
+
                         obj = CMatrixMapStatic::GetFirstLogic();
                     }
                 }
@@ -2079,18 +2072,23 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                 //Если была выбрана группа роботов (либо один), то здесь удаляется, возможно, уже имевшаяся Ctrl-группа с нажатым номером
                 while(o)
                 {
-                    if(o->IsRobot() && ((CMatrixRobotAI*)o)->GetCtrlGroup() == scan)
+                    if(o->IsRobot() && o->AsRobot()->GetCtrlGroup() == scan)
                     {
-                        ((CMatrixRobotAI*)o)->SetCtrlGroup(0);
+                        o->AsRobot()->SetCtrlGroup(0);
                     }
-                    else if(o->GetObjectType() == OBJECT_TYPE_BUILDING && ((CMatrixBuilding*)o)->GetCtrlGroup() == scan)
+                    else if(o->GetObjectType() == OBJECT_TYPE_FLYER && o->AsFlyer()->GetCtrlGroup() == scan)
                     {
-                        ((CMatrixBuilding*)o)->SetCtrlGroup(0);
+                        o->AsFlyer()->SetCtrlGroup(0);
                     }
-                    else if(o->GetObjectType() == OBJECT_TYPE_FLYER && ((CMatrixFlyer*)o)->GetCtrlGroup() == scan)
+                    else if(o->GetObjectType() == OBJECT_TYPE_TURRET && o->AsTurret()->GetCtrlGroup() == scan)
                     {
-                        ((CMatrixFlyer*)o)->SetCtrlGroup(0);
+                        o->AsTurret()->SetCtrlGroup(0);
                     }
+                    else if(o->GetObjectType() == OBJECT_TYPE_BUILDING && o->AsBuilding()->GetCtrlGroup() == scan)
+                    {
+                        o->AsBuilding()->SetCtrlGroup(0);
+                    }
+
                     o = o->GetNextLogic();
                 }
 
@@ -2113,7 +2111,12 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                         go = go->m_NextObject;
                     }
                 }
-                //Записываем в Ctrl-группы также и выделенные строения (не турели)
+                //Записываем в Ctrl-группы также выделенные турели и строения
+                else if(ps->m_CurrSel == TURRET_SELECTED)
+                {
+                    CMatrixTurret* go = (CMatrixTurret*)ps->m_ActiveObject;
+                    go->SetCtrlGroup(scan);
+                }
                 else if(ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED)
                 {
                     CMatrixBuilding* go = (CMatrixBuilding*)ps->m_ActiveObject;
@@ -2138,7 +2141,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                         {
                             if(((CMatrixRobotAI*)object)->GetCtrlGroup() == scan)
                             {
-                                //set camera to group position. out
+                                //set camera to group position
                                 g_MatrixMap->m_Camera.SetXYStrategy(D3DXVECTOR2(object->GetGeoCenter().x + g_MatrixMap->m_Camera.CamAngleToCoordOffset(100, 0), object->GetGeoCenter().y + g_MatrixMap->m_Camera.CamAngleToCoordOffset(100, 1)));
                                 return;
                             }
@@ -2147,7 +2150,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                         {
                             if(((CMatrixFlyer*)object)->GetCtrlGroup() == scan)
                             {
-                                //set camera to group position. out
+                                //set camera to group position
                                 g_MatrixMap->m_Camera.SetXYStrategy(D3DXVECTOR2(object->GetGeoCenter().x + g_MatrixMap->m_Camera.CamAngleToCoordOffset(100, 0), object->GetGeoCenter().y + g_MatrixMap->m_Camera.CamAngleToCoordOffset(100, 1)));
                                 return;
                             }
@@ -2160,23 +2163,37 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                     //Устанавливаем маркер о том, что в данный момент игроком не выбрана никакая группа юнитов
                     prev_unselected = true;
 
-                    if(ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED)
+                    if(ps->m_CurrSel == TURRET_SELECTED)
                     {
                         if(m_LastScans[MAX_SCANS - 1].scan == scan && m_LastScans[MAX_SCANS - 2].scan == scan && (m_LastScans[MAX_SCANS - 1].time - m_LastScans[MAX_SCANS - 2].time) < DOUBLESCAN_TIME_DELTA)
                         {
-                            CMatrixBuilding* object = (CMatrixBuilding*)ps->m_ActiveObject;
+                            CMatrixTurret* turret = ps->m_ActiveObject->AsTurret();
 
-                            if(((CMatrixBuilding*)object)->GetCtrlGroup() == scan)
+                            if(turret->GetCtrlGroup() == scan)
                             {
-                                //set camera to building position. out
-                                g_MatrixMap->m_Camera.SetXYStrategy(D3DXVECTOR2(object->GetGeoCenter().x + g_MatrixMap->m_Camera.CamAngleToCoordOffset(100, 0), object->GetGeoCenter().y + g_MatrixMap->m_Camera.CamAngleToCoordOffset(100, 1)));
+                                //set camera to turret position
+                                g_MatrixMap->m_Camera.SetXYStrategy(D3DXVECTOR2(turret->GetGeoCenter().x + g_MatrixMap->m_Camera.CamAngleToCoordOffset(100, 0), turret->GetGeoCenter().y + g_MatrixMap->m_Camera.CamAngleToCoordOffset(100, 1)));
+                                return;
+                            }
+                        }
+                    }
+                    else if(ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED)
+                    {
+                        if(m_LastScans[MAX_SCANS - 1].scan == scan && m_LastScans[MAX_SCANS - 2].scan == scan && (m_LastScans[MAX_SCANS - 1].time - m_LastScans[MAX_SCANS - 2].time) < DOUBLESCAN_TIME_DELTA)
+                        {
+                            CMatrixBuilding* building = ps->m_ActiveObject->AsBuilding();
+
+                            if(building->GetCtrlGroup() == scan)
+                            {
+                                //set camera to building position
+                                g_MatrixMap->m_Camera.SetXYStrategy(D3DXVECTOR2(building->GetGeoCenter().x + g_MatrixMap->m_Camera.CamAngleToCoordOffset(100, 0), building->GetGeoCenter().y + g_MatrixMap->m_Camera.CamAngleToCoordOffset(100, 1)));
                                 return;
                             }
                         }
                     }
                 }
 
-                //Здесь происходит выделение любой заданной ранее (но в данный момент не выделенной) Ctrl-группы
+                //Здесь происходит выделение любой заданной ранее, но в данный момент не выделенной Ctrl-группы
                 CMatrixMapStatic* o = CMatrixMapStatic::GetFirstLogic();
                 while(o)
                 {
@@ -2204,10 +2221,19 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                             }
                             ps->GetCurSelGroup()->AddObject(o, -4);
                         }
+                        //С селектами и анселектами строений тут беда, поэтому постоянно нужно "прожимать" миллион функций
                         //Возвращаем (выбираем) группу со зданием
+                        else if(o->GetObjectType() == OBJECT_TYPE_TURRET && o->AsTurret()->GetCtrlGroup() == scan)
+                        {
+                            if(!prev_unselected) prev_unselected = true;
+                            ps->Select(TURRET, o);
+                            ps->GroupsUnselectSoft(); //Это какое-то дерьмо бесполезное
+                            ps->GetCurSelGroup()->RemoveAll();
+                            ps->SetCurGroup(nullptr);
+                            ps->Reselect();
+                        }
                         else if(o->GetObjectType() == OBJECT_TYPE_BUILDING && o->AsBuilding()->GetCtrlGroup() == scan)
                         {
-                            //С селектами и анселектами строений тут беда, поэтому постоянно нужно "прожимать" миллион функций
                             if(!prev_unselected) prev_unselected = true;
                             ps->Select(BUILDING, o);
                             ps->GroupsUnselectSoft(); //Это какое-то дерьмо бесполезное
@@ -2216,6 +2242,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                             ps->Reselect();
                         }
                     }
+
                     o = o->GetNextLogic();
                 }
 

@@ -152,7 +152,7 @@ void CMatrixEffectRepair::Tact(float t)
         if(m_Skip) data.side_of_owner = m_Skip->GetSide();
     
         //g_MatrixMap->m_DI.ShowScreenText(L"ishem...", L"", 1000);
-        g_MatrixMap->FindObjects(m_Pos + m_Dir * m_SeekRadius * 0.5f, m_SeekRadius * 0.5f, 1.0f, TRACE_ROBOT | TRACE_BUILDING | TRACE_CANNON, m_Skip, FindPatient, (dword)&data);
+        g_MatrixMap->FindObjects(m_Pos + m_Dir * m_SeekRadius * 0.5f, m_SeekRadius * 0.5f, 1.0f, TRACE_ROBOT | TRACE_FLYER | TRACE_BUILDING | TRACE_TURRET, m_Skip, FindPatient, (dword)&data);
 
         if(data.tgt)
         {

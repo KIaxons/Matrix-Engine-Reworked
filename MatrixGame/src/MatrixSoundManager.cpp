@@ -89,10 +89,11 @@ void CSound::Init()
     m_Sounds[S_ROBOT_BUILD_END_ALT].path_name = L"r_build_ea";
 
     m_Sounds[S_TURRET_BUILD_START].path_name = L"t_build_s";
-    m_Sounds[S_TURRET_BUILD_0].path_name = L"t_build_0";
-    m_Sounds[S_TURRET_BUILD_1].path_name = L"t_build_1";
-    m_Sounds[S_TURRET_BUILD_2].path_name = L"t_build_2";
-    m_Sounds[S_TURRET_BUILD_3].path_name = L"t_build_3";
+    m_Sounds[S_TURRET_BUILD_1].path_name = L"t_build_0";
+    m_Sounds[S_TURRET_BUILD_2].path_name = L"t_build_1";
+    m_Sounds[S_TURRET_BUILD_3].path_name = L"t_build_2";
+    m_Sounds[S_TURRET_BUILD_4].path_name = L"t_build_3";
+    m_Sounds[S_TURRET_DISMANTLED].path_name = L"t_dismant";
 
     m_Sounds[S_FLYER_BUILD_END].path_name = L"f_build_e";
     m_Sounds[S_FLYER_BUILD_END_ALT].path_name = L"f_build_ea";
@@ -111,6 +112,7 @@ void CSound::Init()
     m_Sounds[S_SELECTION_6].path_name = L"s_selection_6";
     m_Sounds[S_SELECTION_7].path_name = L"s_selection_7";
 
+    m_Sounds[S_TURRET_SEL].path_name = L"s_turret_sel";
     m_Sounds[S_BUILDING_SEL].path_name = L"s_building_sel";
     m_Sounds[S_BASE_SEL].path_name = L"s_base_sel";
     m_Sounds[S_WEAPON_SET].path_name = L"weapon_set";

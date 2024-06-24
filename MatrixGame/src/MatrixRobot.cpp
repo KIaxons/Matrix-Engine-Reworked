@@ -770,11 +770,11 @@ void CMatrixRobotAI::LogicTact(int ms)
             else StopFire();
             */
         }
-        else if(cur_target->IsActiveCannonAlive()) //Если целью робота выбрана турель
+        else if(cur_target->IsActiveTurretAlive()) //Если целью робота выбрана турель
         {
             bool capturing = FindOrderLikeThat(ROT_CAPTURE_BUILDING);
 
-            CMatrixCannon* Enemy = cur_target->AsCannon();
+            CMatrixTurret* Enemy = cur_target->AsTurret();
             D3DXVECTOR2 napr(0.0f, 0.0f);
             D3DXVECTOR3 enemy_pos(0.0f, 0.0f, 0.0f);
             enemy_pos = D3DXVECTOR3(Enemy->GetGeoCenter().x, Enemy->GetGeoCenter().y, 0.0f);
@@ -815,7 +815,7 @@ void CMatrixRobotAI::LogicTact(int ms)
                 if(m_OrdersList[order_capture - 1].GetStatic() == cur_target) goto no_target;
             }
 
-            //CMatrixBuilding* Enemy = (CMatrixCannon*)m_Environment.m_Target;
+            //CMatrixBuilding* Enemy = (CMatrixTurret*)m_Environment.m_Target;
             D3DXVECTOR2 napr(0.0f, 0.0f);
             D3DXVECTOR3 enemy_pos = m_WeaponDir;
             //enemy_pos = D3DXVECTOR3(Enemy->GetGeoCenter().x, Enemy->GetGeoCenter().y, 0.0f);
@@ -1691,13 +1691,13 @@ void CMatrixRobotAI::ZoneMoveCalc()
                 ++other_cnt;
             }
         }
-        else if(obj->IsCannonAlive())
+        else if(obj->IsTurretAlive())
         {
             ASSERT(other_cnt < 200);
             other_size[other_cnt] = 4;
             other_path_list[other_cnt] = nullptr;
             other_path_cnt[other_cnt] = 0;
-            other_des[other_cnt] = CPoint(Float2Int(obj->AsCannon()->m_Pos.x / GLOBAL_SCALE_MOVE) - ROBOT_MOVECELLS_PER_SIZE / 2, Float2Int(obj->AsCannon()->m_Pos.y / GLOBAL_SCALE_MOVE) - ROBOT_MOVECELLS_PER_SIZE / 2);
+            other_des[other_cnt] = CPoint(Float2Int(obj->AsTurret()->m_Pos.x / GLOBAL_SCALE_MOVE) - ROBOT_MOVECELLS_PER_SIZE / 2, Float2Int(obj->AsTurret()->m_Pos.y / GLOBAL_SCALE_MOVE) - ROBOT_MOVECELLS_PER_SIZE / 2);
             ++other_cnt;
         }
         obj = obj->GetNextLogic();
@@ -1935,11 +1935,11 @@ bool CMatrixRobotAI::TakingDamage(
         return false;
     }
 
-    if(!friendly_fire && attaker != nullptr && attaker->IsCannonAlive() && attaker->AsCannon()->GetSide() != m_Side)
+    if(!friendly_fire && attaker != nullptr && attaker->IsTurretAlive() && attaker->AsTurret()->GetSide() != m_Side)
     {
         if(!GetEnv()->SearchEnemy(attaker)) GetEnv()->AddToList(attaker);
 
-        if((!GetEnv()->m_TargetAttack || GetEnv()->m_TargetAttack->IsCannon()) && (g_MatrixMap->GetTime() - GetEnv()->m_LastHitTarget) > 4000 && (g_MatrixMap->GetTime() - GetEnv()->m_TargetChange) > 1000)
+        if((!GetEnv()->m_TargetAttack || GetEnv()->m_TargetAttack->IsTurret()) && (g_MatrixMap->GetTime() - GetEnv()->m_LastHitTarget) > 4000 && (g_MatrixMap->GetTime() - GetEnv()->m_TargetChange) > 1000)
         {
             GetEnv()->m_TargetLast = GetEnv()->m_TargetAttack;
             GetEnv()->m_TargetAttack = attaker;
@@ -2049,9 +2049,9 @@ bool CMatrixRobotAI::TakingDamage(
                             else danger += robot->GetStrength();
                         }
                     }
-                    else if(ms->IsActiveCannonAlive())
+                    else if(ms->IsActiveTurretAlive())
                     {
-                        CMatrixCannon* cannon = ms->AsCannon();
+                        CMatrixTurret* cannon = ms->AsTurret();
                         if((POW2(cannon->m_Pos.x - m_PosX) + POW2(cannon->m_Pos.y - m_PosY)) < POW2(m_BombRange * 1.0f))
                         {
                             if(ms->GetSide() == GetSide()) danger -= cannon->GetStrength();
@@ -2194,7 +2194,7 @@ void CMatrixRobotAI::RobotSpawn(CMatrixBuilding* pBase)
 
     if(IsCrazy())
     {
-        InitMaxHitpoint(1000000.0f);
+        InitMaxHitpoints(1000000.0f);
         m_Team = 0;
 
         SETFLAG(g_MatrixMap->m_Flags, MMFLAG_SOUND_ORDER_ATTACK_DISABLE);
@@ -3170,9 +3170,9 @@ static bool CollisionCallback(const D3DXVECTOR3& fpos, CMatrixMapStatic* pObject
             }
         }
     }
-    else if (pObject->GetObjectType() == OBJECT_TYPE_CANNON)
+    else if (pObject->GetObjectType() == OBJECT_TYPE_TURRET)
     {
-        CMatrixCannon* cannon = ((CMatrixCannon*)pObject);
+        CMatrixTurret* cannon = ((CMatrixTurret*)pObject);
         D3DXVECTOR2 my_pos = D3DXVECTOR2(data->robot->m_PosX, data->robot->m_PosY) + D3DXVECTOR2(data->vel.x, data->vel.y);
         D3DXVECTOR2 collide_pos = cannon->m_Pos;
         D3DXVECTOR2 vDist = my_pos - collide_pos;
@@ -3206,7 +3206,7 @@ D3DXVECTOR3 CMatrixRobotAI::RobotToObjectCollision(const D3DXVECTOR3& vel, int m
     data.stop = false;
     data.ms = ms;
     data.far_col = false;
-    g_MatrixMap->FindObjects(D3DXVECTOR3(m_PosX, m_PosY, m_Core->m_GeoCenter.z), COLLIDE_BOT_R * 3, 1, TRACE_ROBOT | TRACE_CANNON, this, CollisionCallback, (dword)&data);
+    g_MatrixMap->FindObjects(D3DXVECTOR3(m_PosX, m_PosY, m_Core->m_GeoCenter.z), COLLIDE_BOT_R * 3, 1, TRACE_ROBOT | TRACE_TURRET, this, CollisionCallback, (dword)&data);
 
     if (!data.far_col) m_ColSpeed = 100.0f;
 
@@ -4239,7 +4239,7 @@ void CMatrixRobotAI::HitTo(CMatrixMapStatic* hit, const D3DXVECTOR3& pos)
 
             if(robot != this && robot->GetSide() != GetSide() && !robot->m_Environment.SearchEnemy(this)) robot->m_Environment.AddToList(this);
 
-            if(robot->GetEnv()->m_TargetAttack != nullptr && robot->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_CANNON && robot->GetEnv()->SearchEnemy(this) && (g_MatrixMap->GetTime() - GetEnv()->m_TargetChange) > 1000)
+            if(robot->GetEnv()->m_TargetAttack != nullptr && robot->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET && robot->GetEnv()->SearchEnemy(this) && (g_MatrixMap->GetTime() - GetEnv()->m_TargetChange) > 1000)
             {
                 GetEnv()->m_TargetLast = GetEnv()->m_TargetAttack;
                 robot->GetEnv()->m_TargetAttack = this;
@@ -4411,7 +4411,7 @@ void CMatrixRobotAI::CalcRobotParams(SRobotTemplate* robot_template)
     }
 
     if(robot_template != nullptr && robot_template->m_HitPointsOverride) hp = robot_template->m_HitPointsOverride;
-    InitMaxHitpoint(hp);
+    InitMaxHitpoints(hp);
 
     float tmp_min = 1E30f, tmp_max = -1E30f, r_min = 1e30f;
 
@@ -4544,9 +4544,9 @@ void CMatrixRobotAI::GatherInfo(int type)
                     if(/*robot->m_FireTarget != this && */ dist_enemy > POW2(max(robot->m_MaxFireDist, m_MaxFireDist) * 1.4)) m_Environment.RemoveFromListSlowly(obj);
                 }
             }
-            else if(obj->IsActiveCannonAlive() && obj->GetSide() != m_Side)
+            else if(obj->IsActiveTurretAlive() && obj->GetSide() != m_Side)
             {
-                CMatrixCannon* cannon = (CMatrixCannon*)obj;
+                CMatrixTurret* cannon = (CMatrixTurret*)obj;
                 D3DXVECTOR3 enemy_napr = cannon->GetGeoCenter() - D3DXVECTOR3(m_PosX, m_PosY, 0);
 
                 D3DXVECTOR3 en_norm = { 0.0f, 0.0f, 0.0f };
@@ -4556,7 +4556,7 @@ void CMatrixRobotAI::GatherInfo(int type)
 
                 float dist_enemy = D3DXVec3LengthSq(&enemy_napr);
 
-                if(dist_enemy <= POW2(max(cannon->GetFireRadius() * 1.01, m_MaxFireDist * 1.1)) /*(D3DXVec3LengthSq(&enemy_napr) <= m_MinFireDist*m_MinFireDist)*//* || (D3DXVec3LengthSq(&enemy_napr) <= m_MaxFireDist*m_MaxFireDist && angle_rad <= ROBOT_FOV) */ && cannon->m_CurrentState != CANNON_DIP)
+                if(dist_enemy <= POW2(max(cannon->GetFireRadius() * 1.01, m_MaxFireDist * 1.1)) /*(D3DXVec3LengthSq(&enemy_napr) <= m_MinFireDist*m_MinFireDist)*//* || (D3DXVec3LengthSq(&enemy_napr) <= m_MaxFireDist*m_MaxFireDist && angle_rad <= ROBOT_FOV) */ && cannon->m_CurrentState != TURRET_DIP)
                 {
                     if(g_MatrixMap->IsLogicVisible(this, cannon, 0.0f))
                     {
@@ -5277,8 +5277,8 @@ void CMatrixRobotAI::ReleaseMe()
         if(ps->GetCurSelNum() == pos) pos = 0;
         else pos = -1;
 
-        DeleteProgressBarClone(PBC_CLONE1);
-        DeleteProgressBarClone(PBC_CLONE2);
+        DeleteHealthBarClone(PBC_CLONE1);
+        DeleteHealthBarClone(PBC_CLONE2);
         if(g_IFaceList)
         {
             g_IFaceList->DeleteProgressBars(this);
@@ -5438,12 +5438,13 @@ void CMatrixRobotAI::UnSelect()
 
 bool CMatrixRobotAI::CreateSelection()
 {
-    m_Selection = (CMatrixEffectSelection*)CMatrixEffect::CreateSelection(D3DXVECTOR3(m_PosX, m_PosY, m_Core->m_Matrix._43 + 3/*ROBOT_SELECTION_HEIGHT*/), ROBOT_SELECTION_SIZE);
+    m_Selection = (CMatrixEffectSelection*)CMatrixEffect::CreateSelection(D3DXVECTOR3(m_PosX, m_PosY, m_Core->m_Matrix._43 + 3 /*ROBOT_SELECTION_HEIGHT*/), ROBOT_SELECTION_SIZE);
     if(!g_MatrixMap->AddEffect(m_Selection))
     {
         m_Selection = nullptr;
         return false;
     }
+
     return true;
 }
 
@@ -5475,12 +5476,12 @@ void CMatrixRobotAI::CalcStrength()
     m_Strength = m_Strength * (0.4f + 0.6f * (m_Hitpoints / m_MaxHitpoints));
 }
 
-void CMatrixRobotAI::CreateProgressBarClone(float x, float y, float width, EPBCoord clone_type)
+void CMatrixRobotAI::CreateHealthBarClone(float x, float y, float width, EPBCoord clone_type)
 {
     m_HealthBar.CreateClone(clone_type, x, y, width);
 }
 
-void CMatrixRobotAI::DeleteProgressBarClone(EPBCoord clone_type)
+void CMatrixRobotAI::DeleteHealthBarClone(EPBCoord clone_type)
 {
     m_HealthBar.KillClone(clone_type);
 }

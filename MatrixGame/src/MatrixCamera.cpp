@@ -202,13 +202,13 @@ static bool SeekCamObjects(const D3DXVECTOR2& center, CMatrixMapStatic* ms, dwor
     D3DXVECTOR3 dir(ms->GetGeoCenter() - vecs[0]);
     D3DXVec3Normalize(&dir, &dir);
 
-    if(ms->IsCannon())
+    if(ms->IsTurret())
     {
-        vecs[1] += dir * (1.1f - ms->AsCannon()->GetHitPoint() * ms->AsCannon()->GetMaxHitPointInversed());
+        vecs[1] += dir * (1.1f - ms->AsTurret()->GetHitpoints() * ms->AsTurret()->GetMaxHitpointsInversed());
     }
     else if(ms->IsRobot())
     {
-        vecs[1] += dir * (1.1f - ms->AsRobot()->GetHitPoint() / ms->AsRobot()->GetMaxHitPoint());
+        vecs[1] += dir * (1.1f - ms->AsRobot()->GetHitpoints() / ms->AsRobot()->GetMaxHitPoints());
     }
 
     return true;
@@ -250,7 +250,7 @@ DTRACE();
         vecs[0] = m_Cur;
         vecs[1] = D3DXVECTOR3(0, 0, 0);
 
-        g_MatrixMap->FindObjects(*(D3DXVECTOR2*)&m_Cur, 700, 1, TRACE_ROBOT | TRACE_CANNON, nullptr, SeekCamObjects, (dword)&vecs);
+        g_MatrixMap->FindObjects(*(D3DXVECTOR2*)&m_Cur, 700, 1, TRACE_ROBOT | TRACE_TURRET, nullptr, SeekCamObjects, (dword)&vecs);
 
         float dl = D3DXVec3LengthSq(vecs + 1);
         if(dl > 0.00001f)
@@ -600,8 +600,8 @@ check_again:
         ////m_NewFROM += m_NewTO;
 
         //float mm = 1;
-        //if(m_WarPairs[idx].target->m_Object->IsRobot()) mm = m_WarPairs[idx].target->m_Object->AsRobot()->GetHitPoint() / m_WarPairs[idx].target->m_Object->AsRobot()->GetMaxHitPoint();
-        //else if(m_WarPairs[idx].target->m_Object->IsCannon()) mm = m_WarPairs[idx].target->m_Object->AsCannon()->GetHitPoint() / m_WarPairs[idx].target->m_Object->AsCannon()->GetMaxHitPoint();
+        //if(m_WarPairs[idx].target->m_Object->IsRobot()) mm = m_WarPairs[idx].target->m_Object->AsRobot()->GetHitPoints() / m_WarPairs[idx].target->m_Object->AsRobot()->GetMaxHitPoints();
+        //else if(m_WarPairs[idx].target->m_Object->IsTurret()) mm = m_WarPairs[idx].target->m_Object->AsTurret()->GetHitPoints() / m_WarPairs[idx].target->m_Object->AsTurret()->GetMaxHitPoints();
 
         //m_NewPriority = Float2Int((1 - mm) * 10000 + 100);
     }

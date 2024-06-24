@@ -205,7 +205,7 @@ public:
     //Каст на логический подкласс CMatrixRobot
     CMatrixRobotAI* AsMatrixRobotAI() { return reinterpret_cast<CMatrixRobotAI*>(this); }
 
-    void ShowHitpoint() { m_ShowHitpointsTime = HITPOINT_SHOW_TIME; }
+    void ShowHitpoints() { m_ShowHitpointsTime = HITPOINT_SHOW_TIME; }
     //Добавил функцию, чтобы иметь возможность чинить роботов напрямую из логики зданий, Klaxons
     void ModifyHitpoints(int num)
     {
@@ -213,9 +213,9 @@ public:
         m_HealthBar.Modify(m_Hitpoints * m_MaxHitpointsInversed);
     }
 
-    float GetHitPoint() const { return m_Hitpoints / 10; }
-    float GetMaxHitPoint() { return m_MaxHitpoints / 10; }
-    void  InitMaxHitpoint(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
+    float GetHitpoints() const { return m_Hitpoints / 10; }
+    float GetMaxHitPoints() { return m_MaxHitpoints / 10; }
+    void  InitMaxHitpoints(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
 
     void MarkCrazy() { SETFLAG(m_ObjectFlags, ROBOT_CRAZY); }
     void UnMarkCrazy() { RESETFLAG(m_ObjectFlags, ROBOT_CRAZY); }

@@ -36,7 +36,7 @@ inline bool IsToPlace(CMatrixRobotAI* robot, int place);    //Движется �
 inline bool IsInPlace(CMatrixRobotAI* robot, int place);    //Если робот стоит на месте
 inline bool IsInPlace(CMatrixRobotAI* robot);               //Если робот стоит на месте
 inline int RobotPlace(CMatrixRobotAI* robot);
-inline int CannonPlace(CMatrixCannon* cannon);
+inline int CannonPlace(CMatrixTurret* cannon);
 inline int ObjPlace(CMatrixMapStatic* obj);
 inline SMatrixPlace* ObjPlacePtr(CMatrixMapStatic* obj);
 inline dword ObjPlaceData(CMatrixMapStatic* obj);
@@ -236,7 +236,7 @@ CMatrixSideUnit::~CMatrixSideUnit()
     //m_CannonForBuild.Delete();
     if(m_CannonForBuild.m_Cannon)
     {
-        HDelete(CMatrixCannon, m_CannonForBuild.m_Cannon, Base::g_MatrixHeap);
+        HDelete(CMatrixTurret, m_CannonForBuild.m_Cannon, Base::g_MatrixHeap);
         m_CannonForBuild.m_Cannon = nullptr;
     }
 
@@ -359,7 +359,7 @@ void CMatrixSideUnit::SpawnDeliveryFlyer(
 
     CMatrixFlyer* flyer = g_MatrixMap->StaticAdd<CMatrixFlyer>(true);
     flyer->m_FlyerKind = flyer_type;
-    flyer->InitMaxHitpoint(flyer_structure);
+    flyer->InitMaxHitpoints(flyer_structure);
 
     g_MatrixMap->m_AD_Obj[g_MatrixMap->m_AD_Obj_cnt] = flyer;
     ++g_MatrixMap->m_AD_Obj_cnt;
@@ -420,7 +420,7 @@ void CMatrixSideUnit::LogicTact(int ms)
         {
             if(!g_MatrixMap->ReinforcementsDisabled())
             {
-                if(!g_MatrixMap->BeforeReinforcementsTime() && (FRND(1) < 0.05f))
+                if(!g_MatrixMap->BeforeReinforcementsTime() && (FRND(1.0f) < 0.05f))
                 {
                     CMatrixMapStatic* b = nullptr;
                     CMatrixMapStatic* ms = CMatrixMapStatic::GetFirstLogic();
@@ -429,7 +429,7 @@ void CMatrixSideUnit::LogicTact(int ms)
                         if(ms->IsBuildingAlive() && ms->GetSide() == m_Id)
                         {
                             b = ms;
-                            if(FRND(1) < 0.05f) break;
+                            if(FRND(1.0f) < 0.05f) break;
                         }
                     }
 
@@ -453,7 +453,10 @@ void CMatrixSideUnit::LogicTact(int ms)
             cbs.mp = g_MatrixMap->m_Cursor.GetPos();
             cbs.calls = 0;
 
-            CMultiSelection::m_GameSelection->Update(g_MatrixMap->m_Cursor.GetPos(), TRACE_ROBOT | TRACE_FLYER | TRACE_BUILDING, SideSelectionCallBack, (dword)&cbs);
+            dword mask = 0;
+            if(g_BetterTurrets) mask = TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET | TRACE_BUILDING;
+            else mask = TRACE_ROBOT | TRACE_FLYER | TRACE_BUILDING;
+            CMultiSelection::m_GameSelection->Update(g_MatrixMap->m_Cursor.GetPos(), mask, SideSelectionCallBack, (dword)&cbs);
         }
 
         PumpGroups();
@@ -598,7 +601,7 @@ void CMatrixSideUnit::LogicTact(int ms)
     /*
     if(IsUnitUnderManualControlARobot())
     {
-        m_UnitUnderManualControl->AsRobot()->ShowHitpoint();
+        m_UnitUnderManualControl->AsRobot()->ShowHitpoints();
     }
     */
 }
@@ -631,26 +634,26 @@ void CMatrixSideUnit::OnLButtonDown(const CPoint& mouse_pos)
         if(m_CannonForBuild.m_CanBuildFlag/* && (m_CannonForBuild.m_ParentBuilding->m_TurretsHave < m_CannonForBuild.m_ParentBuilding->m_TurretsLimit)*/)
         {
             if(g_MatrixMap->IsPaused()) return;
-            CMatrixCannon* ca = g_MatrixMap->StaticAdd<CMatrixCannon>(true);
-            ca->m_CurrentState = CANNON_UNDER_CONSTRUCTION;
+            CMatrixTurret* turret = g_MatrixMap->StaticAdd<CMatrixTurret>(true);
+            turret->m_CurrentState = TURRET_UNDER_CONSTRUCTION;
 
-            ca->SetInvulnerability();
-            ca->m_Pos.x = m_CannonForBuild.m_Cannon->m_Pos.x;//g_MatrixMap->m_TraceStopPos.x;
-            ca->m_Pos.y = m_CannonForBuild.m_Cannon->m_Pos.y;//g_MatrixMap->m_TraceStopPos.y;
-            ca->m_Place = m_CannonForBuild.m_Cannon->m_Place;
-            ca->SetSide(m_Id);
-            ca->ModelInit(m_CannonForBuild.m_Cannon->m_TurretKind);
+            turret->SetInvulnerability();
+            turret->m_Pos.x = m_CannonForBuild.m_Cannon->m_Pos.x; //g_MatrixMap->m_TraceStopPos.x;
+            turret->m_Pos.y = m_CannonForBuild.m_Cannon->m_Pos.y; //g_MatrixMap->m_TraceStopPos.y;
+            turret->m_Place = m_CannonForBuild.m_Cannon->m_Place;
+            turret->SetSide(m_Id);
+            turret->ModelInit(m_CannonForBuild.m_Cannon->m_TurretKind);
 
-            ca->m_Angle = m_CannonForBuild.m_Cannon->GetMustBeAngle();
-            ca->m_AddH = 0;
+            turret->m_Angle = m_CannonForBuild.m_Cannon->GetMustBeAngle();
+            turret->m_AddH = 0;
 
-            ca->GetResources(MR_Matrix | MR_Graph);
-            ca->m_ParentBuilding = (CMatrixBuilding*)m_ActiveObject;
-            ca->JoinToGroup();
+            turret->GetResources(MR_Matrix | MR_Graph);
+            turret->m_ParentBuilding = (CMatrixBuilding*)m_ActiveObject;
+            turret->JoinToGroup();
 
             ++m_CannonForBuild.m_ParentBuilding->m_TurretsHave;
-            ca->SetHitPoint(0);
-            ((CMatrixBuilding*)m_ActiveObject)->m_BuildingQueue.AddItem(ca);
+            turret->SetHitpoints(0);
+            ((CMatrixBuilding*)m_ActiveObject)->m_BuildingQueue.AddItem(turret);
 
             int kind = m_CannonForBuild.m_Cannon->m_TurretKind;
             STurretsConsts* turret_info = &g_Config.m_TurretsConsts[kind];
@@ -1029,14 +1032,21 @@ void CMatrixSideUnit::OnRight(bool is_down)
 
 void CMatrixSideUnit::Select(ESelType type, CMatrixMapStatic* pObject)
 {
-    if(m_CurrSel == BUILDING_SELECTED || m_CurrSel == BASE_SELECTED)
+    if(m_CurrSel == TURRET_SELECTED)
+    {
+        g_IFaceList->DeletePersonal();
+        g_IFaceList->ResetOrderingMode();
+
+        m_ActiveObject->AsTurret()->UnSelect();
+    }
+    else if(m_CurrSel == BUILDING_SELECTED || m_CurrSel == BASE_SELECTED)
     {
         g_IFaceList->DeletePersonal();
         g_IFaceList->DeleteDynamicTurrets();
         //RESETFLAG(g_IFaceList->m_IfListFlags, TURRET_BUILD_MODE | FLYER_BUILD_MODE);
         g_IFaceList->ResetOrderingMode();
 
-        ((CMatrixBuilding*)m_ActiveObject)->UnSelect();
+        m_ActiveObject->AsBuilding()->UnSelect();
     }
 
     //m_CurrentAction = NOTHING_SPECIAL;
@@ -1075,17 +1085,6 @@ void CMatrixSideUnit::Select(ESelType type, CMatrixMapStatic* pObject)
 
         if(m_Id == PLAYER_SIDE && !is_after_manual)
         {
-            //int rnd = g_MatrixMap->Rnd(0, 6);
-            /*
-            if(!rnd) CSound::Play(S_SELECTION_1, SL_SELECTION);
-            else if(rnd == 1) CSound::Play(S_SELECTION_2, SL_SELECTION);
-            else if(rnd == 2) CSound::Play(S_SELECTION_3, SL_SELECTION);
-            else if(rnd == 3) CSound::Play(S_SELECTION_4, SL_SELECTION);
-            else if(rnd == 4) CSound::Play(S_SELECTION_5, SL_SELECTION);
-            else if(rnd == 5) CSound::Play(S_SELECTION_6, SL_SELECTION);
-            else CSound::Play(S_SELECTION_7, SL_SELECTION);
-            */
-
             switch(g_MatrixMap->Rnd(1, 7))
             {
                 case 1: CSound::Play(S_SELECTION_1, SL_SELECTION); break;
@@ -1099,18 +1098,28 @@ void CMatrixSideUnit::Select(ESelType type, CMatrixMapStatic* pObject)
         }
     }
 
-    if(type == BUILDING && pObject)
+    if(type == TURRET && pObject)
     {
+        m_nCurrRobotPos = -1;
+        m_CurrSel = TURRET_SELECTED;
+        pObject->AsTurret()->Select();
+
+        CSound::Play(S_TURRET_SEL, SL_SELECTION);
+    }
+    else if(type == BUILDING && pObject)
+    {
+        CMatrixBuilding* building = pObject->AsBuilding();
+
         m_nCurrRobotPos = -1;
         m_CurrSel = BUILDING_SELECTED;
 
-        ((CMatrixBuilding*)pObject)->Select();
-        g_IFaceList->CreateDynamicTurrets((CMatrixBuilding*)pObject);
+        building->Select();
+        g_IFaceList->CreateDynamicTurrets(building);
 
         if(pObject->IsBase())
         {
             m_CurrSel = BASE_SELECTED;
-            m_Constructor->SetBase((CMatrixBuilding*)pObject);
+            m_Constructor->SetBase(building);
 
             if(FLAG(g_MatrixMap->m_Flags, MMFLAG_SOUND_BASE_SEL_ENABLED)) CSound::Play(S_BASE_SEL, SL_SELECTION);
 
@@ -1175,6 +1184,7 @@ void CMatrixSideUnit::Reselect()
                 ((CMatrixFlyer*)objs)->SelectByGroup();
             }
         }
+
         objs = objs->GetNextLogic();
     }
 }
@@ -1266,31 +1276,6 @@ void CMatrixSideUnit::ShowOrderState()
 
         objs = objs->m_NextObject;
     }
-
-    /*if(order_stop)
-    {
-        RESETFLAG(g_IFaceList->m_IfListFlags, AUTO_ATTACK_ON | AUTO_CAPTURE_ON | AUTO_PROTECT_ON);
-    }
-    else if(order_move)
-    {
-        RESETFLAG(g_IFaceList->m_IfListFlags, AUTO_ATTACK_ON | AUTO_CAPTURE_ON | AUTO_PROTECT_ON);
-        SETFLAG(g_IFaceList->m_IfListFlags, PREORDER_MOVE);
-    }
-    else if(order_capture)
-    {
-        RESETFLAG(g_IFaceList->m_IfListFlags, AUTO_ATTACK_ON | AUTO_CAPTURE_ON | AUTO_PROTECT_ON);
-        SETFLAG(g_IFaceList->m_IfListFlags, PREORDER_CAPTURE);
-    }
-    else if(order_attack)
-    {
-        RESETFLAG(g_IFaceList->m_IfListFlags, AUTO_ATTACK_ON | AUTO_CAPTURE_ON | AUTO_PROTECT_ON);
-        SETFLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE);
-    }
-    else if(order_patrol)
-    {
-        RESETFLAG(g_IFaceList->m_IfListFlags, AUTO_ATTACK_ON | AUTO_CAPTURE_ON | AUTO_PROTECT_ON);
-        SETFLAG(g_IFaceList->m_IfListFlags, PREORDER_PATROL);
-    }*/
     
     if(auto_attack) SETFLAG(g_IFaceList->m_IfListFlags, AUTO_ATTACK_ON);
     else RESETFLAG(g_IFaceList->m_IfListFlags, AUTO_ATTACK_ON);
@@ -1310,10 +1295,11 @@ bool CMatrixSideUnit::MouseToLand(const CPoint& mouse_pos, float* pWorldX, float
         *pMapY = int(g_MatrixMap->m_TraceStopPos.y / GLOBAL_SCALE);
         *pWorldX = (float)*pMapX * GLOBAL_SCALE;
         *pWorldY = (float)*pMapY * GLOBAL_SCALE;
-        return TRUE;
+
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 CMatrixMapStatic* CMatrixSideUnit::MouseToLand()
@@ -1463,7 +1449,7 @@ void SCannonForBuild::Delete()
 {
     if(m_Cannon)
     {
-        HDelete(CMatrixCannon, m_Cannon, Base::g_MatrixHeap);
+        HDelete(CMatrixTurret, m_Cannon, Base::g_MatrixHeap);
         m_Cannon = nullptr;
         m_ParentBuilding = nullptr;
         m_ParentSpot.Release();
@@ -1811,20 +1797,18 @@ void CMatrixSideUnit::PumpGroups()
 
 void CMatrixSideUnit::RemoveObjectFromSelectedGroup(CMatrixMapStatic* o)
 {
-DTRACE();
-
     if(o && GetCurGroup())
     {
         if(o->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
         {
-            ((CMatrixRobotAI*)o)->DeleteProgressBarClone(PBC_CLONE1);
-            ((CMatrixRobotAI*)o)->DeleteProgressBarClone(PBC_CLONE2);
+            ((CMatrixRobotAI*)o)->DeleteHealthBarClone(PBC_CLONE1);
+            ((CMatrixRobotAI*)o)->DeleteHealthBarClone(PBC_CLONE2);
             ((CMatrixRobotAI*)o)->UnSelect();
         }
         else if(o->GetObjectType() == OBJECT_TYPE_FLYER)
         {
-            ((CMatrixFlyer*)o)->DeleteProgressBarClone(PBC_CLONE1);
-            ((CMatrixFlyer*)o)->DeleteProgressBarClone(PBC_CLONE2);
+            ((CMatrixFlyer*)o)->DeleteHealthBarClone(PBC_CLONE1);
+            ((CMatrixFlyer*)o)->DeleteHealthBarClone(PBC_CLONE2);
             ((CMatrixFlyer*)o)->UnSelect();
         }
 
@@ -1837,6 +1821,7 @@ DTRACE();
             g_IFaceList->CreateGroupIcons();
             SetCurSelNum(-1);
         }
+
         Reselect();
     }
 }
@@ -1951,23 +1936,30 @@ void CMatrixSideUnit::SetCurGroup(CMatrixGroup* group)
         g_IFaceList->ResetOrderingMode();
     }
 }
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SideSelectionCallBack(CMatrixMapStatic* ms, dword param)
 {
-    if(!ms || (ms->GetObjectType() != OBJECT_TYPE_ROBOT_AI && ms->GetObjectType() != OBJECT_TYPE_FLYER && ms->GetObjectType() != OBJECT_TYPE_BUILDING) || ms->GetSide() != PLAYER_SIDE)
+    if(!ms || ms->GetSide() != PLAYER_SIDE) return;
+    if(ms->GetObjectType() != OBJECT_TYPE_ROBOT_AI && ms->GetObjectType() != OBJECT_TYPE_FLYER && ms->GetObjectType() != OBJECT_TYPE_BUILDING)
     {
-        return;
+        //Турели отсортировываются отдельной опцией g_BetterTurrets
+        if(ms->GetObjectType() == OBJECT_TYPE_TURRET && !g_BetterTurrets) return;
     }
 
     if(ms->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
     {
-        if(((CMatrixRobotAI*)ms)->m_CurrentState == ROBOT_DIP) return;
+        if(ms->AsRobot()->m_CurrentState == ROBOT_DIP) return;
     }
     else if(ms->GetObjectType() == OBJECT_TYPE_BUILDING)
     {
-        if(((CMatrixBuilding*)ms)->State() == BUILDING_DIP || ((CMatrixBuilding*)ms)->State() == BUILDING_DIP_EXPLODED) return;
+        if(ms->AsBuilding()->State() == BUILDING_DIP || ms->AsBuilding()->State() == BUILDING_DIP_EXPLODED) return;
+    }
+    else if(ms->GetObjectType() == OBJECT_TYPE_TURRET)
+    {
+        if(ms->AsTurret()->m_CurrentState == TURRET_UNDER_CONSTRUCTION || ms->AsTurret()->m_CurrentState == TURRET_UNDER_DECONSTRUCTION || ms->AsTurret()->m_CurrentState == TURRET_DIP) return;
     }
 
     CMatrixSideUnit* my_side = g_MatrixMap->GetPlayerSide();
@@ -2094,7 +2086,7 @@ void CMatrixSideUnit::CalcStrength()
                 if(obj->AsBuilding()->IsBase()) ++c_base;
                 else ++c_building;
             }
-            else if(obj->IsActiveCannonAlive()) s_cannon += obj->AsCannon()->GetStrength();
+            else if(obj->IsActiveTurretAlive()) s_cannon += obj->AsTurret()->GetStrength();
             else if(obj->IsRobotAlive()) s_robot += obj->AsRobot()->GetStrength();
         }
         obj = obj->GetNextLogic();
@@ -2565,9 +2557,9 @@ void CMatrixSideUnit::EscapeFromBomb()
                     ++cnt;
                 }
             }
-            else if(ms2->IsCannon())
+            else if(ms2->IsTurret())
             {
-                ind[cnt] = ms2->AsCannon()->m_Place;
+                ind[cnt] = ms2->AsTurret()->m_Place;
                 data[ind[cnt]] = 2;
                 ++cnt;
             }
@@ -3176,9 +3168,9 @@ void CMatrixSideUnit::TactSideLogic()
             }
             */
             //Статистика по турелям
-            case OBJECT_TYPE_CANNON:
+            case OBJECT_TYPE_TURRET:
             {
-                CMatrixCannon* cur_turret = ms->AsCannon();
+                CMatrixTurret* cur_turret = ms->AsTurret();
 
                 //Определяем позицию пушки на карте
                 tp.x = TruncFloat(cur_turret->m_Pos.x * INVERT(GLOBAL_SCALE_MOVE));
@@ -5187,9 +5179,9 @@ void CMatrixSideUnit::TactTL()
                     firedist = Float2Int(((CMatrixRobotAI*)(obj))->GetMaxFireDist() + GLOBAL_SCALE_MOVE);
                     firedist2 = Float2Int(((CMatrixRobotAI*)(obj))->GetMinFireDist() + GLOBAL_SCALE_MOVE);
                 }
-                else if(obj->GetObjectType() == OBJECT_TYPE_CANNON)
+                else if(obj->GetObjectType() == OBJECT_TYPE_TURRET)
                 {
-                    firedist = Float2Int(((CMatrixCannon*)(obj))->GetFireRadius() + GLOBAL_SCALE_MOVE);
+                    firedist = Float2Int(((CMatrixTurret*)(obj))->GetFireRadius() + GLOBAL_SCALE_MOVE);
                     firedist2 = firedist;
                 }
 
@@ -5869,7 +5861,7 @@ void CMatrixSideUnit::WarTL(int group)
             {
                 rl[i]->GetEnv()->m_TargetAttack = enemy_find->m_Enemy;
                 // Если новая цель пушка то меняем позицию
-                if(rl[i]->GetEnv()->m_TargetAttack->IsActiveCannonAlive())
+                if(rl[i]->GetEnv()->m_TargetAttack->IsActiveTurretAlive())
                 {
                     rl[i]->GetEnv()->m_Place = -1;
                 }
@@ -6083,11 +6075,11 @@ void CMatrixSideUnit::WarTL(int group)
                     tvy = ((CMatrixRobotAI*)(rl[i]->GetEnv()->m_TargetAttack))->m_PosY - rl[i]->m_PosY;
                     enemy_fire_dist = Float2Int(((CMatrixRobotAI*)(rl[i]->GetEnv()->m_TargetAttack))->GetMaxFireDist());
                 }
-                else if(rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_CANNON)
+                else if(rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET)
                 {
-                    tvx = ((CMatrixCannon*)(rl[i]->GetEnv()->m_TargetAttack))->m_Pos.x - rl[i]->m_PosX;
-                    tvy = ((CMatrixCannon*)(rl[i]->GetEnv()->m_TargetAttack))->m_Pos.y - rl[i]->m_PosY;
-                    enemy_fire_dist = int(((CMatrixCannon*)(rl[i]->GetEnv()->m_TargetAttack))->GetFireRadius() + GLOBAL_SCALE_MOVE);
+                    tvx = ((CMatrixTurret*)(rl[i]->GetEnv()->m_TargetAttack))->m_Pos.x - rl[i]->m_PosX;
+                    tvy = ((CMatrixTurret*)(rl[i]->GetEnv()->m_TargetAttack))->m_Pos.y - rl[i]->m_PosY;
+                    enemy_fire_dist = int(((CMatrixTurret*)(rl[i]->GetEnv()->m_TargetAttack))->GetFireRadius() + GLOBAL_SCALE_MOVE);
                 }
                 else continue;
                 float tsize2 = tvx * tvx + tvy * tvy;
@@ -6117,7 +6109,7 @@ void CMatrixSideUnit::WarTL(int group)
                     float pvy = pcy - rl[i]->m_PosY;
 
                     float k = (pvx * tvx + pvy * tvy) * tsize2o;
-                    if(!havebomb && rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_CANNON)
+                    if(!havebomb && rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET)
                     {
                         //if(k > 1.5) continue; // Места за врагом не расматриваем
                     }
@@ -6135,7 +6127,7 @@ void CMatrixSideUnit::WarTL(int group)
                     float distfrom2 = POW2(-m * tvy) + POW2(m * tvx); // Дистанция отклонения
                     float distplace2 = POW2(tvx - pcx/*pvx*/) + POW2(tvy - pcx/*pvy*/); // Дистанция от места до врага
                     //if(distplace2 > POW2(0.95 * rl[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2)) continue; // Робот должен достовать врага
-                    if((placebest < 0) || (rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_CANNON && (rl[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE) > enemy_fire_dist))
+                    if((placebest < 0) || (rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET && (rl[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE) > enemy_fire_dist))
                     {
                         if(distplace2 > POW2(0.95 * rl[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2)) continue; // Робот должен достовать врага
                     }
@@ -6701,7 +6693,7 @@ void CMatrixSideUnit::AssignPlace(int group, int region)
                 if(bot->GetSide() != m_Id || GetGroupLogic(bot) != group) ObjPlaceData(bot, 1);
             }
         }
-        else if(obj->IsActiveCannonAlive()) ObjPlaceData(obj, 1);
+        else if(obj->IsActiveTurretAlive()) ObjPlaceData(obj, 1);
         obj = obj->GetNextLogic();
     }
     if(rl_cnt <= 0) return;
@@ -6812,7 +6804,7 @@ void CMatrixSideUnit::AssignPlace(int group, int region)
                 {
                     if(obj->GetSide() != m_Id || GetGroupLogic(obj) != group) ObjPlaceData(obj, 1);
                 }
-                else if(obj->IsActiveCannonAlive()) ObjPlaceData(obj, 1);
+                else if(obj->IsActiveTurretAlive()) ObjPlaceData(obj, 1);
                 obj = obj->GetNextLogic();
             }
             t = -1;
@@ -7646,7 +7638,7 @@ void CMatrixSideUnit::ChooseAndBuildAICannon()
     CMatrixMapStatic* mps = CMatrixMapStatic::GetFirstLogic();
     while(mps)
     {
-        if(mps->IsActiveCannonAlive() && mps->GetSide() == m_Id) ++cur_cannon_count;
+        if(mps->IsActiveTurretAlive() && mps->GetSide() == m_Id) ++cur_cannon_count;
         mps = mps->GetNextLogic();
     }
 
@@ -7688,10 +7680,10 @@ void CMatrixSideUnit::ChooseAndBuildAICannon()
     mps = CMatrixMapStatic::GetFirstLogic();
     while(mps)
     {
-        if(mps->IsActiveCannonAlive() && mps->AsCannon()->m_ParentBuilding == building)
+        if(mps->IsActiveTurretAlive() && mps->AsTurret()->m_ParentBuilding == building)
         {
-            ASSERT(mps->AsCannon()->m_Num >= 1 && mps->AsCannon()->m_Num <= TURRET_KINDS_TOTAL);
-            ++ct[mps->AsCannon()->m_TurretKind];
+            ASSERT(mps->AsTurret()->m_Num >= 1 && mps->AsTurret()->m_Num <= TURRET_KINDS_TOTAL);
+            ++ct[mps->AsTurret()->m_TurretKind];
         }
 
         mps = mps->GetNextLogic();
@@ -7700,9 +7692,9 @@ void CMatrixSideUnit::ChooseAndBuildAICannon()
     mps = building->m_BuildingQueue.GetTopItem();
     while(mps)
     {
-        if(mps->GetObjectType() == OBJECT_TYPE_CANNON)
+        if(mps->GetObjectType() == OBJECT_TYPE_TURRET)
         {
-            CMatrixCannon* cannon = mps->AsCannon();
+            CMatrixTurret* cannon = mps->AsTurret();
             ASSERT(cannon->m_Num >= 1 && cannon->m_Num <= TURRET_KINDS_TOTAL);
             ++ct[cannon->m_TurretKind];
         }
@@ -7741,8 +7733,8 @@ void CMatrixSideUnit::ChooseAndBuildAICannon()
     m_Resources[PLASMA] -= turret_data->cost_plasma;
 
     CPoint place_cannon = place_list[g_MatrixMap->Rnd(0, place_list_cnt - 1)];
-    CMatrixCannon* cannon = g_MatrixMap->StaticAdd<CMatrixCannon>(true);
-    cannon->m_CurrentState = CANNON_UNDER_CONSTRUCTION;
+    CMatrixTurret* cannon = g_MatrixMap->StaticAdd<CMatrixTurret>(true);
+    cannon->m_CurrentState = TURRET_UNDER_CONSTRUCTION;
     cannon->SetInvulnerability();
 
     cannon->m_Pos.x = place_cannon.x * GLOBAL_SCALE_MOVE;
@@ -7768,7 +7760,7 @@ void CMatrixSideUnit::ChooseAndBuildAICannon()
     cannon->JoinToGroup();
 
     cannon->m_ParentBuilding->m_TurretsHave++;
-    cannon->SetHitPoint(0);
+    cannon->SetHitpoints(0);
     building->m_BuildingQueue.AddItem(cannon);
 }
 
@@ -7823,9 +7815,9 @@ void CMatrixSideUnit::TactPL(int only_group)
                     firedist = Float2Int(((CMatrixRobotAI*)(obj))->GetMaxFireDist() + GLOBAL_SCALE_MOVE);
                     firedist2 = Float2Int(((CMatrixRobotAI*)(obj))->GetMinFireDist() + GLOBAL_SCALE_MOVE);
                 }
-                else if(obj->GetObjectType() == OBJECT_TYPE_CANNON)
+                else if(obj->GetObjectType() == OBJECT_TYPE_TURRET)
                 {
-                    firedist = Float2Int(((CMatrixCannon*)(obj))->GetFireRadius() + GLOBAL_SCALE_MOVE);
+                    firedist = Float2Int(((CMatrixTurret*)(obj))->GetFireRadius() + GLOBAL_SCALE_MOVE);
                     firedist2 = firedist;
                 }
                 firedist = firedist / int(GLOBAL_SCALE_MOVE);
@@ -8064,7 +8056,7 @@ void CMatrixSideUnit::TactPL(int only_group)
                 obj = CMatrixMapStatic::GetFirstLogic();
                 while(obj)
                 {
-                    if(obj->IsActiveCannonAlive() && obj->AsCannon()->m_ParentBuilding == m_PlayerGroup[i].m_Obj)
+                    if(obj->IsActiveTurretAlive() && obj->AsTurret()->m_ParentBuilding == m_PlayerGroup[i].m_Obj)
                     {
                         CMatrixMapStatic *obj2 = CMatrixMapStatic::GetFirstLogic();
                         while(obj2)
@@ -9426,14 +9418,14 @@ void CMatrixSideUnit::WarPL(int group)
             }
         }
         if(m_PlayerGroup[group].Order() == mpo_Capture && m_PlayerGroup[group].m_Obj && m_PlayerGroup[group].m_Obj->IsAlive() &&
-            rl[i]->GetEnv()->m_TargetAttack && rl[i]->GetEnv()->m_TargetAttack->IsAlive() && (rl[i]->GetEnv()->m_TargetAttack->GetObjectType() != OBJECT_TYPE_CANNON || ((CMatrixCannon*)(rl[i]->GetEnv()->m_TargetAttack))->m_ParentBuilding != m_PlayerGroup[group].m_Obj))
+            rl[i]->GetEnv()->m_TargetAttack && rl[i]->GetEnv()->m_TargetAttack->IsAlive() && (rl[i]->GetEnv()->m_TargetAttack->GetObjectType() != OBJECT_TYPE_TURRET || ((CMatrixTurret*)(rl[i]->GetEnv()->m_TargetAttack))->m_ParentBuilding != m_PlayerGroup[group].m_Obj))
         {
             float min_dist = 1e10f;
             CEnemy* enemy_find = nullptr;
             CEnemy* enemy = rl[i]->GetEnv()->m_FirstEnemy;
             while(enemy)
             {
-                if(enemy->m_Enemy->IsActiveCannonAlive() && enemy->m_Enemy->AsCannon()->m_ParentBuilding == m_PlayerGroup[group].m_Obj)
+                if(enemy->m_Enemy->IsActiveTurretAlive() && enemy->m_Enemy->AsTurret()->m_ParentBuilding == m_PlayerGroup[group].m_Obj)
                 {
                     while(true)
                     {
@@ -9539,7 +9531,7 @@ void CMatrixSideUnit::WarPL(int group)
             {
                 rl[i]->GetEnv()->m_TargetAttack = enemy_find->m_Enemy;
                 // Если новая цель пушка или завод, то меняем позицию
-                if(rl[i]->GetEnv()->m_TargetAttack->IsActiveCannonAlive() || rl[i]->GetEnv()->m_TargetAttack->IsBuildingAlive())
+                if(rl[i]->GetEnv()->m_TargetAttack->IsActiveTurretAlive() || rl[i]->GetEnv()->m_TargetAttack->IsBuildingAlive())
                 {
                     rl[i]->GetEnv()->m_Place = -1;
                 }
@@ -9737,11 +9729,11 @@ void CMatrixSideUnit::WarPL(int group)
                     tvy = ((CMatrixRobotAI*)(rl[i]->GetEnv()->m_TargetAttack))->m_PosY - rl[i]->m_PosY;
                     enemy_fire_dist = Float2Int(((CMatrixRobotAI*)(rl[i]->GetEnv()->m_TargetAttack))->GetMaxFireDist());
                 }
-                else if(rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_CANNON)
+                else if(rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET)
                 {
-                    tvx = ((CMatrixCannon*)(rl[i]->GetEnv()->m_TargetAttack))->m_Pos.x - rl[i]->m_PosX;
-                    tvy = ((CMatrixCannon*)(rl[i]->GetEnv()->m_TargetAttack))->m_Pos.y - rl[i]->m_PosY;
-                    enemy_fire_dist = int(((CMatrixCannon*)(rl[i]->GetEnv()->m_TargetAttack))->GetFireRadius() + GLOBAL_SCALE_MOVE);
+                    tvx = ((CMatrixTurret*)(rl[i]->GetEnv()->m_TargetAttack))->m_Pos.x - rl[i]->m_PosX;
+                    tvy = ((CMatrixTurret*)(rl[i]->GetEnv()->m_TargetAttack))->m_Pos.y - rl[i]->m_PosY;
+                    enemy_fire_dist = int(((CMatrixTurret*)(rl[i]->GetEnv()->m_TargetAttack))->GetFireRadius() + GLOBAL_SCALE_MOVE);
                 }
                 else if(rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_BUILDING)
                 {
@@ -9775,7 +9767,7 @@ void CMatrixSideUnit::WarPL(int group)
                     float pvy = pcy - rl[i]->m_PosY;
 
                     float k = (pvx * tvx + pvy * tvy) * tsize2o;
-                    if(!havebomb && rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_CANNON)
+                    if(!havebomb && rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET)
                     {
                         //                                if(k>1.5) continue; // Места за врагом не расматриваем
 
@@ -9792,7 +9784,7 @@ void CMatrixSideUnit::WarPL(int group)
                     float m = (-pvx * tvy + pvy * tvx) * tsize2o;
                     float distfrom2 = POW2(-m * tvy) + POW2(m * tvx); // Дистанция отклонения
                     float distplace2 = POW2(tvx - pcx/*pvx*/) + POW2(tvy - pcx/*pvy*/); // Дистанция от места до врага
-                    if((placebest < 0) || (rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_CANNON && (rl[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE) > enemy_fire_dist))
+                    if((placebest < 0) || (rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET && (rl[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE) > enemy_fire_dist))
                     {
                         if(distplace2 > POW2(0.95 * rl[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2)) continue; // Робот должен достовать врага
                     }
@@ -11016,12 +11008,12 @@ void CMatrixSideUnit::PGAssignPlacePlayer(int no, const CPoint& center)
                 }
             }
         }
-        else if(obj->IsCannonAlive())
+        else if(obj->IsTurretAlive())
         {
             ASSERT(other_cnt < 200);
 
             other_size[other_cnt] = 4;
-            other_des[other_cnt] = g_MatrixMap->m_RoadNetwork.GetPlace(obj->AsCannon()->m_Place)->m_Pos;
+            other_des[other_cnt] = g_MatrixMap->m_RoadNetwork.GetPlace(obj->AsTurret()->m_Place)->m_Pos;
             ++other_cnt;
         }
         obj = obj->GetNextLogic();
@@ -11165,9 +11157,9 @@ void CMatrixSideUnit::PGCalcStat()
                 CMatrixFlyer* cur_flyer = ms->AsFlyer();
             }
             */
-            case OBJECT_TYPE_CANNON:
+            case OBJECT_TYPE_TURRET:
             {
-                CMatrixCannon* cur_cannon = ms->AsCannon();
+                CMatrixTurret* cur_cannon = ms->AsTurret();
 
                 tp.x = int(cur_cannon->m_Pos.x / GLOBAL_SCALE_MOVE);
                 tp.y = int(cur_cannon->m_Pos.y / GLOBAL_SCALE_MOVE);
@@ -11815,7 +11807,7 @@ inline CPoint GetMapPos(CMatrixMapStatic* obj)
     {
         case OBJECT_TYPE_ROBOT_AI: return CPoint(obj->AsRobot()->GetMapPosX(), obj->AsRobot()->GetMapPosY());
         case OBJECT_TYPE_FLYER: return CPoint((int)obj->AsFlyer()->GetMapPosX(), (int)obj->AsFlyer()->GetMapPosY());
-        case OBJECT_TYPE_CANNON: return CPoint(int(obj->AsCannon()->m_Pos.x / GLOBAL_SCALE_MOVE), int(obj->AsCannon()->m_Pos.y / GLOBAL_SCALE_MOVE));
+        case OBJECT_TYPE_TURRET: return CPoint(int(obj->AsTurret()->m_Pos.x / GLOBAL_SCALE_MOVE), int(obj->AsTurret()->m_Pos.y / GLOBAL_SCALE_MOVE));
         case OBJECT_TYPE_BUILDING: return CPoint(int(obj->AsBuilding()->m_Pos.x / GLOBAL_SCALE_MOVE), int(obj->AsBuilding()->m_Pos.y / GLOBAL_SCALE_MOVE));
     }
 
@@ -11832,7 +11824,7 @@ inline D3DXVECTOR2 GetWorldPos(CMatrixMapStatic* obj)
     switch(obj->GetObjectType())
     {
         case OBJECT_TYPE_ROBOT_AI: return D3DXVECTOR2(obj->AsRobot()->m_PosX, obj->AsRobot()->m_PosY);
-        case OBJECT_TYPE_CANNON: return obj->AsCannon()->m_Pos;
+        case OBJECT_TYPE_TURRET: return obj->AsTurret()->m_Pos;
         case OBJECT_TYPE_BUILDING: return obj->AsBuilding()->m_Pos;
     }
 
@@ -11883,7 +11875,7 @@ inline int RobotPlace(CMatrixRobotAI* robot)
     return robot->GetEnv()->m_Place;
 }
 
-inline int CannonPlace(CMatrixCannon* cannon)
+inline int CannonPlace(CMatrixTurret* cannon)
 {
     return cannon->m_Place;
 }
@@ -11891,7 +11883,7 @@ inline int CannonPlace(CMatrixCannon* cannon)
 inline int ObjPlace(CMatrixMapStatic* obj)
 {
     if(obj->IsRobot()) return RobotPlace(obj->AsRobot());
-    else if(obj->IsCannon()) return CannonPlace(obj->AsCannon());
+    else if(obj->IsTurret()) return CannonPlace(obj->AsTurret());
     ERROR_S(L"ObjPlace Error!");
 }
 
@@ -11959,14 +11951,14 @@ inline D3DXVECTOR3 PointOfAim(CMatrixMapStatic* obj)
         p.z += 5.0f;
 
     }
-    else if(obj->GetObjectType() == OBJECT_TYPE_CANNON)
+    else if(obj->GetObjectType() == OBJECT_TYPE_TURRET)
     {
         p = obj->GetGeoCenter();
         p.z += 5.0f;
 
         /*
-        p.x = obj->AsCannon()->m_Pos.x;
-        p.y = obj->AsCannon()->m_Pos.y;
+        p.x = obj->AsTurret()->m_Pos.x;
+        p.y = obj->AsTurret()->m_Pos.y;
         p.z = g_MatrixMap->GetZ(p.x, p.y) + 25.0f;
         */
     }

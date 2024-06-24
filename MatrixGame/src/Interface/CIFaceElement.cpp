@@ -96,7 +96,8 @@ bool CIFaceElement::SetStateImage(IFaceElementState State, CTextureManaged* pIma
 	m_StateImages[State].TexWidth = width;
 	m_StateImages[State].TexHeight = height;
 	m_StateImages[State].Set = TRUE;
-	return TRUE;
+
+	return true;
 }
 LPDIRECT3DTEXTURE9 CIFaceElement::GetStateImage(IFaceElementState State)
 {
@@ -107,7 +108,7 @@ LPDIRECT3DTEXTURE9 CIFaceElement::GetStateImage(IFaceElementState State)
 bool CIFaceElement::SetState(IFaceElementState State)
 {
 	m_CurState = State;
-	return TRUE;
+	return true;
 }
 
 IFaceElementState CIFaceElement::GetState()
@@ -115,7 +116,7 @@ IFaceElementState CIFaceElement::GetState()
 	return m_CurState;
 }
 
-void CIFaceElement::BeforeRender(void)
+void CIFaceElement::BeforeRender()
 {
     m_StateImages[m_CurState].pImage->Preload();
 

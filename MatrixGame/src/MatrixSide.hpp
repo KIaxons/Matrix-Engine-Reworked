@@ -44,7 +44,7 @@ class CMatrixTacticsList;
 class CMatrixGroupList;
 class CMatrixEffectElevatorField;
 class CMatrixGroup;
-class CMatrixCannon;
+class CMatrixTurret;
 class CMatrixEffectLandscapeSpot;
 class CMatrixFlyer;
 class CConstructorPanel;
@@ -67,24 +67,26 @@ enum EStat
 
 enum ESelection
 {
-	FLYER_SELECTED = 0,
-	ROBOT_SELECTED = 1,
-	BUILDING_SELECTED = 2,
-    NOTHING_SELECTED = 4,
-    BASE_SELECTED = 5,
-    GROUP_SELECTED = 6,
-    ARCADE_SELECTED = 7
+    ROBOT_SELECTED = 0,
+	FLYER_SELECTED,
+    TURRET_SELECTED,
+	BUILDING_SELECTED,
+    NOTHING_SELECTED,
+    BASE_SELECTED,
+    GROUP_SELECTED,
+    ARCADE_SELECTED
 };
 
 enum ESelType
 {
 	ROBOT = 0,
-	FAR_ROBOT = 1,
-	FLYER = 2,
-	BUILDING = 3,
-    NOTHING = 4,
-    GROUP = 5,
-    ARCADE = 6
+	FAR_ROBOT,
+	FLYER,
+    TURRET,
+	BUILDING,
+    NOTHING,
+    GROUP,
+    ARCADE
 };
 
 enum ESideStatus
@@ -140,7 +142,7 @@ struct SRobot
 
 struct SCannonForBuild
 {
-    CMatrixCannon*   m_Cannon = nullptr;
+    CMatrixTurret*   m_Cannon = nullptr;
     CMatrixBuilding* m_ParentBuilding = nullptr;
     SEffectHandler   m_ParentSpot;
     int              m_CanBuildFlag = 0;

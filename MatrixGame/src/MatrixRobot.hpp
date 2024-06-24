@@ -403,8 +403,8 @@ public:
 
     bool PLIsInPlace() const;
 
-    void CreateProgressBarClone(float x, float y, float width, EPBCoord clone_type);
-    void DeleteProgressBarClone(EPBCoord clone_type);
+    void CreateHealthBarClone(float x, float y, float width, EPBCoord clone_type);
+    void DeleteHealthBarClone(EPBCoord clone_type);
 
     bool SelectByGroup();
     bool SelectArcade();
@@ -437,7 +437,7 @@ public:
                 if(cf->IsBase()) return false;
                 if(cf->GetSide() != robot->GetSide())
                 {
-                    if((float(cf->m_TrueColor.m_ColoredCnt) / MAX_CAPTURE_CIRCLES) > (1.0 - (robot->AsRobot()->GetHitPoint() * 1.1f) / robot->AsRobot()->GetMaxHitPoint())) return false;
+                    if((float(cf->m_TrueColor.m_ColoredCnt) / MAX_CAPTURE_CIRCLES) > (1.0 - (robot->AsRobot()->GetHitpoints() * 1.1f) / robot->AsRobot()->GetMaxHitPoints())) return false;
                 }
                 */
             }

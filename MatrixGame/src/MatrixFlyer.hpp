@@ -395,10 +395,10 @@ public:
     CMatrixRobot* GetCarryingRobot() { return m_CarryData.m_Robot; }
     CMatrixFlyer::SCarryData* GetCarryData() { return &m_CarryData; };
 
-    void  ShowHitpoint() { m_ShowHitpointsTime = HITPOINT_SHOW_TIME; }
-    float GetHitPoint() const { return m_Hitpoints; }
-    float GetMaxHitPoint() { return m_MaxHitpoints; }
-    void  InitMaxHitpoint(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
+    void  ShowHitpoints() { m_ShowHitpointsTime = HITPOINT_SHOW_TIME; }
+    float GetHitpoints() const { return m_Hitpoints; }
+    float GetMaxHitPoints() { return m_MaxHitpoints; }
+    void  InitMaxHitpoints(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
 
     void SetHitpoint(float hp) { m_Hitpoints = hp; }
 
@@ -464,8 +464,8 @@ public:
     CTextureManaged* GetMedTexture()   { return m_MedTexture; }
     CTextureManaged* GetSmallTexture() { return m_SmallTexture; }
 
-    void CreateProgressBarClone(float x, float y, float width, EPBCoord clone_type);
-    void DeleteProgressBarClone(EPBCoord clone_type);
+    void CreateHealthBarClone(float x, float y, float width, EPBCoord clone_type);
+    void DeleteHealthBarClone(EPBCoord clone_type);
 
     virtual bool TakingDamage(int weap, const D3DXVECTOR3& pos, const D3DXVECTOR3& dir, int attacker_side = NEUTRAL_SIDE, CMatrixMapStatic* attaker = nullptr);
 	virtual void GetResources(dword need); // Запрашиваем нужные ресурсы объекта
@@ -492,6 +492,11 @@ public:
 
     void OnOutScreen() {};
 };
+
+inline bool CMatrixMapStatic::IsFlyerAlive() const
+{
+    return IsFlyer() && ((CMatrixFlyer*)this)->m_CurrentState != STATE_FLYER_DIP;
+}
 
 inline bool CMatrixMapStatic::IsFlyerControllable() const
 {

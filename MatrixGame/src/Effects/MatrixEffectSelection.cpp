@@ -13,17 +13,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-CMatrixEffectSelection::CMatrixEffectSelection(const D3DXVECTOR3 &pos, float r, dword color):
-CMatrixEffect(), m_Pos(pos), m_Radius(r), m_InitRadius(r)
+CMatrixEffectSelection::CMatrixEffectSelection(const D3DXVECTOR3& pos, float r, dword color) :
+    CMatrixEffect(), m_Pos(pos), m_Radius(r), m_InitRadius(r)
 {
-DTRACE();
-    
     m_EffectType = EFFECT_SELECTION;
 
-    m_Color_current = 0;
-
     m_SelCnt = Float2Int(M_PI_MUL(2 * r) / SEL_PP_DIST);
-    if (m_SelCnt < 10) m_SelCnt = 10;
+    if(m_SelCnt < 10) m_SelCnt = 10;
     m_Points = (SSelPoint*)HAlloc(sizeof(SSelPoint) * m_SelCnt, m_Heap);
 
     float da = M_PI_MUL(2.0 / float(m_SelCnt));
@@ -40,7 +36,7 @@ DTRACE();
         float sz = 1;
         for(int j = 0; j < SEL_BLUR_CNT; ++j)
         {
-            if(m_SpriteTextures[SPR_SELECTION_PART].IsSingleBrightTexture()) m_Points[i].m_Blur[j].CSprite::CSprite(TRACE_PARAM_CALL cpos, SEL_SIZE * sz, 0, color, m_SpriteTextures[SPR_SELECTION_PART].tex);
+            if(m_SpriteTextures[SPR_SELECTION_PART].IsSingleBrightTexture()) m_Points[i].m_Blur[j].CSprite::CSprite(TRACE_PARAM_CALL cpos, SEL_SIZE * sz, 0.0f, color, m_SpriteTextures[SPR_SELECTION_PART].tex);
             else m_Points[i].m_Blur[j].CSprite::CSprite(TRACE_PARAM_CALL cpos, SEL_SIZE * sz, 0, color, &m_SpriteTextures[SPR_SELECTION_PART].spr_tex);
 
             //m_Points[i].m_Blur[j].SetSingleBrightTexture(true);
@@ -48,38 +44,39 @@ DTRACE();
 
             SinCos(float(i) * da - (j * M_PI_MUL(2.0 / (float(m_SelCnt) * SEL_BLUR_CNT))), &s, &c);
 
-            m_Points[i].m_Pos[j] = D3DXVECTOR3(s * r, c * r, 0);
+            m_Points[i].m_Pos[j] = D3DXVECTOR3(s * r, c * r, 0.0f);
         }
     }
 
     SetColor(color);
-
 }
+
 CMatrixEffectSelection::~CMatrixEffectSelection()
 {
-    for(int i = 0; i<m_SelCnt; ++i)
+    for(int i = 0; i < m_SelCnt; ++i)
     {
         m_Points[i].~SSelPoint();
     }
+
     HFree(m_Points, m_Heap);
 }
 
 
-void CMatrixEffectSelection::UpdatePositions(void)
+void CMatrixEffectSelection::UpdatePositions()
 {
     for(int i = 0; i < m_SelCnt; ++i)
     {
         for(int j = 0; j < SEL_BLUR_CNT; ++j) m_Points[i].m_Blur[j].SetPos(m_Pos + m_Points[i].m_Pos[j]);
     }
 }
-void CMatrixEffectSelection::BeforeDraw(void)
+
+void CMatrixEffectSelection::BeforeDraw()
 {
+
 }
 
-void CMatrixEffectSelection::Draw(void)
+void CMatrixEffectSelection::Draw()
 {
-DTRACE();
-
     for(int i = 0; i < m_SelCnt; ++i)
     {
         for(int j = 0; j < SEL_BLUR_CNT; ++j) m_Points[i].m_Blur[j].Sort(g_MatrixMap->m_Camera.GetViewMatrix());
@@ -87,16 +84,14 @@ DTRACE();
 }
 void CMatrixEffectSelection::Tact(float step)
 {
-DTRACE();
-
     float dtime = (0.1f * step);
-    //if (dtime > 1) dtime = 1;
+    //if(dtime > 1) dtime = 1;
 
-    if (m_ColorTime >= 0)
+    if(m_ColorTime >= 0)
     {
         m_Color_current = LIC(m_ColorTo, m_ColorFrom, m_ColorTime * INVERT(SEL_COLOR_CHANGE_TIME));
         m_ColorTime -= step;
-        if (m_ColorTime < 0)
+        if(m_ColorTime < 0)
         {
             m_Color_current = m_ColorTo;
         }
@@ -154,21 +149,13 @@ DTRACE();
 
     if(FLAG(m_Flags, SELF_KIP))
     {
-#ifdef _DEBUG
-        g_MatrixMap->SubEffect(DEBUG_CALL_INFO, this);
-#else
         g_MatrixMap->SubEffect(this);
-#endif
         return;
 
         m_Radius -= dtime;
         if(m_Radius < 0 )
         {
-#ifdef _DEBUG
-        g_MatrixMap->SubEffect(DEBUG_CALL_INFO, this);
-#else
-        g_MatrixMap->SubEffect(this);
-#endif
+            g_MatrixMap->SubEffect(this);
             return;
         }
 
@@ -192,10 +179,8 @@ DTRACE();
     }
 }
 
-void CMatrixEffectSelection::Release(void)
+void CMatrixEffectSelection::Release()
 {
-DTRACE();
-
     SetDIP();
     HDelete(CMatrixEffectSelection, this, m_Heap);
 }

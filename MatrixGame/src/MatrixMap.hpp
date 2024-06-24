@@ -31,9 +31,9 @@
 #define TRACE_ROBOT     SETBIT(2)
 #define TRACE_BUILDING  SETBIT(3)
 #define TRACE_OBJECT    SETBIT(4)
-#define TRACE_CANNON    SETBIT(5)
+#define TRACE_TURRET    SETBIT(5)
 #define TRACE_FLYER     SETBIT(6)
-#define TRACE_ANYOBJECT (TRACE_OBJECT | TRACE_BUILDING | TRACE_ROBOT | TRACE_CANNON | TRACE_FLYER)
+#define TRACE_ANYOBJECT (TRACE_OBJECT | TRACE_BUILDING | TRACE_ROBOT | TRACE_TURRET | TRACE_FLYER)
 
 #define TRACE_OBJECTSPHERE          SETBIT(10) //trace object as speres
 #define TRACE_SKIP_INVISIBLE        SETBIT(11) //skip objects with flag OBJECT_STATE_TRACE_INVISIBLE while tracing 
@@ -73,10 +73,10 @@
 inline bool CMatrixMapStatic::FitToMask(dword mask)
 {
     if(IsRobotAlive()) return (mask & TRACE_ROBOT) != 0;
-    if(IsCannonAlive()) return (mask & TRACE_CANNON) != 0;
+    if(IsFlyerAlive()) return (mask & TRACE_FLYER) != 0;
+    if(IsTurretAlive()) return (mask & TRACE_TURRET) != 0;
     if(IsBuildingAlive()) return (mask & TRACE_BUILDING) != 0;
     if(GetObjectType() == OBJECT_TYPE_MAPOBJECT) return (mask & TRACE_OBJECT) != 0;
-    if(IsFlyer()) return (mask & TRACE_FLYER) != 0;
     return false;
 }
 

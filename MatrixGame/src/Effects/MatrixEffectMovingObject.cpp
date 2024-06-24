@@ -135,13 +135,13 @@ static bool HMEnum(const D3DXVECTOR3& fpos, CMatrixMapStatic* ms, dword user)
     //if(hmd->props->attacker && hmd->props->attacker->m_Object) side = hmd->props->attacker->m_Object->GetSide();
 
     if(hmd->props->side == ms->GetSide()) return true; //No need friendly object
-    if(hmd->props->hm.target != nullptr && ((hmd->props->hm.target->m_Type == OBJECT_TYPE_FLYER) || (hmd->props->hm.target->m_Type == OBJECT_TYPE_ROBOT_AI) || (hmd->props->hm.target->m_Type == OBJECT_TYPE_CANNON)) && (ms->GetObjectType() == OBJECT_TYPE_BUILDING))
+    if(hmd->props->hm.target != nullptr && ((hmd->props->hm.target->m_Type == OBJECT_TYPE_FLYER) || (hmd->props->hm.target->m_Type == OBJECT_TYPE_ROBOT_AI) || (hmd->props->hm.target->m_Type == OBJECT_TYPE_TURRET)) && (ms->GetObjectType() == OBJECT_TYPE_BUILDING))
     {
         return true; //No need building if robot located
     }
 
     select_new = (hmd->props->hm.target != nullptr ) && (hmd->props->hm.target->m_Type == OBJECT_TYPE_BUILDING) && 
-                ((ms->GetObjectType() == OBJECT_TYPE_FLYER) || (ms->GetObjectType() == OBJECT_TYPE_ROBOT_AI) || (ms->GetObjectType() == OBJECT_TYPE_CANNON));
+                ((ms->GetObjectType() == OBJECT_TYPE_FLYER) || (ms->GetObjectType() == OBJECT_TYPE_ROBOT_AI) || (ms->GetObjectType() == OBJECT_TYPE_TURRET));
 
     p = &ms->GetGeoCenter();
     D3DXVECTOR3 temp = *p - hmd->props->curpos;
@@ -319,7 +319,7 @@ void MO_Homing_Missile_Tact(D3DXMATRIX& m, SMOProps& props, float tact)
         data.props = &props;
         data.found = false;
 
-        g_MatrixMap->FindObjects(seek_center, HOMING_RADIUS, 1, TRACE_ROBOT | TRACE_FLYER | TRACE_CANNON | TRACE_BUILDING, props.skip, HMEnum, (dword)&data); //props ниху€ не CMatrixMapStatic, но за это говно скажем спасибо дабу
+        g_MatrixMap->FindObjects(seek_center, HOMING_RADIUS, 1, TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET | TRACE_BUILDING, props.skip, HMEnum, (dword)&data); //props ниху€ не CMatrixMapStatic, но за это говно скажем спасибо дабу
 
         if(data.found == false)
         {

@@ -63,7 +63,7 @@ struct SMatrixCannonUnit
     SMatrixCannonUnit() : m_ShadowStencil(nullptr), m_DirectionAngle(0.0f), m_LinkMatrix(0), m_IMatrix(), m_Invert(0) {}
 };
 
-class CMatrixCannon : public CMatrixMapStatic
+class CMatrixTurret : public CMatrixMapStatic
 {
     static void FireHandler(CMatrixMapStatic* hit, const D3DXVECTOR3& pos, dword user, dword flags);
 
@@ -73,11 +73,14 @@ protected:
     int       m_ShowHitpointsTime = 0;
     float     m_Hitpoints = 0.0f;      //Текущее количество здоровья
 	float     m_MaxHitpoints = 0.0f;   //Максимальное количество здоровья
+    float     m_HitpointsBeforeDismantle = 0.0f; //Сколько здоровья было у турели перед началом процедуры демонтажа (необходимо для подсчёта возвращаемых ресурсов)
     union
     {
         float m_MaxHitpointsInversed = 0.0f; // for normalized calcs
         float m_TargetAngle;// = 0.0f;
     };
+
+    CMatrixEffectSelection* m_Selection = nullptr;
 
     int m_UnderAttackTime = 0;
 
@@ -92,6 +95,7 @@ public:
     D3DXVECTOR2 m_Pos = { 0.0f, 0.0f };
 
     int m_Place = -1; //Место, в котором установлена пушка (всегда должно быть инициализировано)
+    int m_CtrlGroup = 0;
 
     int m_TurretKind = 0;
 
@@ -108,7 +112,7 @@ public:
 
 	CMatrixShadowProj* m_ShadowProj = nullptr;
 
-	ECannonState m_CurrentState = CANNON_IDLE;
+	ECannonState m_CurrentState = TURRET_IDLE;
 
     int m_NextTimeAblaze = 0;
     int m_NextTimeShorted = 0;
@@ -146,32 +150,41 @@ public:
     void EndFireAnimation();
 
 public:
-    CMatrixCannon()
+    CMatrixTurret()
     {
-        m_Core->m_Type = OBJECT_TYPE_CANNON;
+        m_Core->m_Type = OBJECT_TYPE_TURRET;
 
-        InitMaxHitpoint(8000);
+        InitMaxHitpoints(8000);
         m_HealthBar.Modify(1000000, 0, PB_CANNON_WIDTH, 1);
         if(g_Config.m_BuildingShadows) m_ShadowType = SHADOW_STENCIL;
     }
-	~CMatrixCannon();
+	~CMatrixTurret();
 
     virtual bool IsUnitAlive()
     {
-        if(m_CurrentState != CANNON_DIP && m_CurrentState != CANNON_UNDER_CONSTRUCTION && m_CurrentState != CANNON_UNDER_DECONSTRUCTION) return true;
+        if(m_CurrentState != TURRET_DIP && m_CurrentState != TURRET_UNDER_CONSTRUCTION && m_CurrentState != TURRET_UNDER_DECONSTRUCTION) return true;
         return false;
     }
 
     void DIPTact(float ms);
 
-    void  ShowHitpoint()            { m_ShowHitpointsTime = HITPOINT_SHOW_TIME; }
-    float GetHitPoint() const       { return m_Hitpoints; }
-    float GetMaxHitPoint()          { return m_MaxHitpoints; }
-    void  InitMaxHitpoint(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
-    void  SetHitPoint(float hp)     { m_Hitpoints = hp; }
-    float GetMaxHitPointInversed()  { return m_MaxHitpointsInversed; }
+    void  ShowHitpoints()            { m_ShowHitpointsTime = HITPOINT_SHOW_TIME; }
+    float GetHitpoints() const       { return m_Hitpoints; }
+    float GetMaxHitPoints()          { return m_MaxHitpoints; }
+    void  InitMaxHitpoints(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
+    void  SetHitpoints(float hp)     { m_Hitpoints = hp; }
+    float GetMaxHitpointsInversed()  { return m_MaxHitpointsInversed; }
     float GetSeekRadius();
     float GetFireRadius()           { return m_TurretWeaponsTopRange; }
+
+    bool Select();
+    void UnSelect();
+
+    void CreateHealthBarClone(float x, float y, float width, EPBCoord clone_type);
+    void DeleteHealthBarClone(EPBCoord clone_type);
+
+    int  GetCtrlGroup()             { return m_CtrlGroup; }
+    void SetCtrlGroup(int group)    { m_CtrlGroup = group; }
 
     bool IsRefProtect() const       { return FLAG(m_ObjectFlags, OBJECT_CANNON_REF_PROTECTION); }
     void SetRefProtectHit()         { SETFLAG(m_ObjectFlags, OBJECT_CANNON_REF_PROTECTION_HIT); }
@@ -187,6 +200,8 @@ public:
 
 	void ModuleClear();
 
+    void Dismantle();
+
     void BoundGet(D3DXVECTOR3& bmin, D3DXVECTOR3& bmax);
 
     virtual bool TakingDamage(int weap, const D3DXVECTOR3& pos, const D3DXVECTOR3& dir, int attacker_side = NEUTRAL_SIDE, CMatrixMapStatic* attaker = nullptr);
@@ -194,7 +209,7 @@ public:
 
     virtual void Tact(int cms);
     virtual void LogicTact(int cms);
-    void PauseTact(int cms);
+    void         PauseTact(int cms);
 
     virtual bool Pick(const D3DXVECTOR3& orig, const D3DXVECTOR3& dir, float* outt)  const;
 
@@ -209,7 +224,7 @@ public:
 
     virtual bool CalcBounds(D3DXVECTOR3& omin, D3DXVECTOR3& omax);
     virtual int GetSide() const     { return m_Side; };
-    virtual bool NeedRepair() const { return m_Hitpoints < m_MaxHitpoints && m_CurrentState != CANNON_UNDER_CONSTRUCTION && m_CurrentState != CANNON_UNDER_DECONSTRUCTION; }
+    virtual bool NeedRepair() const { return m_Hitpoints < m_MaxHitpoints && m_CurrentState != TURRET_UNDER_CONSTRUCTION && m_CurrentState != TURRET_UNDER_DECONSTRUCTION; }
         
     virtual bool InRect(const CRect &rect)const;
 
@@ -218,12 +233,12 @@ public:
     float GetStrength();
 };
 
-inline bool CMatrixMapStatic::IsCannonAlive() const
+inline bool CMatrixMapStatic::IsTurretAlive() const
 {
-    return IsCannon() && ((CMatrixCannon*)this)->m_CurrentState != CANNON_DIP && ((CMatrixCannon*)this)->m_CurrentState != CANNON_UNDER_DECONSTRUCTION;
+    return IsTurret() && ((CMatrixTurret*)this)->m_CurrentState != TURRET_DIP && ((CMatrixTurret*)this)->m_CurrentState != TURRET_UNDER_DECONSTRUCTION;
 }
 
-inline bool CMatrixMapStatic::IsActiveCannonAlive() const
+inline bool CMatrixMapStatic::IsActiveTurretAlive() const
 {
-    return IsCannon() && ((CMatrixCannon*)this)->m_CurrentState != CANNON_DIP && ((CMatrixCannon*)this)->m_CurrentState != CANNON_UNDER_CONSTRUCTION && ((CMatrixCannon*)this)->m_CurrentState != CANNON_UNDER_DECONSTRUCTION;
+    return IsTurret() && ((CMatrixTurret*)this)->m_CurrentState != TURRET_DIP && ((CMatrixTurret*)this)->m_CurrentState != TURRET_UNDER_CONSTRUCTION && ((CMatrixTurret*)this)->m_CurrentState != TURRET_UNDER_DECONSTRUCTION;
 }

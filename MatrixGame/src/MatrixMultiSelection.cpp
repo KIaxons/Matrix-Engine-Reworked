@@ -224,7 +224,6 @@ void CMultiSelection::Update(
         CMatrixMapStatic* o = CMatrixMapStatic::GetVisObj(i);
 
         if(o->GetSide() != PLAYER_SIDE) continue;
-
         if(o->GetObjectType() == OBJECT_TYPE_MAPOBJECT && !(mask & TRACE_OBJECT)) continue;
      
         if(o->IsRobot())
@@ -240,13 +239,13 @@ void CMultiSelection::Update(
             if(!(mask & TRACE_BUILDING)) continue;
         }
 
-        if(o->IsCannon())
+        if(o->IsTurret())
         {
-            if(!o->IsCannonAlive()) continue;
-            if(!(mask & TRACE_CANNON)) continue;
+            if(!o->IsActiveTurretAlive()) continue;
+            if(!(mask & TRACE_TURRET)) continue;
         }
 
-        //В любом случае пропускаем, уничтожаемые и доставляющие подкрепление вертолёты
+        //В любом случае пропускаем уничтожаемые и доставляющие подкрепление вертолёты
         if(o->IsFlyer())
         {
             if(!o->IsFlyerControllable()) continue;
@@ -265,10 +264,15 @@ void CMultiSelection::Update(
                 }
                 SETFLAG(m_Flags, MS_FLAG_ROBOTS);
             }
+            else if(o->IsTurret())
+            {
+                if(FLAG(m_Flags, MS_FLAG_ROBOTS)) continue; // do not add turrets if there are some robots present
+                SETFLAG(m_Flags, MS_FLAG_TURRET);
+            }
             else if(o->IsBuilding())
             {
-                if(FLAG(m_Flags, MS_FLAG_ROBOTS)) continue; // do not add buildings if there are some robots present
-                SETFLAG(m_Flags, MS_FLAG_BUILDINGS);
+                if(FLAG(m_Flags, MS_FLAG_ROBOTS) || FLAG(m_Flags, MS_FLAG_TURRET)) continue; // do not add buildings if there are some robots or turrets present
+                SETFLAG(m_Flags, MS_FLAG_BUILDING);
             }
 
             if((m_SelItems.Len() / sizeof(dword)) < 9)

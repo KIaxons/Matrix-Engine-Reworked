@@ -109,7 +109,7 @@ void CMatrixBuilding::GetResources(dword need)
         if(!m_GGraph->IsAlreadyLoaded())
         {
             float hp = g_Config.m_BuildingsHitPoints[m_Kind];
-            InitMaxHitpoint(hp);
+            InitMaxHitpoints(hp);
 
             CWStr path = CWStr(L"");
             switch(m_Kind)
@@ -1340,7 +1340,7 @@ ECaptureStatus CMatrixBuilding::Capture(CMatrixRobotAI* by)
 }
 
 //Функция вызова подкрепления к указанной базе
-void CMatrixBuilding::Reinforcements(void)
+void CMatrixBuilding::Reinforcements()
 {
     if(!m_Side) return;
     //Вызов подкрепления заблокирован на данной карте
@@ -1385,9 +1385,9 @@ void CMatrixBuilding::Reinforcements(void)
     CMatrixMapStatic* obj = CMatrixMapStatic::GetFirstLogic();
     while(obj)
     {
-        if(obj->IsCannonAlive())
+        if(obj->IsTurretAlive())
         {
-            g_MatrixMap->m_RoadNetwork.m_Place[obj->AsCannon()->m_Place].m_Data = 1;
+            g_MatrixMap->m_RoadNetwork.m_Place[obj->AsTurret()->m_Place].m_Data = 1;
         }
         else if(obj->IsRobotAlive() && obj->AsRobot()->GetEnv()->m_Place >= 0)
         {
@@ -1518,9 +1518,9 @@ void CMatrixBuilding::ReleaseMe()
                 objects->AsRobot()->StopCapture();
             }
         }
-        else if(objects->IsCannon() && objects->AsCannon()->m_ParentBuilding == this)
+        else if(objects->IsTurret() && objects->AsTurret()->m_ParentBuilding == this)
         {
-            objects->AsCannon()->m_ParentBuilding = nullptr;
+            objects->AsTurret()->m_ParentBuilding = nullptr;
         }
         objects = objects->GetNextLogic();
     }
@@ -1578,25 +1578,25 @@ bool CMatrixBuilding::Select()
         pos.x += m_Core->m_Matrix._21 * 16;
         pos.y += m_Core->m_Matrix._22 * 16;
     }
-    if(m_Kind == BUILDING_ENERGY)
+    else if(m_Kind == BUILDING_ENERGY)
     {
         r = BUILDING_SELECTION_SIZE + 10;
         pos.x -= m_Core->m_Matrix._21 * 13;
         pos.y -= m_Core->m_Matrix._22 * 13;
     }
-    if(m_Kind == BUILDING_PLASMA)
+    else if(m_Kind == BUILDING_PLASMA)
     {
         r = BUILDING_SELECTION_SIZE + 15;
         pos.x -= m_Core->m_Matrix._21 * 17;
         pos.y -= m_Core->m_Matrix._22 * 17;
     }
-    if(m_Kind == BUILDING_TITAN)
+    else if(m_Kind == BUILDING_TITAN)
     {
         r = BUILDING_SELECTION_SIZE + 15;
         pos.x -= m_Core->m_Matrix._21 * 17;
         pos.y -= m_Core->m_Matrix._22 * 17;
     }
-    if(m_Kind == BUILDING_ELECTRONIC)
+    else if(m_Kind == BUILDING_ELECTRONIC)
     {
         r = BUILDING_SELECTION_SIZE + 17;
         pos.x -= m_Core->m_Matrix._21 * 17;
@@ -1610,10 +1610,11 @@ bool CMatrixBuilding::Select()
         m_Selection = nullptr;
         return false;
     }
+
     return true;
 }
 
-void CMatrixBuilding::UnSelect(void)
+void CMatrixBuilding::UnSelect()
 {
     if(m_Selection)
     {
@@ -1622,12 +1623,12 @@ void CMatrixBuilding::UnSelect(void)
     }
 }
 
-void CMatrixBuilding::CreateProgressBarClone(float x, float y, float width, EPBCoord clone_type)
+void CMatrixBuilding::CreateHealthBarClone(float x, float y, float width, EPBCoord clone_type)
 {
     m_HealthBar.CreateClone(clone_type, x, y, width);
 }
 
-void CMatrixBuilding::DeleteProgressBarClone(EPBCoord clone_type)
+void CMatrixBuilding::DeleteHealthBarClone(EPBCoord clone_type)
 {
     m_HealthBar.KillClone(clone_type);
 }
@@ -1646,11 +1647,11 @@ int CMatrixBuilding::GetPlacesForTurrets(CPoint* places)
     CMatrixMapStatic* obj = CMatrixMapStatic::GetFirstLogic();
     while(obj)
     {
-        if(obj->IsCannonAlive())
+        if(obj->IsTurretAlive())
         {
-            if(obj->AsCannon()->m_Place >= 0)
+            if(obj->AsTurret()->m_Place >= 0)
             {
-                place = g_MatrixMap->m_RoadNetwork.GetPlace(obj->AsCannon()->m_Place);
+                place = g_MatrixMap->m_RoadNetwork.GetPlace(obj->AsTurret()->m_Place);
                 place->m_Data = 1;
             }
         }
@@ -1659,9 +1660,9 @@ int CMatrixBuilding::GetPlacesForTurrets(CPoint* places)
             CMatrixMapStatic* bi = obj->AsBuilding()->m_BuildingQueue.GetTopItem();
             while(bi)
             {
-                if(bi->IsCannon())
+                if(bi->IsTurret())
                 {
-                    place = g_MatrixMap->m_RoadNetwork.GetPlace(bi->AsCannon()->m_Place);
+                    place = g_MatrixMap->m_RoadNetwork.GetPlace(bi->AsTurret()->m_Place);
                     place->m_Data = 1;
                 }
                 bi = bi->m_NextQueueItem;
@@ -1779,19 +1780,19 @@ void CBuildingQueue::TickTimer(int ms)
         float x = g_IFaceList->GetMainX() + 283;
         float y = g_IFaceList->GetMainY() + 71;
 
-        m_HealthBar.Modify(100000.0f, 0);
+        m_ProgressBar.Modify(100000.0f, 0);
         if(m_Timer <= g_Config.m_Timings[UNIT_ROBOT])
         {
-            m_HealthBar.Modify(float(m_Timer) / float(g_Config.m_Timings[UNIT_ROBOT]));
+            m_ProgressBar.Modify(float(m_Timer) / float(g_Config.m_Timings[UNIT_ROBOT]));
         }
 
         if(ps->m_CurrSel == BASE_SELECTED && ps->m_ActiveObject == m_ParentBase)
         {
-            m_HealthBar.CreateClone(PBC_CLONE1, x, y, 87);
+            m_ProgressBar.CreateClone(PBC_CLONE1, x, y, 87);
         }
         else
         {
-            m_HealthBar.KillClone(PBC_CLONE1);
+            m_ProgressBar.KillClone(PBC_CLONE1);
         }
 
         if(m_Timer >= g_Config.m_Timings[UNIT_ROBOT] && m_ParentBase->m_State == BASE_CLOSED)
@@ -1809,7 +1810,7 @@ void CBuildingQueue::TickTimer(int ms)
             }
             
             m_Timer = 0;
-            m_HealthBar.KillClone(PBC_CLONE1);
+            m_ProgressBar.KillClone(PBC_CLONE1);
 
             //produce robot, del from queue
             //STUB:
@@ -1834,19 +1835,19 @@ void CBuildingQueue::TickTimer(int ms)
         float x = g_IFaceList->GetMainX() + 283;
         float y = g_IFaceList->GetMainY() + 71;
 
-        m_HealthBar.Modify(100000.0f, 0);
+        m_ProgressBar.Modify(100000.0f, 0);
         if(m_Timer <= g_Config.m_Timings[UNIT_FLYER])
         {
-            m_HealthBar.Modify(m_Timer * 1.0f / g_Config.m_Timings[UNIT_FLYER]);    
+            m_ProgressBar.Modify(m_Timer * 1.0f / g_Config.m_Timings[UNIT_FLYER]);
         }
 
         if(ps->m_CurrSel == BASE_SELECTED && ps->m_ActiveObject == m_ParentBase)
         {
-            m_HealthBar.CreateClone(PBC_CLONE1, x, y, 87);
+            m_ProgressBar.CreateClone(PBC_CLONE1, x, y, 87);
         }
         else
         {
-            m_HealthBar.KillClone(PBC_CLONE1);
+            m_ProgressBar.KillClone(PBC_CLONE1);
         }
 
         if(m_Timer >= g_Config.m_Timings[UNIT_FLYER] && m_ParentBase->m_State == BASE_CLOSED)
@@ -1864,7 +1865,7 @@ void CBuildingQueue::TickTimer(int ms)
             }
             
             m_Timer = 0;
-            m_HealthBar.KillClone(PBC_CLONE1);
+            m_ProgressBar.KillClone(PBC_CLONE1);
             //produce flyer, del from queue
             //STUB:
             if(m_ParentBase->GetSide() == PLAYER_SIDE)
@@ -1881,79 +1882,140 @@ void CBuildingQueue::TickTimer(int ms)
             --m_Items;
         }
     }
-    //Идёт постройка турели
-    else if(m_Top->IsCannon())
+    //Идёт постройка/демонтаж турели
+    else if(m_Top->IsTurret())
     {
-        float x = g_IFaceList->GetMainX() + 283;
-        float y = g_IFaceList->GetMainY() + 71;
-        float percent_done = float(m_Timer) / float(g_Config.m_Timings[UNIT_TURRET]);
-        m_HealthBar.Modify(100000.0f, 0);
-        m_HealthBar.Modify(percent_done);
+        CMatrixTurret* turret = m_Top->AsTurret();
 
-        //((CMatrixCannon*)m_Top)->SetPBOutOfScreen();
-        m_Top->AsCannon()->SetHitPoint(m_Top->AsCannon()->GetMaxHitPoint() * percent_done);
-        
-        if((ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED) && ps->m_ActiveObject == m_ParentBase)
+        //Турель строится
+        if(turret->m_CurrentState == TURRET_UNDER_CONSTRUCTION)
         {
-            m_HealthBar.CreateClone(PBC_CLONE1, x, y, 87);
+            float time_to_finish = g_Config.m_TurretsConsts[turret->m_TurretKind].construction_time;
+
+            float x = g_IFaceList->GetMainX() + 283;
+            float y = g_IFaceList->GetMainY() + 71;
+            float percent_done = float(m_Timer) / time_to_finish;
+            m_ProgressBar.Modify(100000.0f, 0);
+            m_ProgressBar.Modify(percent_done);
+
+            //turret->SetPBOutOfScreen();
+            turret->SetHitpoints(turret->GetMaxHitPoints() * percent_done);
+
+            if((ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED) && ps->m_ActiveObject == m_ParentBase)
+            {
+                m_ProgressBar.CreateClone(PBC_CLONE1, x, y, 87);
+            }
+            else
+            {
+                m_ProgressBar.KillClone(PBC_CLONE1);
+            }
+
+            if(m_Timer >= int(time_to_finish))
+            {
+                int side_id = m_Top->GetSide();
+                if(side_id == PLAYER_SIDE)
+                {
+                    switch(turret->m_TurretKind)
+                    {
+                        case 1: CSound::Play(S_TURRET_BUILD_1, SL_ALL); break;
+                        case 2: CSound::Play(S_TURRET_BUILD_2, SL_ALL); break;
+                        case 3: CSound::Play(S_TURRET_BUILD_3, SL_ALL); break;
+                        case 4: CSound::Play(S_TURRET_BUILD_4, SL_ALL); break;
+                    }
+                }
+
+                m_Timer = 0;
+                m_ProgressBar.KillClone(PBC_CLONE1);
+
+                for(int i = 0; i < MAX_PLACES; ++i)
+                {
+                    if(m_ParentBase->m_TurretsPlaces[i].m_Coord.x == Float2Int(turret->m_Pos.x / GLOBAL_SCALE_MOVE) && m_ParentBase->m_TurretsPlaces[i].m_Coord.y == Float2Int(turret->m_Pos.y / GLOBAL_SCALE_MOVE))
+                    {
+                        m_ParentBase->m_TurretsPlaces[i].m_CannonType = turret->m_TurretKind;
+                    }
+                }
+
+                g_MatrixMap->m_Minimap.AddEvent(m_Top->GetGeoCenter().x, m_Top->GetGeoCenter().y, 0xffffff00, 0xffffff00);
+                turret->m_CurrentState = TURRET_IDLE;
+                if(side_id != NEUTRAL_SIDE) g_MatrixMap->GetSideById(side_id)->IncStatValue(STAT_TURRET_BUILD);
+
+                m_Top->ResetInvulnerability();
+
+                //Обновляем интерфейс базы
+                if(m_ParentBase->GetSide() == PLAYER_SIDE)
+                {
+                    g_IFaceList->DeleteQueueIcon(1, m_ParentBase);
+                    if(g_MatrixMap->GetPlayerSide()->m_ActiveObject == m_ParentBase)
+                    {
+                        //Данный метод сам вызовет полное обновление всех иконок активных турелей
+                        g_IFaceList->CreateDynamicTurrets(m_ParentBase);
+                    }
+                }
+            }
         }
-        else
+        //Турель разбирается
+        else //if(turret->m_CurrentState == TURRET_UNDER_DECONSTRUCTION)
         {
-            m_HealthBar.KillClone(PBC_CLONE1);
-        }
+            float time_to_finish = g_Config.m_TurretsConsts[turret->m_TurretKind].deconstruction_time;
 
-        if(m_Timer >= g_Config.m_Timings[UNIT_TURRET])
-        {
-            if(m_Top->GetSide() == PLAYER_SIDE)
-            {
-                if(m_Top->AsCannon()->m_TurretKind == TURRET_LIGHT_CANNON)
-                {
-                    CSound::Play(S_TURRET_BUILD_0, SL_ALL);
-                }
-                else if(m_Top->AsCannon()->m_TurretKind == TURRET_HEAVY_CANNON)
-                {
-                    CSound::Play(S_TURRET_BUILD_1, SL_ALL);
-                }
-                else if(m_Top->AsCannon()->m_TurretKind == TURRET_LASER_CANNON)
-                {
-                    CSound::Play(S_TURRET_BUILD_2, SL_ALL);
-                }
-                else if(m_Top->AsCannon()->m_TurretKind == TURRET_MISSILE_CANNON)
-                {
-                    CSound::Play(S_TURRET_BUILD_3, SL_ALL);
-                }
-            }
-            
-            m_Timer = 0;
-            m_HealthBar.KillClone(PBC_CLONE1);
+            float x = g_IFaceList->GetMainX() + 283;
+            float y = g_IFaceList->GetMainY() + 71;
 
-            for(int i = 0; i < MAX_PLACES; ++i)
+            float percent_done = float(m_Timer) / time_to_finish;
+            m_ProgressBar.Modify(100000.0f, 0);
+            m_ProgressBar.Modify(percent_done);
+
+            //m_HitpointsBeforeDismantle
+
+            //percent_done = PortionInDiapason(float(m_Timer) / time_to_finish, 0.0f, 1.0f, 1.0f, 0.0f); //Здоровье разбираемой турели будет убывать
+            //turret->SetHitpoints(turret->GetHitpoints() * percent_done);
+
+            if((ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED) && ps->m_ActiveObject == m_ParentBase)
             {
-                if(m_ParentBase->m_TurretsPlaces[i].m_Coord.x == Float2Int(m_Top->AsCannon()->m_Pos.x / GLOBAL_SCALE_MOVE) && m_ParentBase->m_TurretsPlaces[i].m_Coord.y == Float2Int(m_Top->AsCannon()->m_Pos.y / GLOBAL_SCALE_MOVE))
-                {
-                    m_ParentBase->m_TurretsPlaces[i].m_CannonType = m_Top->AsCannon()->m_TurretKind;
-                }
+                m_ProgressBar.CreateClone(PBC_CLONE1, x, y, 87);
             }
-            
-            //STUB:
-            if(m_ParentBase->GetSide() == PLAYER_SIDE)
+            else
             {
-                g_IFaceList->DeleteQueueIcon(1, m_ParentBase);
-                if(g_MatrixMap->GetPlayerSide()->m_ActiveObject == m_ParentBase)
-                {
-                    g_IFaceList->CreateDynamicTurrets(m_ParentBase);
-                }
+                m_ProgressBar.KillClone(PBC_CLONE1);
             }
 
-            g_MatrixMap->m_Minimap.AddEvent(m_Top->GetGeoCenter().x, m_Top->GetGeoCenter().y, 0xffffff00, 0xffffff00);
-            m_Top->AsCannon()->m_CurrentState = CANNON_IDLE;
-            int ss = m_Top->GetSide();
-            if(ss != 0) g_MatrixMap->GetSideById(ss)->IncStatValue(STAT_TURRET_BUILD);
+            if(m_Timer >= int(time_to_finish))
+            {
+                g_MatrixMap->m_Minimap.AddEvent(m_Top->GetGeoCenter().x, m_Top->GetGeoCenter().y, 0xffffff00, 0xffffff00);
+                int side_id = m_Top->GetSide();
+                if(side_id == PLAYER_SIDE) CSound::Play(S_TURRET_DISMANTLED, SL_ALL);
 
-            m_Top->ResetInvulnerability();
-            LIST_DEL(m_Top, m_Top, m_Bottom, m_PrevQueueItem, m_NextQueueItem);
+                int kind = turret->m_TurretKind;
+                STurretsConsts* turret_info = &g_Config.m_TurretsConsts[kind];
 
-            --m_Items;
+                CMatrixSideUnit* side = g_MatrixMap->GetSideById(side_id);
+                float hit_points_left = turret->GetHitpoints() / turret->GetMaxHitPoints();
+                side->AddResourceAmount(TITAN, (int)floor(float(turret_info->cost_titan) * hit_points_left));
+                side->AddResourceAmount(ELECTRONICS, (int)floor(float(turret_info->cost_electronics) * hit_points_left));
+                side->AddResourceAmount(ENERGY, (int)floor(float(turret_info->cost_energy) * hit_points_left));
+                side->AddResourceAmount(PLASMA, (int)floor(float(turret_info->cost_plasma) * hit_points_left));
+
+                m_Timer = 0;
+                m_ProgressBar.KillClone(PBC_CLONE1);
+
+                //Обновляем интерфейс базы
+                if(m_ParentBase->GetSide() == PLAYER_SIDE)
+                {
+                    g_IFaceList->DeleteQueueIcon(1, m_ParentBase);
+                    if(g_MatrixMap->GetPlayerSide()->m_ActiveObject == m_ParentBase)
+                    {
+                        //Данный метод сам вызовет полное обновление всех иконок активных турелей
+                        g_IFaceList->CreateDynamicTurrets(m_ParentBase);
+                    }
+                }
+
+                LIST_DEL(m_Top, m_Top, m_Bottom, m_PrevQueueItem, m_NextQueueItem);
+                --m_Items;
+
+                --turret->m_ParentBuilding->m_TurretsHave;
+                if(side_id != NEUTRAL_SIDE) g_MatrixMap->GetSideById(side_id)->IncStatValue(STAT_TURRET_KILL);
+                g_MatrixMap->StaticDelete(turret);
+            }
         }
     }
 }
@@ -1964,6 +2026,7 @@ void CBuildingQueue::AddItem(CMatrixMapStatic* item)
     {
         LIST_ADD(item, m_Top, m_Bottom, m_PrevQueueItem, m_NextQueueItem); 
         ++m_Items;
+
         //STUB:
         if(item->GetSide() == PLAYER_SIDE)
         {
@@ -1979,7 +2042,7 @@ int CBuildingQueue::DeleteItem(int no)
         if(no == 1)
         {
             m_Timer = 0;
-            m_HealthBar.KillClone(PBC_CLONE1);
+            m_ProgressBar.KillClone(PBC_CLONE1);
         }
         //STUB:
         if(m_ParentBase->GetSide() == PLAYER_SIDE)
@@ -2000,9 +2063,9 @@ int CBuildingQueue::DeleteItem(int no)
                     ReturnRobotResources(items->AsRobot());
                     HDelete(CMatrixRobotAI, (CMatrixRobotAI*)items, Base::g_MatrixHeap);
                 }
-                else if(items->IsCannon())
+                else if(items->IsTurret())
                 {
-                    ReturnTurretResources(items->AsCannon());
+                    ReturnTurretResources(items->AsTurret());
                     items->UnjoinGroup();
                     g_MatrixMap->StaticDelete(items);
                 }
@@ -2042,7 +2105,7 @@ CBuildingQueue::~CBuildingQueue()
                 {
                     HDelete(CMatrixFlyer, (CMatrixFlyer*)items, Base::g_MatrixHeap);
                 }
-                else if(items->IsCannon())
+                else if(items->IsTurret())
                 {
                     items->TakingDamage(WEAPON_INSTANT_DEATH, D3DXVECTOR3(0, 0, 0), D3DXVECTOR3(0, 0, 0), 0, nullptr);
                 }
@@ -2062,7 +2125,7 @@ CBuildingQueue::~CBuildingQueue()
                 {
                     HDelete(CMatrixFlyer, (CMatrixFlyer*)items->m_PrevQueueItem, Base::g_MatrixHeap);
                 }
-                else if(items->m_PrevQueueItem->IsCannon())
+                else if(items->m_PrevQueueItem->IsTurret())
                 {
                     items->m_PrevQueueItem->TakingDamage(WEAPON_INSTANT_DEATH, D3DXVECTOR3(0, 0, 0), D3DXVECTOR3(0, 0, 0), 0, nullptr);
                 }
@@ -2161,7 +2224,7 @@ void CBuildingQueue::ReturnRobotResources(CMatrixRobotAI* robot)
     s->AddResourceAmount(PLASMA, plasm_cost);
 }
 
-void CBuildingQueue::ReturnTurretResources(CMatrixCannon* turret)
+void CBuildingQueue::ReturnTurretResources(CMatrixTurret* turret)
 {
     CMatrixSideUnit* s = g_MatrixMap->GetSideById(turret->GetSide());
 
@@ -2174,5 +2237,5 @@ void CBuildingQueue::ReturnTurretResources(CMatrixCannon* turret)
 
 void CBuildingQueue::KillBar()
 {
-    m_HealthBar.KillClone(PBC_CLONE1);
+    m_ProgressBar.KillClone(PBC_CLONE1);
 }

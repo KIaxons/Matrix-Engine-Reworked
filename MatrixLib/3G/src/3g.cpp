@@ -46,6 +46,7 @@ int g_AvailableTexMem;
 
 byte g_PlayerRobotsAutoBoom = 0;
 bool g_EnableFlyers = false;
+bool g_BetterTurrets = true;
 
 #ifdef DO_SMART_COLOROPS
 

@@ -98,10 +98,11 @@ enum ESound : int
     S_ROBOT_BUILD_END_ALT, //Робот готов
 
     S_TURRET_BUILD_START,
-    S_TURRET_BUILD_0,
     S_TURRET_BUILD_1,
     S_TURRET_BUILD_2,
     S_TURRET_BUILD_3,
+    S_TURRET_BUILD_4,
+    S_TURRET_DISMANTLED,
 
     S_FLYER_BUILD_END,
     S_FLYER_BUILD_END_ALT,
@@ -120,6 +121,7 @@ enum ESound : int
     S_SELECTION_6,
     S_SELECTION_7,
 
+    S_TURRET_SEL,
     S_BUILDING_SEL,
     S_BASE_SEL,
     S_WEAPON_SET, //При включении/выключении оружия в ручном режиме

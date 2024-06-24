@@ -16,7 +16,8 @@ typedef void (*SELECT_ENUM)(CMatrixMapStatic* ms, dword param);
 
 #define MS_FLAG_DIP         SETBIT(0)
 #define MS_FLAG_ROBOTS      SETBIT(1)
-#define MS_FLAG_BUILDINGS   SETBIT(2)
+#define MS_FLAG_TURRET      SETBIT(2)
+#define MS_FLAG_BUILDING    SETBIT(3)
 
 #define MULTISEL_FVF (D3DFVF_XYZRHW | D3DFVF_TEX1)
 struct SMultiSelVertex
@@ -61,9 +62,10 @@ class CMultiSelection : public CMain
     
     void RemoveSelItems()
     {
-        RESETFLAG(m_Flags, MS_FLAG_BUILDINGS);
         RESETFLAG(m_Flags, MS_FLAG_ROBOTS);
-        
+        RESETFLAG(m_Flags, MS_FLAG_TURRET);
+        RESETFLAG(m_Flags, MS_FLAG_BUILDING);
+
         m_SelItems.Clear();
     }
 

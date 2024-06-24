@@ -14,31 +14,31 @@
 #include "Interface/CInterface.h"
 
 
-float CMatrixCannon::GetSeekRadius(void)
+float CMatrixTurret::GetSeekRadius(void)
 {
     return g_Config.m_TurretsConsts[m_TurretKind].seek_target_range;
 }
 
-float CMatrixCannon::GetStrength(void)
+float CMatrixTurret::GetStrength(void)
 {
     return g_Config.m_TurretsConsts[m_TurretKind].strength * (0.4f + 0.6f * (m_Hitpoints / m_MaxHitpoints));
 }
 
-void CMatrixCannon::FireHandler(CMatrixMapStatic* hit, const D3DXVECTOR3& pos, dword user, dword flags)
+void CMatrixTurret::FireHandler(CMatrixMapStatic* hit, const D3DXVECTOR3& pos, dword user, dword flags)
 {
     //SObjectCore* oc = (SObjectCore*)user;
-    SObjectCore* oc = ((CMatrixCannon*)user)->m_Core;
+    SObjectCore* oc = ((CMatrixTurret*)user)->m_Core;
 
     if(oc->m_Object && FLAG(flags, FEHF_DAMAGE_ROBOT))
     {
         // попадание!
         // обновим тайминг косой стрельбы
-        oc->m_Object->AsCannon()->m_TimeFromFire = CANNON_TIME_FROM_FIRE;
+        oc->m_Object->AsTurret()->m_TimeFromFire = CANNON_TIME_FROM_FIRE;
     }
 
-    if(oc->m_Object && oc->m_Object->AsCannon()->IsRefProtect())
+    if(oc->m_Object && oc->m_Object->AsTurret()->IsRefProtect())
     {
-        oc->m_Object->AsCannon()->SetRefProtectHit();
+        oc->m_Object->AsTurret()->SetRefProtectHit();
     }
     else if(FLAG(flags, FEHF_LASTHIT)) oc->Release();
 }
@@ -46,7 +46,7 @@ void CMatrixCannon::FireHandler(CMatrixMapStatic* hit, const D3DXVECTOR3& pos, d
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-CMatrixCannon::~CMatrixCannon()
+CMatrixTurret::~CMatrixTurret()
 {
     ReleaseMe();
     ModuleClear();
@@ -67,7 +67,7 @@ CMatrixCannon::~CMatrixCannon()
     if(m_TargetCore) m_TargetCore->Release();
 }
 
-void CMatrixCannon::ModuleClear(void)
+void CMatrixTurret::ModuleClear()
 {
     for(int i = 0; i < m_ModulesCount; ++i)
     {
@@ -77,7 +77,7 @@ void CMatrixCannon::ModuleClear(void)
             m_Module[i].m_Graph = nullptr;
         }
 
-        if(m_CurrentState == CANNON_DIP)
+        if(m_CurrentState == TURRET_DIP)
         {
             if(m_Module[i].m_Smoke.effect)
             {
@@ -96,7 +96,16 @@ void CMatrixCannon::ModuleClear(void)
     RChange(MR_ShadowStencil | MR_ShadowProjGeom | MR_ShadowProjTex | MR_Graph);
 }
 
-void CMatrixCannon::BoundGet(D3DXVECTOR3& bmin, D3DXVECTOR3& bmax)
+void CMatrixTurret::Dismantle()
+{
+    m_CurrentState = TURRET_UNDER_DECONSTRUCTION;
+    m_HitpointsBeforeDismantle = m_Hitpoints;
+    ShowHitpoints();
+    SetInvulnerability();
+    m_ParentBuilding->m_BuildingQueue.AddItem(this);
+}
+
+void CMatrixTurret::BoundGet(D3DXVECTOR3& bmin, D3DXVECTOR3& bmax)
 {
     bmin = D3DXVECTOR3(1e30f, 1e30f, 1e30f);
     bmax = D3DXVECTOR3(-1e30f, -1e30f, -1e30f);
@@ -131,9 +140,9 @@ void CMatrixCannon::BoundGet(D3DXVECTOR3& bmin, D3DXVECTOR3& bmax)
     }
 }
 
-void CMatrixCannon::GetResources(dword need)
+void CMatrixTurret::GetResources(dword need)
 {
-    if(m_CurrentState == CANNON_DIP) return;
+    if(m_CurrentState == TURRET_DIP) return;
 
 	if(need & m_RChange & (MR_Graph))
     {
@@ -142,7 +151,7 @@ void CMatrixCannon::GetResources(dword need)
         ASSERT(!m_ModulesCount);
 
         float hp = g_Config.m_TurretsConsts[m_TurretKind].structure;
-        InitMaxHitpoint(hp);
+        InitMaxHitpoints(hp);
 
         CWStr ctype(m_TurretKind, g_CacheHeap);
 
@@ -231,7 +240,7 @@ void CMatrixCannon::GetResources(dword need)
         if(cnt) m_Core->m_Matrix._43 = rv / cnt + m_AddH;
         else m_Core->m_Matrix._43 = m_AddH;
         //Крашит в этом месте, если вынести фантомную турель (появляется при выборе места постройки) за границу карты
-        //else ERROR_S(L"Divide by zero probability in CMatrixCannon::GetResources!");
+        //else ERROR_S(L"Divide by zero probability in CMatrixTurret::GetResources!");
 
         D3DXMatrixInverse(&m_Core->m_IMatrix, nullptr, &m_Core->m_Matrix);
 
@@ -361,7 +370,7 @@ void CMatrixCannon::GetResources(dword need)
             if(!m_ShadowProj) m_ShadowProj = HNew(Base::g_MatrixHeap) CMatrixShadowProj(Base::g_MatrixHeap, this);
 
             byte* buf = (byte*)_malloca(sizeof(CVectorObjectAnim*) * m_ModulesCount + sizeof(int) * m_ModulesCount + sizeof(D3DXMATRIX) * m_ModulesCount);
-            if(!buf) ERROR_S(L"Not enough memory for buf after _malloca() call in CMatrixCannon::GetResources function!");
+            if(!buf) ERROR_S(L"Not enough memory for buf after _malloca() call in CMatrixTurret::GetResources function!");
             CVectorObjectAnim** obj = (CVectorObjectAnim**)buf;
             int* noframe = (int*)(buf + sizeof(CVectorObjectAnim*) * m_ModulesCount);
             D3DXMATRIX* wm = (D3DXMATRIX*)(buf + sizeof(CVectorObjectAnim*) * m_ModulesCount + sizeof(int) * m_ModulesCount);
@@ -395,7 +404,7 @@ void CMatrixCannon::GetResources(dword need)
         if(m_ShadowProj != nullptr)
         {
             byte* buf = (byte*)_malloca(sizeof(CVectorObjectAnim*) * m_ModulesCount + sizeof(int) * m_ModulesCount + sizeof(D3DXMATRIX) * m_ModulesCount);
-            if(!buf) ERROR_S(L"Not enough memory for buf after _malloca() call in CMatrixCannon::GetResources function!");
+            if(!buf) ERROR_S(L"Not enough memory for buf after _malloca() call in CMatrixTurret::GetResources function!");
             CVectorObjectAnim** obj = (CVectorObjectAnim**)buf;
             int* noframe = (int*)(buf + sizeof(CVectorObjectAnim*) * m_ModulesCount);
             D3DXMATRIX* wm = (D3DXMATRIX*)(buf + sizeof(CVectorObjectAnim*) * m_ModulesCount + sizeof(int) * m_ModulesCount);
@@ -419,7 +428,7 @@ void CMatrixCannon::GetResources(dword need)
 	}
 }
 
-void CMatrixCannon::Tact(int cms)
+void CMatrixTurret::Tact(int cms)
 {
 	for(int i = 0; i < m_ModulesCount; ++i)
     {
@@ -438,9 +447,10 @@ void CMatrixCannon::Tact(int cms)
 	//RChange(MR_Matrix);
 }
 
-bool CMatrixCannon::Pick(const D3DXVECTOR3& orig, const D3DXVECTOR3& dir, float* outt) const
+bool CMatrixTurret::Pick(const D3DXVECTOR3& orig, const D3DXVECTOR3& dir, float* outt) const
 {
-    if(m_CurrentState == CANNON_DIP) return false;
+    if(m_CurrentState == TURRET_DIP) return false;
+
 	for(int i = 0; i < m_ModulesCount; ++i)
     {
 		if(m_Module[i].m_Graph)
@@ -452,7 +462,7 @@ bool CMatrixCannon::Pick(const D3DXVECTOR3& orig, const D3DXVECTOR3& dir, float*
 	return false;
 }
 
-void CMatrixCannon::FreeDynamicResources()
+void CMatrixTurret::FreeDynamicResources()
 {
     if(m_ShadowProj && (m_ShadowType == SHADOW_PROJ_DYNAMIC))
     {
@@ -469,12 +479,12 @@ void CMatrixCannon::FreeDynamicResources()
     }
 }
 
-void CMatrixCannon::BeforeDraw()
+void CMatrixTurret::BeforeDraw()
 {
     dword sh = (g_Config.m_ShowProjShadows ? (MR_ShadowProjGeom | MR_ShadowProjTex) : 0) | (g_Config.m_ShowStencilShadows ? MR_ShadowStencil : 0);
     GetResources(MR_Matrix | MR_Graph | sh);
 
-    if(m_ShowHitpointsTime > 0 && m_Hitpoints > 0 && m_CurrentState != CANNON_DIP)
+    if(m_ShowHitpointsTime > 0 && m_Hitpoints > 0 && m_CurrentState != TURRET_DIP)
     {
         D3DXVECTOR3 pos(GetGeoCenter());
         if(TRACE_STOP_NONE == g_MatrixMap->Trace(nullptr, g_MatrixMap->m_Camera.GetFrustumCenter(), pos, TRACE_LANDSCAPE, nullptr))
@@ -487,13 +497,13 @@ void CMatrixCannon::BeforeDraw()
     for(int i = 0; i < m_ModulesCount; ++i)
     {
         m_Module[i].m_Graph->BeforeDraw();
-        if(m_CurrentState != CANNON_DIP && m_Module[i].m_ShadowStencil) m_Module[i].m_ShadowStencil->BeforeRender();
+        if(m_CurrentState != TURRET_DIP && m_Module[i].m_ShadowStencil) m_Module[i].m_ShadowStencil->BeforeRender();
     }
 
     if(m_CurrentState != ROBOT_DIP && m_ShadowProj) m_ShadowProj->BeforeRender();
 }
 
-void CMatrixCannon::Draw()
+void CMatrixTurret::Draw()
 {
 	//g_D3DD->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
     dword coltex = (dword)g_MatrixMap->GetSideColorTexture(m_Side)->Tex();
@@ -503,11 +513,11 @@ void CMatrixCannon::Draw()
         ASSERT_DX(g_D3DD->SetSamplerState(i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) (&g_MatrixMap->m_BiasCannons))));
     }
 
-    if(m_CurrentState != CANNON_DIP)
+    if(m_CurrentState != TURRET_DIP)
     {
         bool lights_on = false;
-        if(m_CurrentState == CANNON_UNDER_CONSTRUCTION) g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, TURRET_UNDER_CONSTRUCTION_COLOR);
-        else if(m_CurrentState == CANNON_UNDER_DECONSTRUCTION) g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, TURRET_UNDER_DECONSTRUCTION_COLOR);
+        if(m_CurrentState == TURRET_UNDER_CONSTRUCTION) g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, TURRET_UNDER_CONSTRUCTION_COLOR);
+        else if(m_CurrentState == TURRET_UNDER_DECONSTRUCTION) g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, TURRET_UNDER_DECONSTRUCTION_COLOR);
         else
         {
             g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, m_Core->m_TerrainColor);
@@ -557,7 +567,7 @@ void CMatrixCannon::Draw()
     */
 }
 
-void CMatrixCannon::DrawShadowStencil()
+void CMatrixTurret::DrawShadowStencil()
 {
     if(m_ShadowType != SHADOW_STENCIL) return;
 
@@ -570,7 +580,7 @@ void CMatrixCannon::DrawShadowStencil()
 	}
 }
 
-void CMatrixCannon::DrawShadowProj()
+void CMatrixTurret::DrawShadowProj()
 {
     /*
     if(!m_ShadowProj) return;
@@ -583,13 +593,13 @@ void CMatrixCannon::DrawShadowProj()
     */
 }
 
-void CMatrixCannon::OnLoad()
+void CMatrixTurret::OnLoad()
 {
     ModelInit(m_TurretKind);
 }
 
 
-bool CMatrixCannon::CalcBounds(D3DXVECTOR3& minv, D3DXVECTOR3& maxv)
+bool CMatrixTurret::CalcBounds(D3DXVECTOR3& minv, D3DXVECTOR3& maxv)
 {
     if(!m_ModulesCount) return true;
 
@@ -622,7 +632,7 @@ bool CMatrixCannon::CalcBounds(D3DXVECTOR3& minv, D3DXVECTOR3& maxv)
 }
 
 
-void CMatrixCannon::DIPTact(float ms)
+void CMatrixTurret::DIPTact(float ms)
 {
     D3DXVECTOR3* pos;
     D3DXMATRIX* mat;
@@ -746,7 +756,7 @@ static bool FindTarget(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dword us
         if(cel == ms)
         {
             // ландшафт не помеха. тогда может объект за зданием или за другой батвой?
-            cel = g_MatrixMap->Trace(nullptr, center, ms->GetGeoCenter(), TRACE_BUILDING | TRACE_CANNON | TRACE_OBJECT, d->skip);
+            cel = g_MatrixMap->Trace(nullptr, center, ms->GetGeoCenter(), TRACE_BUILDING | TRACE_TURRET | TRACE_OBJECT, d->skip);
             if(cel == nullptr)
             {
                 d->dist_cur = distc;
@@ -759,7 +769,7 @@ static bool FindTarget(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dword us
     return true;
 }
 
-void CMatrixCannon::BeginFireAnimation()
+void CMatrixTurret::BeginFireAnimation()
 {
     for(int i = 0; i < m_ModulesCount; ++i)
     {
@@ -776,7 +786,7 @@ void CMatrixCannon::BeginFireAnimation()
     }
 }
 
-void CMatrixCannon::EndFireAnimation()
+void CMatrixTurret::EndFireAnimation()
 {
     for(int i = 0; i < m_ModulesCount; ++i)
     {
@@ -788,11 +798,11 @@ void CMatrixCannon::EndFireAnimation()
     }
 }
 
-void CMatrixCannon::PauseTact(int tact)
+void CMatrixTurret::PauseTact(int tact)
 {
     SetPBOutOfScreen();
-    if(m_CurrentState == CANNON_DIP) return;
-    if(m_CurrentState != CANNON_UNDER_CONSTRUCTION && m_CurrentState != CANNON_UNDER_DECONSTRUCTION)
+    if(m_CurrentState == TURRET_DIP) return;
+    if(m_CurrentState != TURRET_UNDER_CONSTRUCTION && m_CurrentState != TURRET_UNDER_DECONSTRUCTION)
     {
         if(m_ShowHitpointsTime > 0)
         {
@@ -803,16 +813,16 @@ void CMatrixCannon::PauseTact(int tact)
     else m_ShowHitpointsTime = 1;
 }
 
-
-void CMatrixCannon::LogicTact(int tact)
+void CMatrixTurret::LogicTact(int tact)
 {
     SetPBOutOfScreen();
 
-    if(m_CurrentState == CANNON_DIP)
+    if(m_CurrentState == TURRET_DIP)
     {
         DIPTact(float(tact));
         return;
     }
+    if(m_CurrentState == TURRET_UNDER_DECONSTRUCTION) return;
 
     if(m_MiniMapFlashTime > 0)
     {
@@ -859,7 +869,7 @@ void CMatrixCannon::LogicTact(int tact)
         if(!m_EndFireAfterAsync) m_NextGunToShot = 0;
     }
 
-    if(m_CurrentState != CANNON_UNDER_CONSTRUCTION && m_CurrentState != CANNON_UNDER_DECONSTRUCTION)
+    if(m_CurrentState != TURRET_UNDER_CONSTRUCTION && m_CurrentState != TURRET_UNDER_DECONSTRUCTION)
     {
         if(m_ShowHitpointsTime > 0)
         {
@@ -876,7 +886,7 @@ void CMatrixCannon::LogicTact(int tact)
             float percent_done = float(m_NextTimeAblaze) / float(g_Config.m_Timings[UNIT_TURRET]);
 
             if(m_NextTimeAblaze > )
-            SetHitPoint(GetMaxHitPoint() * percent_done);
+            SetHitpoints(GetMaxHitPoints() * percent_done);
         }
         */
 
@@ -900,7 +910,7 @@ void CMatrixCannon::LogicTact(int tact)
             {
                 pos.x = m_Core->m_Matrix._41 + FSRND(m_Core->m_Radius);
                 pos.y = m_Core->m_Matrix._42 + FSRND(m_Core->m_Radius);
-                pos.z = m_Core->m_Matrix._43 + FRND(m_Core->m_Radius * 2);
+                pos.z = m_Core->m_Matrix._43 + FRND(m_Core->m_Radius * 2.0f);
                 D3DXVECTOR3 temp = { m_Core->m_Matrix._41 - pos.x, m_Core->m_Matrix._42 - pos.y, m_Core->m_Matrix._43 - pos.z };
                 D3DXVec3Normalize(&dir, &temp);
                 
@@ -1230,7 +1240,7 @@ no_target:
     //CHelper::Create(1, 0)->Line(D3DXVECTOR3(m_GeoCenter.x, m_GeoCenter.y, 20), D3DXVECTOR3(m_GeoCenter.x, m_GeoCenter.y, 20) + 100 * D3DXVECTOR3(cos(m_Module[1].m_Angle), sin(m_Module[1].m_Angle), 0));
 }
 
-bool CMatrixCannon::TakingDamage(
+bool CMatrixTurret::TakingDamage(
     int weap,
     const D3DXVECTOR3& pos,
     const D3DXVECTOR3&,
@@ -1243,7 +1253,7 @@ bool CMatrixCannon::TakingDamage(
 
     if(weap == WEAPON_INSTANT_DEATH) goto inst_death;
     if(IsInvulnerable()) return false;
-    if(m_CurrentState == CANNON_DIP) return true;
+    if(m_CurrentState == TURRET_DIP) return true;
 
     friendly_fire = (attacker_side != NEUTRAL_SIDE) && (attacker_side == m_Side);
     damage_coef = (friendly_fire || m_Side != PLAYER_SIDE) ? 1.0f : g_MatrixMap->m_Difficulty.coef_enemy_damage_to_player_side;
@@ -1351,7 +1361,7 @@ inst_death:;
         m_ShadowType = SHADOW_OFF;
         RChange(MR_ShadowProjGeom | MR_ShadowStencil);
         GetResources(MR_ShadowProjGeom | MR_ShadowStencil);
-        m_CurrentState = CANNON_DIP;
+        m_CurrentState = TURRET_DIP;
 
         ReleaseMe();
 
@@ -1370,10 +1380,10 @@ inst_death:;
 
         //if(cstay)
         //{
-        m_Module[0].m_dp = 0;
-        m_Module[0].m_dy = 0;
-        m_Module[0].m_dr = 0;
-        m_Module[0].m_Velocity = D3DXVECTOR3(0, 0, 0);
+        m_Module[0].m_dp = 0.0f;
+        m_Module[0].m_dy = 0.0f;
+        m_Module[0].m_dr = 0.0f;
+        m_Module[0].m_Velocity = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
         //}
         //else
         //{
@@ -1384,7 +1394,7 @@ inst_death:;
         //}
 
         m_Module[0].m_Smoke.effect = nullptr;
-        CMatrixEffect::CreateSmoke(&m_Module[0].m_Smoke, m_Module[0].m_Pos, m_Module[0].m_TTL + 100000, 1000, 100, 0xFF000000, 1.0f / 30.0f);
+        CMatrixEffect::CreateSmoke(&m_Module[0].m_Smoke, m_Module[0].m_Pos, m_Module[0].m_TTL + 100000.0f, 1000.0f, 100.0f, 0xFF000000, 1.0f / 30.0f);
 
         for(int i = 1; i < m_ModulesCount; ++i)
         {
@@ -1392,12 +1402,12 @@ inst_death:;
             m_Module[i].m_dy = FSRND(0.005f);
             m_Module[i].m_dr = FSRND(0.005f);
             m_Module[i].m_Velocity = D3DXVECTOR3(FSRND(0.08f), FSRND(0.08f), 0.1f);
-            m_Module[i].m_TTL = FRND(3000) + 2000;
+            m_Module[i].m_TTL = FRND(3000.0f) + 2000.0f;
             m_Module[i].m_Pos.x = m_Module[i].m_Matrix._41;
             m_Module[i].m_Pos.y = m_Module[i].m_Matrix._42;
             m_Module[i].m_Pos.z = m_Module[i].m_Matrix._43;
             m_Module[i].m_Smoke.effect = nullptr;
-            CMatrixEffect::CreateSmoke(&m_Module[i].m_Smoke, m_Module[i].m_Pos, m_Module[i].m_TTL + 100000, 1000, 100, 0xFF000000, 1.0f / 30.0f);
+            CMatrixEffect::CreateSmoke(&m_Module[i].m_Smoke, m_Module[i].m_Pos, m_Module[i].m_TTL + 100000.0f, 1000.0f, 100.0f, 0xFF000000, 1.0f / 30.0f);
         }
 
         return true;
@@ -1406,7 +1416,40 @@ inst_death:;
     return false;
 }
 
-void CMatrixCannon::ReleaseMe(void)
+bool CMatrixTurret::Select()
+{
+    D3DXVECTOR3 pos = { m_Pos.x, m_Pos.y, m_Core->m_Matrix._43 + 4.0f };
+    m_Selection = (CMatrixEffectSelection*)CMatrixEffect::CreateSelection(pos, TURRET_SELECTION_SIZE);
+
+    if(!g_MatrixMap->AddEffect(m_Selection))
+    {
+        m_Selection = nullptr;
+        return false;
+    }
+
+    return true;
+}
+
+void CMatrixTurret::UnSelect()
+{
+    if(m_Selection)
+    {
+        m_Selection->Kill();
+        m_Selection = nullptr;
+    }
+}
+
+void CMatrixTurret::CreateHealthBarClone(float x, float y, float width, EPBCoord clone_type)
+{
+    m_HealthBar.CreateClone(clone_type, x, y, width);
+}
+
+void CMatrixTurret::DeleteHealthBarClone(EPBCoord clone_type)
+{
+    m_HealthBar.KillClone(clone_type);
+}
+
+void CMatrixTurret::ReleaseMe()
 {
     CMatrixSideUnit* s = nullptr;
     if(m_ParentBuilding)
@@ -1432,13 +1475,14 @@ void CMatrixCannon::ReleaseMe(void)
         int side = m_ParentBuilding->GetSide();
         if(side != NEUTRAL_SIDE)
         {
-            CMatrixSideUnit *su = g_MatrixMap->GetSideById(side);
-            if(su->m_CurrentAction == BUILDING_TURRET || FLAG(g_IFaceList->m_IfListFlags,PREORDER_BUILD_TURRET))
+            CMatrixSideUnit* su = g_MatrixMap->GetSideById(side);
+            if(su->m_CurrentAction == BUILDING_TURRET || FLAG(g_IFaceList->m_IfListFlags, PREORDER_BUILD_TURRET))
             {
                 m_ParentBuilding->CreatePlacesShow();
                 m_ParentBuilding = nullptr;
             }
         }
+
         CMatrixMapStatic* obj = CMatrixMapStatic::GetFirstLogic();
     }
     
@@ -1457,21 +1501,21 @@ void CMatrixCannon::ReleaseMe(void)
     }
 }
 
-bool CMatrixCannon::InRect(const CRect& rect) const
+bool CMatrixTurret::InRect(const CRect& rect) const
 {
-    if(m_CurrentState == CANNON_DIP) return false;
+    if(m_CurrentState == TURRET_DIP) return false;
 
     D3DXVECTOR3 dir;
     g_MatrixMap->m_Camera.CalcPickVector(CPoint(rect.left, rect.top), dir);
     if(Pick(g_MatrixMap->m_Camera.GetFrustumCenter(), dir, nullptr)) return true;
 
-    D3DXMATRIX s,t;
+    D3DXMATRIX s, t;
     SEVH_data d;
     
     t = g_MatrixMap->m_Camera.GetViewMatrix() * g_MatrixMap->m_Camera.GetProjMatrix();
-    D3DXMatrixScaling(&s, float(g_ScreenX/2),float(-g_ScreenY/2),1);
+    D3DXMatrixScaling(&s, float(g_ScreenX / 2), float(-g_ScreenY / 2), 1);
     s._41 = s._11;
-    s._42 = float(g_ScreenY/2);
+    s._42 = float(g_ScreenY / 2);
     t *= s;
     d.rect = &rect;
 

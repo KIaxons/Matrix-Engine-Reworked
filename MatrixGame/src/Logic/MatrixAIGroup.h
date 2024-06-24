@@ -58,6 +58,7 @@ public:
     int                 m_ObjectsCnt = 0;
     int                 m_RobotsCnt = 0;
     int                 m_FlyersCnt = 0;
+    int                 m_TurretsCnt = 0;
     int                 m_BuildingsCnt = 0;
     //CMatrixTactics*   m_Tactics = nullptr;
     D3DXVECTOR3         m_GroupPosition = { 0.0f, 0.0f, 0.0f };
@@ -78,7 +79,9 @@ public:
     void RemoveObject(CMatrixMapStatic* object);
     bool RemoveObject(int num);
     void RemoveAll();
+    void RemoveTurrets();
     void RemoveBuildings();
+    void RemoveTurretsAndBuildings();
     void SortFlyers();
 
     CMatrixMapStatic* GetObjectByN(int num);
@@ -87,6 +90,7 @@ public:
 
     int GetRobotsCnt() { return m_RobotsCnt; }
     int GetFlyersCnt() { return m_FlyersCnt; }
+    int GetTurretsCnt() { return m_TurretsCnt; }
     int GetBuildingsCnt() { return m_BuildingsCnt; }
 
     void SetTeam(int team) { m_Team = team; }

@@ -290,6 +290,10 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
                 g_IFaceList->m_BuildCa = pButton;
                 FSET(ON_UN_PRESS, pButton, g_IFaceList, CIFaceList::PlayerAction);
             }
+            else if(pButton->m_strName == IF_DISMANTLE_TURRET)
+            {
+                FSET(ON_UN_PRESS, pButton, g_IFaceList, CIFaceList::PlayerAction);
+            }
             else if (pButton->m_strName == IF_BUILD_FLYER)
             {
                 //g_IFaceList->m_BuildHe = pButton;
@@ -574,7 +578,7 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
 			pStatic->m_ySize = pbp2->Par(L"ySize").GetFloat();
 			pStatic->m_DefState = (IFaceElementState)pbp2->Par(L"dState").GetInt();
 
-            //pStatic->m_Hint. = pbp2->ParNE(L"Hint");
+            //pStatic->m_Hint. = pbp2->ParNE(L"Hint");CIFaceList::PlayerAction
 
             if(m_strName == IF_TOP && pStatic->m_strName == IF_TOP_PANEL1)
             {
@@ -643,11 +647,10 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
             pStatic->SetStateImage(
                 IFACE_NORMAL,
                 (CTextureManaged*)g_Cache->Get(cc_TextureManaged, g_CacheData->ParPathGet(pbp2->Par(L"sNormal")).Get()),
-                (float)pbp2->Par(L"sNormalX").GetDouble(),
-                (float)pbp2->Par(L"sNormalY").GetDouble(),
-                (float)pbp2->Par(L"sNormalWidth").GetDouble(),
-                (float)pbp2->Par(L"sNormalHeight").GetDouble());
-
+                pbp2->Par(L"sNormalX").GetFloat(),
+                pbp2->Par(L"sNormalY").GetFloat(),
+                pbp2->Par(L"sNormalWidth").GetFloat(),
+                pbp2->Par(L"sNormalHeight").GetFloat());
 
 			pStatic->ElementGeomInit((void*)pStatic);
 
@@ -1605,20 +1608,20 @@ void CInterface::Init(void)
                     {
                         if((rsel || robot_sel) && cur_r)
                         {
-                            if(lives != cur_r->GetHitPoint())
+                            if(lives != cur_r->GetHitpoints())
                             {
-                                lives = cur_r->GetHitPoint();
-                                max_lives = cur_r->GetMaxHitPoint();
+                                lives = cur_r->GetHitpoints();
+                                max_lives = cur_r->GetMaxHitPoints();
                                 new_lives = true;
                             }
                         }
                     }
                     else if(player_side->m_CurrSel == BUILDING_SELECTED || player_side->m_CurrSel == BASE_SELECTED)
                     {
-                        if(lives != player_side->m_ActiveObject->AsBuilding()->GetHitPoint())
+                        if(lives != player_side->m_ActiveObject->AsBuilding()->GetHitpoints())
                         {
-                            lives = player_side->m_ActiveObject->AsBuilding()->GetHitPoint();
-                            max_lives = player_side->m_ActiveObject->AsBuilding()->GetMaxHitPoint();
+                            lives = player_side->m_ActiveObject->AsBuilding()->GetHitpoints();
+                            max_lives = player_side->m_ActiveObject->AsBuilding()->GetMaxHitPoints();
                             new_lives = true;
                         }
                     }
@@ -1843,29 +1846,42 @@ void CInterface::Init(void)
                                 {
                                     if(i == player_side->GetCurSelNum())
                                     {
-                                        ((CMatrixRobotAI*)so->ReturnObject())->CreateProgressBarClone(m_xPos + 68, m_yPos + 179, 68, PBC_CLONE2);
+                                        ((CMatrixRobotAI*)so->ReturnObject())->CreateHealthBarClone(m_xPos + 68, m_yPos + 179, 68, PBC_CLONE2);
                                     }
 
                                     if(!singlem)
                                     {
-                                        ((CMatrixRobotAI*)so->ReturnObject())->CreateProgressBarClone(pElement->m_xPos + m_xPos, pElement->m_yPos + m_yPos + 36, 46, PBC_CLONE1);
+                                        ((CMatrixRobotAI*)so->ReturnObject())->CreateHealthBarClone(pElement->m_xPos + m_xPos, pElement->m_yPos + m_yPos + 36, 46, PBC_CLONE1);
                                     }
                                     else
                                     {
-                                        ((CMatrixRobotAI*)so->ReturnObject())->DeleteProgressBarClone(PBC_CLONE1);
+                                        ((CMatrixRobotAI*)so->ReturnObject())->DeleteHealthBarClone(PBC_CLONE1);
                                     }
                                 }
                             }
 
                             if(!singlem) pElement->SetVisibility(true);
                         }
+
                         if(singlem) pElement->SetVisibility(false);
+                    }
+                }
+                else if(player_side->m_CurrSel == TURRET_SELECTED)
+                {
+                    CMatrixTurret* turret = player_side->m_ActiveObject->AsTurret();
+                    turret->CreateHealthBarClone(m_xPos + 68, m_yPos + 179, 68, PBC_CLONE2);
+
+                    if(pElement->m_strName == IF_DISMANTLE_TURRET)
+                    {
+                        pElement->SetVisibility(true);
+                        if(turret->m_ParentBuilding->m_BuildingQueue.IsMaxItems()) pElement->SetState(IFACE_DISABLED);
+                        else if(pElement->GetState() == IFACE_DISABLED) pElement->SetState(IFACE_NORMAL);
                     }
                 }
                 else if(player_side->m_CurrSel == BUILDING_SELECTED || player_side->m_CurrSel == BASE_SELECTED)
                 {
-                    CMatrixBuilding* bld = (CMatrixBuilding*)player_side->m_ActiveObject;
-                    bld->CreateProgressBarClone(m_xPos + 68, m_yPos + 179, 68, PBC_CLONE2);
+                    CMatrixBuilding* bld = player_side->m_ActiveObject->AsBuilding();
+                    bld->CreateHealthBarClone(m_xPos + 68, m_yPos + 179, 68, PBC_CLONE2);
                     
                     if(bld->m_Kind == BUILDING_TITAN && pElement->m_strName == IF_TITAN_PLANT)
                     {
@@ -1928,10 +1944,7 @@ void CInterface::Init(void)
                     else if(g_EnableFlyers && pElement->m_strName == IF_BUILD_FLYER && !bld_tu && !bld_he)
                     {
                         //Делаем видимой, если выбрана база
-                        if(bld->m_Kind == BUILDING_BASE)
-                        {
-                            pElement->SetVisibility(true);
-                        }
+                        if(bld->m_Kind == BUILDING_BASE) pElement->SetVisibility(true);
                     }
                     /*
                     else if(pElement->m_strName == IF_BUILD_REPAIR && !bld_tu && !bld_he && !bld_re)
@@ -3886,8 +3899,6 @@ void CIFaceList::LogicTact(int ms)
 //Добавляем изображения пушек робота (и их текущего перегрева, если нужно) в меню справа
 void CIFaceList::CreateWeaponDynamicStatics()
 {
-DTRACE();
-
     DeleteWeaponDynamicStatics();
     CMatrixSideUnit* player_side = g_MatrixMap->GetPlayerSide();
 
@@ -4373,7 +4384,7 @@ void CIFaceList::ExitArcadeMode()
 void __stdcall CIFaceList::PlayerAction(void* object)
 {
     if(!object) return;
-    
+
     CIFaceElement* element = (CIFaceElement*)object;
     CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
 
@@ -4542,7 +4553,7 @@ void __stdcall CIFaceList::PlayerAction(void* object)
     //Нажали кнопку вызова подкрепления (вероятно)
     else if(element->m_strName == IF_CALL_FROM_HELL && (ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED))
     {
-        CMatrixBuilding* bld = (CMatrixBuilding*)ps->m_ActiveObject;
+        CMatrixBuilding* bld = ps->m_ActiveObject->AsBuilding();
         bld->Reinforcements();
     }
     //Нажали кнопку выбора типа ремонта для хз чего
@@ -4551,6 +4562,17 @@ void __stdcall CIFaceList::PlayerAction(void* object)
         ps->m_ConstructPanel->ResetGroupNClose();
         SETFLAG(m_IfListFlags, ORDERING_MODE);
         SETFLAG(m_IfListFlags, PREORDER_BUILD_REPAIR);       
+    }
+
+    //Нажали кнопку разборки турели
+    if(element->m_strName == IF_DISMANTLE_TURRET)
+    {
+        if(!ps->m_ActiveObject->AsTurret()->m_ParentBuilding->m_BuildingQueue.IsMaxItems())
+        {
+            ps->m_ActiveObject->AsTurret()->Dismantle();
+            ps->Select(NOTHING, nullptr);
+            CSound::Play(S_TURRET_BUILD_START, SL_ALL);
+        }
     }
 
     if(ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED)
@@ -4685,11 +4707,11 @@ void CIFaceList::DeleteGroupSelection()
     {
         if(so->IsRobot())
         {
-            so->AsRobot()->DeleteProgressBarClone(PBC_CLONE1);
+            so->AsRobot()->DeleteHealthBarClone(PBC_CLONE1);
         }
         else if(so->IsFlyer())
         {
-            so->AsFlyer()->DeleteProgressBarClone(PBC_CLONE1);
+            so->AsFlyer()->DeleteHealthBarClone(PBC_CLONE1);
         }
         so = so->GetNextLogic();
     }
@@ -4731,11 +4753,11 @@ void CIFaceList::DeleteProgressBars(CMatrixMapStatic* from)
         {
             if(so->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
             {
-                ((CMatrixRobotAI*)so)->DeleteProgressBarClone(PBC_CLONE1);
+                ((CMatrixRobotAI*)so)->DeleteHealthBarClone(PBC_CLONE1);
             }
             else if(so->GetObjectType() == OBJECT_TYPE_FLYER)
             {
-                ((CMatrixFlyer*)so)->DeleteProgressBarClone(PBC_CLONE1);
+                ((CMatrixFlyer*)so)->DeleteHealthBarClone(PBC_CLONE1);
             }
             
             so = so->GetNextLogic();
@@ -4754,11 +4776,11 @@ void CIFaceList::DeleteProgressBars(CMatrixMapStatic* from)
         {
             if(gos->ReturnObject()->IsRobot())
             {
-                gos->ReturnObject()->AsRobot()->DeleteProgressBarClone(PBC_CLONE1);
+                gos->ReturnObject()->AsRobot()->DeleteHealthBarClone(PBC_CLONE1);
             }
             else if(gos->ReturnObject()->GetObjectType() == OBJECT_TYPE_FLYER)
             {
-                ((CMatrixFlyer*)gos->ReturnObject())->DeleteProgressBarClone(PBC_CLONE1);
+                ((CMatrixFlyer*)gos->ReturnObject())->DeleteHealthBarClone(PBC_CLONE1);
             }
             gos = gos->m_NextObject;
         }
@@ -4885,8 +4907,6 @@ DTRACE();
 //Создаёт иконки юнитов в выбранной группе для группового списка
 void CIFaceList::CreatePersonal()
 {
-DTRACE();
-
     CMatrixSideUnit* player_side = g_MatrixMap->GetPlayerSide();
     if(!player_side->GetCurGroup()) return;
     
@@ -4978,12 +4998,12 @@ DTRACE();
     }
 }
 
+//Удаляет иконки юнитов в выбранной группе из группового списка
 void CIFaceList::DeletePersonal()
 {
     CMatrixSideUnit* player_side = g_MatrixMap->GetPlayerSide();
 
 //icon
-
     CInterface* interfaces = m_First;
     while(interfaces)
     {
@@ -5014,17 +5034,21 @@ void CIFaceList::DeletePersonal()
     {
         if(s->IsRobot())
         {
-            s->AsRobot()->DeleteProgressBarClone(PBC_CLONE2);
+            s->AsRobot()->DeleteHealthBarClone(PBC_CLONE2);
         }
-        else if(s->GetObjectType() == OBJECT_TYPE_FLYER)
+        else if(s->IsFlyer())
         {
-            ((CMatrixFlyer*)s)->DeleteProgressBarClone(PBC_CLONE2);
+            s->AsFlyer()->DeleteHealthBarClone(PBC_CLONE2);
+        }
+        else if(s->IsTurret())
+        {
+            s->AsTurret()->DeleteHealthBarClone(PBC_CLONE2);
         }
         else if(s->IsBuilding())
         {
-            s->AsBuilding()->DeleteProgressBarClone(PBC_CLONE2);
+            s->AsBuilding()->DeleteHealthBarClone(PBC_CLONE2);
         }
-        
+      
         s = s->GetNextLogic();
     }
 }
@@ -5032,7 +5056,6 @@ void CIFaceList::DeletePersonal()
 
 void CIFaceList::CreateOrdersGlow(CInterface *iface)
 {
-    DTRACE();
     CMatrixSideUnit* player_side = g_MatrixMap->GetPlayerSide();
     int orders = 6;
 
@@ -5149,9 +5172,9 @@ void CIFaceList::CreateQueueIcon(int num, CMatrixBuilding* base, CMatrixMapStati
 
                 flyer = true;
             }
-            else if(object->IsCannon())
+            else if(object->IsTurret())
             {
-                if(((CMatrixCannon*)object)->m_TurretKind == TURRET_LIGHT_CANNON)
+                if(((CMatrixTurret*)object)->m_TurretKind == TURRET_LIGHT_CANNON)
                 {
                     tex_med = ifs->FindImageByName(CWStr(IF_TURRET_MED1))->m_Image;
                     tex_small = ifs->FindImageByName(CWStr(IF_TURRET_SMALL1))->m_Image;
@@ -5161,7 +5184,7 @@ void CIFaceList::CreateQueueIcon(int num, CMatrixBuilding* base, CMatrixMapStati
                     xsmall = ifs->FindImageByName(CWStr(IF_TURRET_SMALL1))->m_xTexPos;
                     ysmall = ifs->FindImageByName(CWStr(IF_TURRET_SMALL1))->m_yTexPos;
                 }
-                else if(((CMatrixCannon*)object)->m_TurretKind == TURRET_HEAVY_CANNON)
+                else if(((CMatrixTurret*)object)->m_TurretKind == TURRET_HEAVY_CANNON)
                 {
                     tex_med = ifs->FindImageByName(CWStr(IF_TURRET_MED2))->m_Image;
                     tex_small = ifs->FindImageByName(CWStr(IF_TURRET_SMALL2))->m_Image;
@@ -5171,7 +5194,7 @@ void CIFaceList::CreateQueueIcon(int num, CMatrixBuilding* base, CMatrixMapStati
                     xsmall = ifs->FindImageByName(CWStr(IF_TURRET_SMALL2))->m_xTexPos;
                     ysmall = ifs->FindImageByName(CWStr(IF_TURRET_SMALL2))->m_yTexPos;
                 }
-                else if(((CMatrixCannon*)object)->m_TurretKind == TURRET_LASER_CANNON)
+                else if(((CMatrixTurret*)object)->m_TurretKind == TURRET_LASER_CANNON)
                 {
                     tex_med = ifs->FindImageByName(CWStr(IF_TURRET_MED3))->m_Image;
                     tex_small = ifs->FindImageByName(CWStr(IF_TURRET_SMALL3))->m_Image;
@@ -5181,7 +5204,7 @@ void CIFaceList::CreateQueueIcon(int num, CMatrixBuilding* base, CMatrixMapStati
                     xsmall = ifs->FindImageByName(CWStr(IF_TURRET_SMALL3))->m_xTexPos;
                     ysmall = ifs->FindImageByName(CWStr(IF_TURRET_SMALL3))->m_yTexPos;
                 }
-                else if(((CMatrixCannon*)object)->m_TurretKind == TURRET_MISSILE_CANNON)
+                else if(((CMatrixTurret*)object)->m_TurretKind == TURRET_MISSILE_CANNON)
                 {
                     tex_med = ifs->FindImageByName(CWStr(IF_TURRET_MED4))->m_Image;
                     tex_small = ifs->FindImageByName(CWStr(IF_TURRET_SMALL4))->m_Image;
@@ -5496,7 +5519,6 @@ void CIFaceList::DisableMainMenuButton(EHintButton butt)
 
 void CIFaceList::EnableMainMenuButton(EHintButton butt)
 {
-
     CWStr sname;
     HintButtonId2Name(butt, sname);
 
@@ -5574,6 +5596,7 @@ bool CIFaceList::CorrectCoordinates(
         element_name == IF_BUILD_ROBOT ||
         element_name == IF_BUILD_TURRET ||
         element_name == IF_BUILD_FLYER ||
+        element_name == IF_DISMANTLE_TURRET ||
         element_name == IF_ORDER_STOP ||
         element_name == IF_ORDER_MOVE ||
         element_name == IF_ORDER_PATROL ||
@@ -5756,6 +5779,10 @@ void CIFaceList::AddHintReplacements(const CWStr& element_name)
     {
         repl->ParSetAdd(L"_key_name", g_Config.KeyActionCode2KeyName(KA_BUILD_TURRET));
         repl->ParSetAdd(L"_build_turret", g_Config.m_TurretsConsts[0].name);
+    }
+    else if(element_name == IF_DISMANTLE_TURRET) //Кнопка демонтажа турели
+    {
+        repl->ParSetAdd(L"_key_name", g_Config.KeyActionCode2KeyName(KA_DISMANTLE_TURRET));
     }
     else if(element_name == IF_CALL_FROM_HELL) //Кнопка вызова подкрепления
     {
@@ -5948,7 +5975,7 @@ void CIFaceList::CreatePhantomCannonForBuild(int turret_type)
     CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
 
     ps->m_CannonForBuild.Delete();
-    CMatrixCannon* cannon = HNew(Base::g_MatrixHeap) CMatrixCannon;
+    CMatrixTurret* cannon = HNew(Base::g_MatrixHeap) CMatrixTurret;
     cannon->m_Pos.x = g_MatrixMap->m_TraceStopPos.x;
     cannon->m_Pos.y = g_MatrixMap->m_TraceStopPos.y;
     cannon->SetSide(PLAYER_SIDE);

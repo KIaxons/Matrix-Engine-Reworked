@@ -785,13 +785,13 @@ bool CMatrixMapLogic::PlaceFindNear(int nsh, int size, int &mx, int &my, CMatrix
                 ++other_cnt;
             }
         }
-        else if(obj->GetObjectType() == OBJECT_TYPE_CANNON && obj->AsCannon()->m_CurrentState != CANNON_DIP && obj != skip)
+        else if(obj->GetObjectType() == OBJECT_TYPE_TURRET && obj->AsTurret()->m_CurrentState != TURRET_DIP && obj != skip)
         {
             // ASSERT(other_cnt<200);
             if(other_cnt >= 200) return false;
 
             other_size[other_cnt] = 4;
-            other_des[other_cnt] = m_RoadNetwork.GetPlace(obj->AsCannon()->m_Place)->m_Pos;
+            other_des[other_cnt] = m_RoadNetwork.GetPlace(obj->AsTurret()->m_Place)->m_Pos;
             ++other_cnt;
         }
         obj = obj->GetNextLogic();
@@ -863,13 +863,13 @@ bool CMatrixMapLogic::PlaceFindNearReturn(int nsh, int size, int &mx, int &my, C
                 ++other_cnt;
             }
         }
-        else if(obj->GetObjectType() == OBJECT_TYPE_CANNON && obj->AsCannon()->m_CurrentState != CANNON_DIP)
+        else if(obj->GetObjectType() == OBJECT_TYPE_TURRET && obj->AsTurret()->m_CurrentState != TURRET_DIP)
         {
             //ASSERT(other_cnt < 200);
             if(other_cnt >= 200) return false;
 
             other_size[other_cnt] = 4;
-            other_des[other_cnt] = m_RoadNetwork.GetPlace(obj->AsCannon()->m_Place)->m_Pos;
+            other_des[other_cnt] = m_RoadNetwork.GetPlace(obj->AsTurret()->m_Place)->m_Pos;
             ++other_cnt;
         }
         obj = obj->GetNextLogic();
@@ -2758,7 +2758,7 @@ static bool Egg1(const D3DXVECTOR2& center, CMatrixMapStatic* ms, dword user)
         ++(*egg);
 
         if(ms->GetSide() != PLAYER_SIDE) (*egg) += 100;
-        if((!robot->HaveBomb() || fabs(robot->GetMaxHitPoint() - robot->GetHitPoint()) > 1) && !robot->IsInPosition())
+        if((!robot->HaveBomb() || fabs(robot->GetMaxHitPoints() - robot->GetHitpoints()) > 1) && !robot->IsInPosition())
         {
             (*egg) += 100;
         }
@@ -2939,7 +2939,7 @@ void CMatrixMapLogic::Tact(int step)
         {
             if(ms->GetObjectType() == OBJECT_TYPE_MAPOBJECT) ((CMatrixMapObject*)ms)->PauseTact(step);
             else if(ms->IsBuildingAlive()) ms->AsBuilding()->PauseTact(step);
-            else if(ms->IsCannonAlive()) ms->AsCannon()->PauseTact(step);
+            else if(ms->IsTurretAlive()) ms->AsTurret()->PauseTact(step);
             else if(ms->IsRobotAlive()) ms->AsRobot()->PauseTact(step);
             ms = ms->GetNextLogic();
 	    }
@@ -3514,9 +3514,9 @@ void CMatrixMapLogic::CalcCannonPlace()
     CMatrixMapStatic* obj = CMatrixMapStatic::GetFirstLogic();
     while(obj)
     {
-        if(obj->IsCannon())
+        if(obj->IsTurret())
         {
-            CMatrixCannon* turret = obj->AsCannon();
+            CMatrixTurret* turret = obj->AsTurret();
             turret->m_Place = m_RoadNetwork.FindInPL(CPoint(Float2Int(turret->m_Pos.x / GLOBAL_SCALE_MOVE), Float2Int(turret->m_Pos.y / GLOBAL_SCALE_MOVE)));
             if(turret->m_Place < 0) ERROR_S(L"CMatrixMapLogic::CalcCannonPlace Error!"); //Место не найдено
         }
@@ -3531,10 +3531,10 @@ bool CMatrixMapLogic::IsLogicVisible(CMatrixMapStatic* ofrom, CMatrixMapStatic* 
     D3DXVECTOR3 vstart = ofrom->GetGeoCenter();
     D3DXVECTOR3 vend;
 
-    if(oto->IsCannon())
+    if(oto->IsTurret())
     {
-        vend.x = ((CMatrixCannon*)(oto))->m_Pos.x;
-        vend.y = ((CMatrixCannon*)(oto))->m_Pos.y;
+        vend.x = ((CMatrixTurret*)(oto))->m_Pos.x;
+        vend.y = ((CMatrixTurret*)(oto))->m_Pos.y;
         vend.z = g_MatrixMap->GetZ(vend.x, vend.y) + 20.0f;
     }
     else
@@ -3549,7 +3549,7 @@ bool CMatrixMapLogic::IsLogicVisible(CMatrixMapStatic* ofrom, CMatrixMapStatic* 
         {
             trace_res = g_MatrixMap->Trace(&vt, vstart, vend, TRACE_BUILDING | TRACE_SKIP_INVISIBLE, ofrom);
             if(IS_TRACE_STOP_OBJECT(trace_res) && trace_res->IsBuilding()) break;
-            trace_res = g_MatrixMap->Trace(&vt, vstart, vend, (TRACE_OBJECT | TRACE_ROBOT | TRACE_CANNON | TRACE_FLYER) | TRACE_NONOBJECT | TRACE_OBJECTSPHERE | TRACE_SKIP_INVISIBLE, ofrom);
+            trace_res = g_MatrixMap->Trace(&vt, vstart, vend, (TRACE_OBJECT | TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET) | TRACE_NONOBJECT | TRACE_OBJECTSPHERE | TRACE_SKIP_INVISIBLE, ofrom);
         }
         if(IS_TRACE_STOP_OBJECT(trace_res) && trace_res == oto) return true;
         break;
@@ -3564,7 +3564,7 @@ bool CMatrixMapLogic::IsLogicVisible(CMatrixMapStatic* ofrom, CMatrixMapStatic* 
         {
             trace_res = g_MatrixMap->Trace(&vt, vstart, vend, TRACE_BUILDING | TRACE_SKIP_INVISIBLE, ofrom);
             if(IS_TRACE_STOP_OBJECT(trace_res) && trace_res->IsBuilding()) break;
-            trace_res = g_MatrixMap->Trace(&vt, vstart, vend, (TRACE_OBJECT | TRACE_ROBOT | TRACE_CANNON | TRACE_FLYER) | TRACE_NONOBJECT | TRACE_OBJECTSPHERE | TRACE_SKIP_INVISIBLE, ofrom);
+            trace_res = g_MatrixMap->Trace(&vt, vstart, vend, (TRACE_OBJECT | TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET) | TRACE_NONOBJECT | TRACE_OBJECTSPHERE | TRACE_SKIP_INVISIBLE, ofrom);
         }
         if(IS_TRACE_STOP_OBJECT(trace_res) && trace_res == oto) return true;
         break;

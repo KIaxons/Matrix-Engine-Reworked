@@ -819,8 +819,8 @@ int CMatrixMap::ReloadDynamics(CStorage& stor, CMatrixMap::EReloadStep step, CBu
         int n = c0->GetArrayLength(0);
         for(int i = 0; i < n; ++i)
         {
-            CMatrixCannon* c;
-            c = StaticAdd<CMatrixCannon>();
+            CMatrixTurret* c;
+            c = StaticAdd<CMatrixTurret>();
 
 skip_this_cannon:
 

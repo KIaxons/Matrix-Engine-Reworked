@@ -25,7 +25,7 @@ CMatrixFlyer::CMatrixFlyer() : CMatrixMapStatic()
     //SetDirectionAngle(1);
     SetDirectionAngle(0);
 
-    InitMaxHitpoint(5000);
+    InitMaxHitpoints(5000);
 
     InitBuffers();
     ++m_VB_ref;
@@ -354,7 +354,7 @@ void CMatrixFlyer::GetResources(dword need)
 		m_RChange &= ~MR_Graph;
 
         //float hp = (float)g_Config.m_FlyerHitPoints[m_FlyerKind];
-        //InitMaxHitpoint(hp);
+        //InitMaxHitpoints(hp);
 
         //Ресурсы вертолётам загружаются из обычной data.txt, а не из отдельного кэша (да и нахера он нужен вообще?)
         CBlockPar* flb = g_MatrixData->BlockPathGet(BLOCK_PATH_FLYERS_CONFIG);
@@ -1986,7 +1986,7 @@ void CMatrixFlyer::UnSelect()
 
 bool CMatrixFlyer::CreateSelection()
 {
-	m_Selection = (CMatrixEffectSelection*)CMatrixEffect::CreateSelection(D3DXVECTOR3(m_Pos.x, m_Pos.y, GetGeoCenter().z/*FLYER_SELECTION_HEIGHT*/), FLYER_SELECTION_SIZE);
+	m_Selection = (CMatrixEffectSelection*)CMatrixEffect::CreateSelection(D3DXVECTOR3(m_Pos.x, m_Pos.y, GetGeoCenter().z /*FLYER_SELECTION_HEIGHT*/), FLYER_SELECTION_SIZE);
     if(!g_MatrixMap->AddEffect(m_Selection))
     {
         m_Selection = nullptr;
@@ -2075,8 +2075,8 @@ void CMatrixFlyer::ReleaseMe()
         if(ps->GetCurSelNum() == pos) pos = 0;
         else pos = -1;
 
-        DeleteProgressBarClone(PBC_CLONE1);
-        DeleteProgressBarClone(PBC_CLONE2);
+        DeleteHealthBarClone(PBC_CLONE1);
+        DeleteHealthBarClone(PBC_CLONE2);
     }
 
     CMatrixMapStatic* objects = CMatrixMapStatic::GetFirstLogic();   
@@ -2113,12 +2113,12 @@ void CMatrixFlyer::ReleaseMe()
     }
 }
 
-void CMatrixFlyer::CreateProgressBarClone(float x, float y, float width, EPBCoord clone_type)
+void CMatrixFlyer::CreateHealthBarClone(float x, float y, float width, EPBCoord clone_type)
 {
     m_HealthBar.CreateClone(clone_type, x, y, width);
 }
 
-void CMatrixFlyer::DeleteProgressBarClone(EPBCoord clone_type)
+void CMatrixFlyer::DeleteHealthBarClone(EPBCoord clone_type)
 {
     m_HealthBar.KillClone(clone_type);
 }

@@ -47,6 +47,7 @@ extern int g_AvailableTexMem;
 
 extern byte g_PlayerRobotsAutoBoom;
 extern bool g_EnableFlyers;
+extern bool g_BetterTurrets;
 
 //extern CReminder* g_Reminder;
 extern D3DPRESENT_PARAMETERS g_D3Dpp; 

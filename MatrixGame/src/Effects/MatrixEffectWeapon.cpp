@@ -266,9 +266,9 @@ void CMatrixEffectWeapon::FireWeapon()
                 if(m_User)
                 {
                     /* хуй почему знает, но такое выставление цели крашит игру где-то в переборе эффектов
-                    if(((CMatrixMapStatic*)m_User)->IsCannon())
+                    if(((CMatrixMapStatic*)m_User)->IsTurret())
                     {
-                        CMatrixCannon* cannon = (CMatrixCannon*)m_User;
+                        CMatrixTurret* cannon = (CMatrixTurret*)m_User;
                         if(cannon->m_TargetCore) mo.hm.target = cannon->m_TargetCore;
                     }
                     else

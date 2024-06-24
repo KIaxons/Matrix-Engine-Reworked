@@ -197,7 +197,6 @@
 #define PAR_SOURCE_TIMINGS_UNITS                L"Units"
 #define PAR_SOURCE_TIMINGS_ROBOT                L"UNIT_ROBOT"
 #define PAR_SOURCE_TIMINGS_FLYER                L"UNIT_FLYER"
-#define PAR_SOURCE_TIMINGS_TURRET               L"UNIT_TURRET"
 
 #define PAR_SOURCE_TIMINGS_CAPTURE              L"Capture"
 #define PAR_SOURCE_TIMINGS_ERASE                L"ERASE"
@@ -372,6 +371,8 @@
 #define IF_BUILD_FLYER                          L"buhe"
 #define IF_BUILD_TURRET                         L"buca"
 #define IF_BUILD_REPAIR                         L"bure"
+
+#define IF_DISMANTLE_TURRET						L"disca"
 
 #define IF_BUILD_TUR                            L"tur"
 #define IF_BUILD_TUR1                           L"tur1"
