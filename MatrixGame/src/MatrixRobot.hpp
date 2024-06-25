@@ -549,9 +549,6 @@ public:
 	virtual void LogicTact(int cms);
     void PauseTact(int cms);
 
-#ifdef _DEBUG
-    virtual void Draw();
-#endif
     virtual bool TakingDamage(int weap, const D3DXVECTOR3& pos, const D3DXVECTOR3& dir, int attacker_side = NEUTRAL_SIDE, CMatrixMapStatic* attaker = nullptr);
 
     friend class CMatrixRobot;

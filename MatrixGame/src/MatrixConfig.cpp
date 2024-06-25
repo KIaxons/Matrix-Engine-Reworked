@@ -159,113 +159,117 @@ struct SKeyActions
 static SKeyActions key_action_codes[] =
 {
     //Управление камерой (работает только в стратегическом режиме)
-    { L"CamMoveUp",          		  KA_CAM_SCROLL_UP,              0x57 },
-    { L"CamMoveDown",        		  KA_CAM_SCROLL_DOWN,            0x53 },
-    { L"CamMoveLeft",        		  KA_CAM_SCROLL_LEFT,            0x41 },
-    { L"CamMoveRight",       		  KA_CAM_SCROLL_RIGHT,           0x44 },
+    { L"CamMoveUp",          		       KA_CAM_SCROLL_UP,              0x57 },
+    { L"CamMoveDown",        		       KA_CAM_SCROLL_DOWN,            0x53 },
+    { L"CamMoveLeft",        		       KA_CAM_SCROLL_LEFT,            0x41 },
+    { L"CamMoveRight",       		       KA_CAM_SCROLL_RIGHT,           0x44 },
 
-    { L"CamMoveUpAlt",       		  KA_CAM_SCROLL_UP_ALT,          VK_UP },
-    { L"CamMoveDownAlt",     		  KA_CAM_SCROLL_DOWN_ALT,        VK_DOWN },
-    { L"CamMoveLeftAlt",     		  KA_CAM_SCROLL_LEFT_ALT,        VK_LEFT },
-    { L"CamMoveRightAlt",    		  KA_CAM_SCROLL_RIGHT_ALT,       VK_RIGHT },
+    { L"CamMoveUpAlt",       		       KA_CAM_SCROLL_UP_ALT,          VK_UP },
+    { L"CamMoveDownAlt",     		       KA_CAM_SCROLL_DOWN_ALT,        VK_DOWN },
+    { L"CamMoveLeftAlt",     		       KA_CAM_SCROLL_LEFT_ALT,        VK_LEFT },
+    { L"CamMoveRightAlt",    		       KA_CAM_SCROLL_RIGHT_ALT,       VK_RIGHT },
 
-    { L"CamRotateUp",        		  KA_CAM_ROTATE_UP,              VK_PRIOR }, //клавиша "PageUp"
-    { L"CamRotateDown",      		  KA_CAM_ROTATE_DOWN,            VK_NEXT },  //клавиша "PageDown"
-    { L"CamRotateLeft",      		  KA_CAM_ROTATE_LEFT,            VK_HOME },  //клавиша "Home"
-    { L"CamRotateRight",    		  KA_CAM_ROTATE_RIGHT,           VK_END },   //клавиша "End"
-    { L"CamRotateLeftAlt",   		  KA_ROTATE_LEFT_ALT,            VK_OEM_4 }, //клавиша "["
-    { L"CamRotateRightAlt",  		  KA_ROTATE_RIGHT_ALT,           VK_OEM_6 }, //клавиша "]"
+    { L"CamRotateUp",        		       KA_CAM_ROTATE_UP,              VK_PRIOR }, //клавиша "PageUp"
+    { L"CamRotateDown",      		       KA_CAM_ROTATE_DOWN,            VK_NEXT },  //клавиша "PageDown"
+    { L"CamRotateLeft",      		       KA_CAM_ROTATE_LEFT,            VK_HOME },  //клавиша "Home"
+    { L"CamRotateRight",    		       KA_CAM_ROTATE_RIGHT,           VK_END },   //клавиша "End"
+    { L"CamRotateLeftAlt",   		       KA_ROTATE_LEFT_ALT,            VK_OEM_4 }, //клавиша "["
+    { L"CamRotateRightAlt",  		       KA_ROTATE_RIGHT_ALT,           VK_OEM_6 }, //клавиша "]"
 
-    { L"CamSpeedUp",  		          KA_CAM_SPEED_UP,               VK_SHIFT }, //клавиша "]"
-    { L"CamDefaultPos",      		  KA_CAM_SETDEFAULT,             VK_OEM_5 }, //клавиша "\"
+    { L"CamSpeedUp",  		               KA_CAM_SPEED_UP,               VK_SHIFT }, //клавиша "]"
+    { L"CamDefaultPos",      		       KA_CAM_SETDEFAULT,             VK_OEM_5 }, //клавиша "\"
 
     //Масштабирование миникарты
-    { L"MinimapZoomIn",      		  KA_MINIMAP_ZOOMIN,             VK_OEM_PLUS },  //клавиша "+"
-    { L"MinimapZoomOut",     		  KA_MINIMAP_ZOOMOUT,            VK_OEM_MINUS }, //клавиша "-"
+    { L"MinimapZoomIn",      		       KA_MINIMAP_ZOOMIN,             VK_OEM_PLUS },  //клавиша "+"
+    { L"MinimapZoomOut",     		       KA_MINIMAP_ZOOMOUT,            VK_OEM_MINUS }, //клавиша "-"
 
     //Меню управления зданиями (в основном базой)
-    { L"BaseSetGatheringPoint",        KA_GATHERING_POINT,            0x47 }, //установка точки сбора базы, клавиша "G"
+    { L"BaseSetGatheringPoint",            KA_GATHERING_POINT,            0x47 }, //установка точки сбора базы, клавиша "G"
 
-    { L"BaseConstMenuEnter",           KA_BUILD_ROBOT,                0x42 }, //открывает и закрывает меню конструктора робота, клавиша "B"
+    { L"BaseConstMenuEnter",               KA_BUILD_ROBOT,                0x42 }, //открывает и закрывает меню конструктора робота, клавиша "B"
     //Только из меню конструктора роботов
-    { L"BaseConstMenuLunch",           KA_BUILD_ROBOT_START,          VK_RETURN }, //клавиша "Enter"
-    { L"BaseConstMenuIncrease",        KA_BUILD_ROBOT_QUANTITY_UP,    VK_UP },
-    { L"BaseConstMenuDecrease",        KA_BUILD_ROBOT_QUANTITY_DOWN,  VK_DOWN },
-    { L"BaseConstMenuChooseLeft",      KA_BUILD_ROBOT_CHOOSE_LEFT,    VK_LEFT },
-    { L"BaseConstMenuChooseRight",     KA_BUILD_ROBOT_CHOOSE_RIGHT,   VK_RIGHT },
+    { L"BaseConstMenuLunch",               KA_BUILD_ROBOT_START,          VK_RETURN }, //клавиша "Enter"
+    { L"BaseConstMenuIncrease",            KA_BUILD_ROBOT_QUANTITY_UP,    VK_UP },
+    { L"BaseConstMenuDecrease",            KA_BUILD_ROBOT_QUANTITY_DOWN,  VK_DOWN },
+    { L"BaseConstMenuChooseLeft",          KA_BUILD_ROBOT_CHOOSE_LEFT,    VK_LEFT },
+    { L"BaseConstMenuChooseRight",         KA_BUILD_ROBOT_CHOOSE_RIGHT,   VK_RIGHT },
 
-    { L"BuildTurrMenuEnter",           KA_BUILD_TURRET,               0x54 }, //открывает и закрывает меню выбора турели, клавиша "T"
+    { L"BuildTurrMenuEnter",               KA_BUILD_TURRET,               0x54 }, //открывает и закрывает меню выбора турели, клавиша "T"
     //Только из меню выбора турели
-    { L"BuildTurrMenuLightCannon",     KA_TURRET_CANNON,              0x43 }, //выбор лёгкой пушки, клавиша "C"
-    { L"BuildTurrMenuHeavyCannon",     KA_TURRET_GUN,                 0x47 }, //выбор тяжёлой пушки, клавиша "G"
-    { L"BuildTurrMenuLaserCannon",     KA_TURRET_LASER,               0x4C }, //выбор лазера, клавиша "L"
-    { L"BuildTurrMenuMissileCannon",   KA_TURRET_ROCKET,              0x52 }, //выбор ракетницы, клавиша "R"
+    { L"BuildTurrMenuLightCannon",         KA_TURRET_CANNON,              0x43 }, //выбор лёгкой пушки, клавиша "C"
+    { L"BuildTurrMenuHeavyCannon",         KA_TURRET_GUN,                 0x47 }, //выбор тяжёлой пушки, клавиша "G"
+    { L"BuildTurrMenuLaserCannon",         KA_TURRET_LASER,               0x4C }, //выбор лазера, клавиша "L"
+    { L"BuildTurrMenuMissileCannon",       KA_TURRET_ROCKET,              0x52 }, //выбор ракетницы, клавиша "R"
 
-    { L"DismantleTurret",              KA_DISMANTLE_TURRET,           0x46 }, //запускает демонтаж турели (становится доступна при выделении конкретной турели), клавиша "F"
+    { L"DismantleTurret",                  KA_DISMANTLE_TURRET,           0x46 }, //запускает демонтаж турели (становится доступна при выделении конкретной турели), клавиша "F"
 
-    { L"CallForReinforcements",        KA_CALL_REINFORCEMENTS,        0x48 }, //вызывает подкрепление, клавиша "H"
+    { L"CallForReinforcements",            KA_CALL_REINFORCEMENTS,        0x48 }, //вызывает подкрепление, клавиша "H"
 
     //Выделение/переключение юнитов
-    { L"UnitInGroupSelect",            KA_SHIFT,                      VK_SHIFT },
-    { L"SetCtrlGroup",                 KA_CTRL,                       VK_CONTROL },
-    { L"UnitSelectPrev",               KA_ORDER_ROBOT_SWITCH1,        VK_OEM_COMMA }, //клавиша "<"
-    { L"UnitSelectNext",               KA_ORDER_ROBOT_SWITCH2,        VK_OEM_PERIOD }, //клавиша ">"
-    { L"UnitSelectAll",                KA_ALL_UNITS_SELECT,           VK_F2 },
+    { L"UnitInGroupSelect",                KA_SHIFT,                      VK_SHIFT },
+    { L"SetCtrlGroup",                     KA_CTRL,                       VK_CONTROL },
+    { L"UnitSelectPrev",                   KA_ORDER_ROBOT_SWITCH1,        VK_OEM_COMMA }, //клавиша "<"
+    { L"UnitSelectNext",                   KA_ORDER_ROBOT_SWITCH2,        VK_OEM_PERIOD }, //клавиша ">"
+    { L"UnitSelectAll",                    KA_ALL_UNITS_SELECT,           VK_F2 },
 
     //Меню приказов для юнитов
-    { L"UnitSetMoveOrder",             KA_ORDER_MOVE,                 0x46 }, //выбор приказа на движение в указанную точку, клавиша "F"
-    { L"UnitSetStopOrder",             KA_ORDER_STOP,                 0x43 }, //приказ на остановку, клавиша "C"
-    { L"UnitSetAttackOrder",           KA_ORDER_ATTACK,               0x55 }, //выбор приказа на атаку, клавиша "U"
-    { L"UnitSetCaptureOrder",          KA_ORDER_CAPTURE,              0x4B }, //выбор приказа на захват, клавиша "K"
-    { L"UnitSetPatrolOrder",           KA_ORDER_PATROL,               0x50 }, //выбор приказа на патрулирование, клавиша "P"
-    { L"UnitSetExplodeOrder",          KA_ORDER_EXPLODE,              0x45 }, //выбор приказа на подрыв бомбы (если у робота она есть), клавиша "E"
-    { L"UnitSetRepairOrder",           KA_ORDER_REPAIR,               0x52 }, //выбор приказа на ремонт (если есть ремонтник), клавиша "R"
+    { L"UnitSetMoveOrder",                 KA_ORDER_MOVE,                 0x46 }, //выбор приказа на движение в указанную точку, клавиша "F"
+    { L"UnitSetStopOrder",                 KA_ORDER_STOP,                 0x43 }, //приказ на остановку, клавиша "C"
+    { L"UnitSetAttackOrder",               KA_ORDER_ATTACK,               0x55 }, //выбор приказа на атаку, клавиша "U"
+    { L"UnitSetCaptureOrder",              KA_ORDER_CAPTURE,              0x4B }, //выбор приказа на захват, клавиша "K"
+    { L"UnitSetPatrolOrder",               KA_ORDER_PATROL,               0x50 }, //выбор приказа на патрулирование, клавиша "P"
+    { L"UnitSetExplodeOrder",              KA_ORDER_EXPLODE,              0x45 }, //выбор приказа на подрыв бомбы (если у робота она есть), клавиша "E"
+    { L"UnitSetRepairOrder",               KA_ORDER_REPAIR,               0x52 }, //выбор приказа на ремонт (если есть ремонтник), клавиша "R"
 
     //Помимо отмены выбранных приказов также используется для закрытия меню постройки турелей и конструктора роботов
-    { L"ChoosedOrderCancel",           KA_ORDER_CANCEL,               0x58 }, //клавиша "X"
+    { L"ChoosedOrderCancel",               KA_ORDER_CANCEL,               0x58 }, //клавиша "X"
 
     //Программы автоматического поведения юнитов
-    { L"UnitSetAgressiveBehavior",     KA_AUTOORDER_ATTACK,           0x56 }, //активация программы наступления, клавиша "V"
-    { L"UnitSetCaptureBehavior",       KA_AUTOORDER_CAPTURE,          0x42 }, //активация программы захвата, клавиша "B"
-    { L"UnitSetDefensiveBehavior",     KA_AUTOORDER_DEFEND,           0x4E }, //активация программы защиты, клавиша "N"
+    { L"UnitSetAgressiveBehavior",         KA_AUTOORDER_ATTACK,           0x56 }, //активация программы наступления, клавиша "V"
+    { L"UnitSetCaptureBehavior",           KA_AUTOORDER_CAPTURE,          0x42 }, //активация программы захвата, клавиша "B"
+    { L"UnitSetDefensiveBehavior",         KA_AUTOORDER_DEFEND,           0x4E }, //активация программы защиты, клавиша "N"
 
     //Ручное управление юнитом (аркадный режим)
-    { L"ManualControlEnter",           KA_UNIT_ENTER,                 VK_RETURN }, //клавиша "Enter" (if not dialog mode!)
-    { L"ManualControlEnterAlt",        KA_UNIT_ENTER_ALT,             VK_SPACE }, //клавиша "Space" (if not dialog mode!)
-    { L"ManualControlFire",            KA_FIRE,                       VK_LBUTTON },
-    { L"ManualControlAutopilot",       KA_AUTO,                       VK_RBUTTON }, //Следование вертолёта за курсором мыши (только для вертолётов)
-    { L"ManualControlExplode",         KA_UNIT_BOOM,                  0x46 }, //клавиша "F"
+    { L"ManualControlEnter",               KA_UNIT_ENTER,                 VK_RETURN }, //клавиша "Enter" (if not dialog mode!)
+    { L"ManualControlEnterAlt",            KA_UNIT_ENTER_ALT,             VK_SPACE }, //клавиша "Space" (if not dialog mode!)
+    { L"ManualControlFire",                KA_FIRE,                       VK_LBUTTON },
+    { L"ManualControlAutopilot",           KA_AUTO,                       VK_RBUTTON }, //Следование вертолёта за курсором мыши (только для вертолётов)
+    { L"ManualControlExplode",             KA_UNIT_BOOM,                  0x46 }, //клавиша "F"
 
-    { L"ManualControlMoveForward",     KA_UNIT_FORWARD,               0x57 }, //W
-    { L"ManualControlMoveBackward",    KA_UNIT_BACKWARD,              0x53 }, //S
-    { L"ManualControlMoveLeft",        KA_UNIT_STRAFE_LEFT,           0x51 }, //Q
-    { L"ManualControlMoveRight",       KA_UNIT_STRAFE_RIGHT,          0x45 }, //E
-    { L"ManualControlRotateLeft",      KA_UNIT_ROTATE_LEFT,           0x41 }, //A - используется только для роботов
-    { L"ManualControlRotateRight",     KA_UNIT_ROTATE_RIGHT,          0x44 }, //D - используется только для роботов
-    { L"ManualControlClimbUp",         KA_UNIT_UP,                    0x51 }, //Q
-    { L"ManualControlClimbDown",       KA_UNIT_DOWN,                  0x45 }, //E
+    { L"ManualControlMoveForward",         KA_UNIT_FORWARD,               0x57 }, //W
+    { L"ManualControlMoveBackward",        KA_UNIT_BACKWARD,              0x53 }, //S
+    { L"ManualControlRobotMoveLeft",       KA_ROBOT_STRAFE_LEFT,          0x51 }, //Q
+    { L"ManualControlRobotMoveRight",      KA_ROBOT_STRAFE_RIGHT,         0x45 }, //E
+    { L"ManualControlRobotRotateLeft",     KA_ROBOT_ROTATE_LEFT,          0x41 }, //A
+    { L"ManualControlRobotRotateRight",    KA_ROBOT_ROTATE_RIGHT,         0x44 }, //D
+    { L"ManualControlHeliMoveLeft",        KA_FLYER_STRAFE_LEFT,          0x41 }, //A
+    { L"ManualControlHeliMoveRight",       KA_FLYER_STRAFE_RIGHT,         0x44 }, //D
+    { L"ManualControlHeliClimbUp",         KA_FLYER_UP,                   0x51 }, //Q
+    { L"ManualControlHeliClimbDown",       KA_FLYER_DOWN,                 0x45 }, //E
 
-    { L"ManualControlMoveForwardAlt",  KA_UNIT_FORWARD_ALT,           VK_UP },
-    { L"ManualControlMoveBackwardAlt", KA_UNIT_BACKWARD_ALT,          VK_DOWN },
-    { L"ManualControlMoveLeftAlt",     KA_UNIT_STRAFE_LEFT_ALT,       VK_NUMPAD4 },
-    { L"ManualControlMoveRightAlt",    KA_UNIT_STRAFE_RIGHT_ALT,      VK_NUMPAD6 },
-    { L"ManualControlRotateLeftAlt",   KA_UNIT_ROTATE_LEFT_ALT,       VK_LEFT },
-    { L"ManualControlRotateRightAlt",  KA_UNIT_ROTATE_RIGHT_ALT,      VK_RIGHT },
-    { L"ManualControlClimbUpAlt",      KA_UNIT_UP_ALT,                VK_NUMPAD8 },
-    { L"ManualControlClimbDownAlt",    KA_UNIT_DOWN_ALT,              VK_NUMPAD2 },
-    { L"ManualControlSetGun1",         KA_UNIT_SET_GUN_1,             0x31 }, //клавиша 1
-    { L"ManualControlSetGun2",         KA_UNIT_SET_GUN_2,             0x32 }, //клавиша 2
-    { L"ManualControlSetGun3",         KA_UNIT_SET_GUN_3,             0x33 }, //клавиша 3
-    { L"ManualControlSetGun4",         KA_UNIT_SET_GUN_4,             0x34 }, //клавиша 4
-    { L"ManualControlSetGun5",         KA_UNIT_SET_GUN_5,             0x35 }, //клавиша 5
-    { L"ManualControlRearView",        KA_UNIT_REAR_VIEW,             0x58 }, //клавиша "X"
+    { L"ManualControlMoveForwardAlt",      KA_UNIT_FORWARD_ALT,           VK_UP },
+    { L"ManualControlMoveBackwardAlt",     KA_UNIT_BACKWARD_ALT,          VK_DOWN },
+    { L"ManualControlRobotMoveLeftAlt",    KA_ROBOT_STRAFE_LEFT_ALT,      VK_NUMPAD4 },
+    { L"ManualControlRobotMoveRightAlt",   KA_ROBOT_STRAFE_RIGHT_ALT,     VK_NUMPAD6 },
+    { L"ManualControlRobotRotateLeftAlt",  KA_ROBOT_ROTATE_LEFT_ALT,      VK_LEFT },
+    { L"ManualControlRobotRotateRightAlt", KA_ROBOT_ROTATE_RIGHT_ALT,     VK_RIGHT },
+    { L"ManualControlHeliMoveLeftAlt",     KA_FLYER_STRAFE_LEFT_ALT,      VK_NUMPAD4 },
+    { L"ManualControlHeliMoveRightAlt",    KA_FLYER_STRAFE_RIGHT_ALT,     VK_NUMPAD6 },
+    { L"ManualControlHeliClimbUpAlt",      KA_FLYER_UP_ALT,               VK_NUMPAD8 },
+    { L"ManualControlHeliClimbDownAlt",    KA_FLYER_DOWN_ALT,             VK_NUMPAD2 },
+    { L"ManualControlSetGun1",             KA_UNIT_SET_GUN_1,             0x31 }, //клавиша 1
+    { L"ManualControlSetGun2",             KA_UNIT_SET_GUN_2,             0x32 }, //клавиша 2
+    { L"ManualControlSetGun3",             KA_UNIT_SET_GUN_3,             0x33 }, //клавиша 3
+    { L"ManualControlSetGun4",             KA_UNIT_SET_GUN_4,             0x34 }, //клавиша 4
+    { L"ManualControlSetGun5",             KA_UNIT_SET_GUN_5,             0x35 }, //клавиша 5
+    { L"ManualControlRearView",            KA_UNIT_REAR_VIEW,             0x58 }, //клавиша "X"
 
     //Прочее
-    { L"TakeScreenShot",               KA_TAKE_SCREENSHOT,            VK_SNAPSHOT },
-    { L"SaveScreenShot",               KA_SAVE_SCREENSHOT,            VK_F9 },
-    { L"PauseTheGame",                 KA_GAME_PAUSED,                VK_PAUSE },
+    { L"TakeScreenShot",                   KA_TAKE_SCREENSHOT,            VK_SNAPSHOT },
+    { L"SaveScreenShot",                   KA_SAVE_SCREENSHOT,            VK_F9 },
+    { L"PauseTheGame",                     KA_GAME_PAUSED,                VK_PAUSE },
 
-    { nullptr,                         -1,                            -1 }
+    { nullptr,                             -1,                            -1 }
 };
 
 //Возвращаем/проверяем наличие кода клавиши привязанной к имени клавиши
@@ -625,7 +629,7 @@ void CMatrixConfig::ReadParams()
                     weapon_data.light_radius = gun_flash->ParGetNE(L"LightSpotSize").GetFloat();
                     if(weapon_data.light_radius)
                     {
-                        weapon_data.light_duration = int(1000.0f * gun_flash->ParGetNE(L"LightSpotDuration").GetFloat());
+                        weapon_data.light_duration = 1000.0f * gun_flash->ParGetNE(L"LightSpotDuration").GetFloat();
 
                         const CWStr* par = &gun_flash->ParGetNE(L"LightSpotColor");
                         if(par->IsEmpty()) weapon_data.hex_BGRA_light_color = 0xFFFFFFFF;
@@ -682,7 +686,7 @@ void CMatrixConfig::ReadParams()
                     weapon_data.light_radius = gun_flash->ParGetNE(L"LightSpotSize").GetFloat();
                     if(weapon_data.light_radius)
                     {
-                        weapon_data.light_duration = int(1000.0f * gun_flash->ParGetNE(L"LightSpotDuration").GetFloat());
+                        weapon_data.light_duration = 1000.0f * gun_flash->ParGetNE(L"LightSpotDuration").GetFloat();
 
                         const CWStr* par = &gun_flash->ParGetNE(L"LightSpotColor");
                         if(par->IsEmpty()) weapon_data.hex_BGRA_light_color = 0xFFFFFFFF;
@@ -1435,7 +1439,7 @@ void CMatrixConfig::ReadParams()
         {
             int gun_type = m_TurretsConsts[i].guns[j].weapon_type;
             if(j) str_damage += L"+";
-            int shot_delay = m_WeaponsConsts[gun_type].shots_delay;//max(m_WeaponsConsts[gun_type].shots_delay, m_TurretsConsts[i].guns_async_time * 2); //Рассинхроны между выстрелами могут замедлять скорострельность турели, если их значение выше половины значения задержки скорострельности (не могут, т.к. в этом случае просто отменятся)
+            float shot_delay = m_WeaponsConsts[gun_type].shots_delay;//max(m_WeaponsConsts[gun_type].shots_delay, m_TurretsConsts[i].guns_async_time * 2); //Рассинхроны между выстрелами могут замедлять скорострельность турели, если их значение выше половины значения задержки скорострельности (не могут, т.к. в этом случае просто отменятся)
             str_damage += CWStr(int( (m_WeaponsConsts[gun_type].damage.to_robots / 10.0f) * (1.0f / (shot_delay / 1000.0f)) ));
         }
         m_TurretsConsts[i].chars_description.Replace(CWStr(L"<DamagePerSecond>"), str_damage);

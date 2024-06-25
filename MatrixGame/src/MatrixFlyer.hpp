@@ -68,14 +68,16 @@ enum EFlyerUnitType
 
 enum EFlyerKind
 {
-    FLYER_SPEED = 0,      //Разведчик
-    FLYER_ATTACK = 1,     //Ударный
-    FLYER_TRANSPORT = 2,  //Транспорт
-    FLYER_BOMB = 3,       //Бомбардировщик
+    FLYER_SPEED = 1,     //Разведчик
+    FLYER_ATTACK = 2,    //Ударный
+    FLYER_BOMB = 3,      //Бомбардировщик
+    FLYER_TRANSPORT = 4  //Транспорт
 };
 
 struct SFlyerSpecifications
 {
+    float hitpoints = 5000.0f;
+
     float forward_speed = 0.0f;
     float reverse_speed = 0.0f;
     float strafe_speed = 0.0f;
@@ -93,10 +95,11 @@ extern const SFlyerSpecifications FlyerSpecifications[];
 #ifdef FLYER_SPECIFICATIONS
 const SFlyerSpecifications FlyerSpecifications[] =
 {
-    { 0.25, 0.15, 0.15, 0.07,   GRAD2RAD(0), GRAD2RAD(-20), GRAD2RAD(70), GRAD2RAD(75) }, //Разведчик
-    { 0.20, 0.10, 0.12, 0.05,   GRAD2RAD(0), GRAD2RAD(-18), GRAD2RAD(60), GRAD2RAD(64) }, //Ударный
-    { 0.15, 0.07, 0.08, 0.03,   GRAD2RAD(0), GRAD2RAD(-17), GRAD2RAD(40), GRAD2RAD(40) }, //Транспорт
-    { 0.17, 0.08, 0.10, 0.04,   GRAD2RAD(0), GRAD2RAD(-17), GRAD2RAD(50), GRAD2RAD(50) }  //Бомбардировщик
+    { 0.0f,    0.0f,  0.0f,  0.0f,  0.0f,  GRAD2RAD(0), GRAD2RAD(0),   GRAD2RAD(0),  GRAD2RAD(0)  }, //Это пропускаем
+    { 1250.0f, 0.25f, 0.15f, 0.15f, 0.07f, GRAD2RAD(0), GRAD2RAD(-20), GRAD2RAD(70), GRAD2RAD(75) }, //Разведчик
+    { 2500.0f, 0.20f, 0.10f, 0.12f, 0.05f, GRAD2RAD(0), GRAD2RAD(-18), GRAD2RAD(60), GRAD2RAD(64) }, //Ударный
+    { 5000.0f, 0.17f, 0.08f, 0.10f, 0.04f, GRAD2RAD(0), GRAD2RAD(-17), GRAD2RAD(50), GRAD2RAD(50) }, //Бомбардировщик
+    { 4000.0f, 0.15f, 0.07f, 0.08f, 0.03f, GRAD2RAD(0), GRAD2RAD(-17), GRAD2RAD(40), GRAD2RAD(40) }  //Транспорт
 };
 #endif
 
@@ -346,7 +349,7 @@ public:
 
     EFlyerState m_CurrentState = STATE_FLYER_IN_SPAWN;
 
-    CMatrixFlyer();
+    CMatrixFlyer(EFlyerKind kind = FLYER_SPEED);
     ~CMatrixFlyer();
 
     virtual bool IsUnitAlive()
@@ -365,12 +368,12 @@ public:
     bool        CreateSelection();
     void        KillSelection();
     void        MoveSelection();
-    CWStr       GetName()                   { return m_Name; }
+    CWStr*      GetName()                   { return &m_Name; }
     void        SetName(const CWStr& name)  { m_Name = name; }
     int         GetCtrlGroup()              { return m_CtrlGroup; } 
     void        SetCtrlGroup(int group)     { m_CtrlGroup = group; }
 
-    CMatrixBuilding* GetBase() const    { return m_Base; }
+    CMatrixBuilding* GetBase() const        { return m_Base; }
 
     bool        IsDeliveryCopter() const    { return FLAG(m_ObjectFlags, FLYER_FLAG_DELIVERY_COPTER); }
     void        SetDeliveryCopter(bool set) { INITFLAG(m_ObjectFlags, FLYER_FLAG_DELIVERY_COPTER, set); }

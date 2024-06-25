@@ -1404,10 +1404,11 @@ void CInterface::Init(void)
             CPoint pl[MAX_PLACES];
 
             int objects_cnt = 0;
-            int robots = 0;
 
             bool rsel = false;
-            bool gsel = false;            
+            bool hsel = false;
+            bool gsel = false;
+
             bool ordering = FLAG(g_IFaceList->m_IfListFlags, ORDERING_MODE);
             bool singlem = FLAG(g_IFaceList->m_IfListFlags, SINGLE_MODE) || player_side->IsUnitUnderManualControlARobot();
             bool bld_tu = ordering && FLAG(g_IFaceList->m_IfListFlags, PREORDER_BUILD_TURRET);
@@ -1419,16 +1420,17 @@ void CInterface::Init(void)
             if(work_group && work_group->GetObjectsCnt())
             {
                 objects_cnt = work_group->GetObjectsCnt();
-                robots = work_group->GetRobotsCnt();
+
                 gsel = true;
                 rsel = ((objects_cnt == 1) && (work_group->m_FirstObject->ReturnObject()->IsRobotAlive()));
+                hsel = ((objects_cnt == 1) && (work_group->m_FirstObject->ReturnObject()->IsFlyerAlive()));
+
                 sel_bot = (CMatrixRobotAI*)work_group->m_FirstObject->ReturnObject();
             }
 
             bool bombers = false;
             bool auto_bombers = false;
             bool repairers = false;
-            bool heliors = false;
 
             bool stop = false;
             bool move = false;
@@ -1459,12 +1461,12 @@ void CInterface::Init(void)
                 !player_side->IsEnoughResourcesForTurret(&g_Config.m_TurretsConsts[TURRET_MISSILE_CANNON])
               ) cant_build_turret = true;
 
-            CMatrixRobotAI* cur_r = nullptr;
-            CMatrixFlyer* cur_f = nullptr;
+            CMatrixRobotAI* cur_robot = nullptr;
+            CMatrixFlyer* cur_heli = nullptr;
 
             if(player_side->IsUnitUnderManualControlARobot())
             {
-                cur_r = (CMatrixRobotAI*)player_side->GetUnitUnderManualControl();
+                cur_robot = (CMatrixRobotAI*)player_side->GetUnitUnderManualControl();
                 robot_sel = true;
                 if(!sel_bot) sel_bot = player_side->GetUnitUnderManualControl()->AsRobot();
             }
@@ -1485,13 +1487,17 @@ void CInterface::Init(void)
 
                     if(go)
                     {
-                        CMatrixRobotAI* r = (CMatrixRobotAI*)go->ReturnObject();
                         if(go->ReturnObject()->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
                         {
                             robot_sel = true;
-                            cur_r = (CMatrixRobotAI*)go->ReturnObject();
-                            if(r->FindBombWeapon()) bomber_sel = true;
-                            if(r->FindRepairWeapon()) repairer_sel = true;
+                            cur_robot = go->ReturnObject()->AsRobot();
+                            if(cur_robot->FindBombWeapon()) bomber_sel = true;
+                            if(cur_robot->FindRepairWeapon()) repairer_sel = true;
+                        }
+                        else if(go->ReturnObject()->GetObjectType() == OBJECT_TYPE_FLYER)
+                        {
+                            heli_sel = true;
+                            cur_heli = go->ReturnObject()->AsFlyer();
                         }
                     }
                 }
@@ -1563,11 +1569,19 @@ void CInterface::Init(void)
                 {
                     if(gsel || player_side->IsArcadeMode())
                     {
-                        if((rsel || robot_sel) && cur_r)
+                        if((rsel || robot_sel) && cur_robot)
                         {
-                            if(name != cur_r->m_Name)
+                            if(name != cur_robot->m_Name)
                             {
-                                name = cur_r->m_Name;
+                                name = cur_robot->m_Name;
+                                new_name = true;
+                            }
+                        }
+                        else if((hsel || heli_sel) && cur_heli)
+                        {
+                            if(name != *cur_heli->GetName())
+                            {
+                                name = *cur_heli->GetName();
                                 new_name = true;
                             }
                         }
@@ -1597,16 +1611,26 @@ void CInterface::Init(void)
                         }
                     }
                 }
+                //Выставление значения HP для выделенного объекта
                 else if(pElement->m_strName == IF_LIVES_LABEL)
                 {
                     if(gsel || player_side->IsArcadeMode())
                     {
-                        if((rsel || robot_sel) && cur_r)
+                        if((rsel || robot_sel) && cur_robot)
                         {
-                            if(lives != cur_r->GetHitpoints())
+                            if(lives != cur_robot->GetHitpoints())
                             {
-                                lives = cur_r->GetHitpoints();
-                                max_lives = cur_r->GetMaxHitpoints();
+                                lives = cur_robot->GetHitpoints();
+                                max_lives = cur_robot->GetMaxHitpoints();
+                                new_lives = true;
+                            }
+                        }
+                        else if((hsel || heli_sel) && cur_heli)
+                        {
+                            if(lives != cur_heli->GetHitpoints())
+                            {
+                                lives = cur_heli->GetHitpoints();
+                                max_lives = cur_heli->GetMaxHitpoints();
                                 new_lives = true;
                             }
                         }
@@ -1832,21 +1856,25 @@ void CInterface::Init(void)
 
                             if(so)
                             {
-                                if(so->ReturnObject()->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
-                                {
-                                    if(i == player_side->GetCurSelNum())
-                                    {
-                                        ((CMatrixRobotAI*)so->ReturnObject())->CreateHealthBarClone(m_xPos + 68, m_yPos + 179, 68, PBC_CLONE2);
-                                    }
+                                EObjectType type = so->ReturnObject()->GetObjectType();
 
-                                    if(!singlem)
-                                    {
-                                        ((CMatrixRobotAI*)so->ReturnObject())->CreateHealthBarClone(pElement->m_xPos + m_xPos, pElement->m_yPos + m_yPos + 36, 46, PBC_CLONE1);
-                                    }
-                                    else
-                                    {
-                                        ((CMatrixRobotAI*)so->ReturnObject())->DeleteHealthBarClone(PBC_CLONE1);
-                                    }
+                                if(type == OBJECT_TYPE_ROBOT_AI)
+                                {
+                                    CMatrixRobotAI* robot = so->ReturnObject()->AsRobot();
+
+                                    if(i == player_side->GetCurSelNum()) robot->CreateHealthBarClone(m_xPos + 68.0f, m_yPos + 179.0f, 68.0f, PBC_CLONE2);
+
+                                    if(!singlem) robot->CreateHealthBarClone(pElement->m_xPos + m_xPos, pElement->m_yPos + m_yPos + 36.0f, 46.0f, PBC_CLONE1);
+                                    else robot->DeleteHealthBarClone(PBC_CLONE1);
+                                }
+                                else if(type == OBJECT_TYPE_FLYER)
+                                {
+                                    CMatrixFlyer* flyer = so->ReturnObject()->AsFlyer();
+
+                                    if(i == player_side->GetCurSelNum()) flyer->CreateHealthBarClone(m_xPos + 68.0f, m_yPos + 179.0f, 68.0f, PBC_CLONE2);
+
+                                    if(!singlem) flyer->CreateHealthBarClone(pElement->m_xPos + m_xPos, pElement->m_yPos + m_yPos + 36.0f, 46.0f, PBC_CLONE1);
+                                    else flyer->DeleteHealthBarClone(PBC_CLONE1);
                                 }
                             }
 
@@ -3332,12 +3360,12 @@ void CInterface::LogicTact(int ms)
         {
             SlideStep();
         }
-        //if(!ps->IsArcadeMode() && (GetAsyncKeyState(g_MatrixMap->m_Config.m_KeyActions[KA_UNIT_ROTATE_LEFT]) & 0x8000) == 0x8000)
+        //if(!ps->IsArcadeMode() && (GetAsyncKeyState(g_MatrixMap->m_Config.m_KeyActions[KA_ROBOT_ROTATE_LEFT]) & 0x8000) == 0x8000)
         //{
         //    MoveLeft();
         //    ReCalcElementsPos();
         //}
-        //if(!ps->IsArcadeMode() && (GetAsyncKeyState(g_MatrixMap->m_Config.m_KeyActions[KA_UNIT_ROTATE_RIGHT]) & 0x8000) == 0x8000)
+        //if(!ps->IsArcadeMode() && (GetAsyncKeyState(g_MatrixMap->m_Config.m_KeyActions[KA_ROBOT_ROTATE_RIGHT]) & 0x8000) == 0x8000)
         //{
         //    MoveRight();
         //    ReCalcElementsPos();

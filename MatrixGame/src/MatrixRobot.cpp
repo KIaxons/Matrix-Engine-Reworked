@@ -856,7 +856,7 @@ void CMatrixRobotAI::LogicTact(int ms)
 
         bool is_rotating = false;
         signed char is_strafing = 0; //Не выставляем этот маркер при выполнении полноценных стрейфов парящих шасси, т.к. им никаких дополнительных коррекций не требуется
-        if(is_strafing >= 0 && (GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_STRAFE_LEFT]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_STRAFE_LEFT_ALT]) & 0x8000) == 0x8000)
+        if(is_strafing >= 0 && (GetAsyncKeyState(g_Config.m_KeyActions[KA_ROBOT_STRAFE_LEFT]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_ROBOT_STRAFE_LEFT_ALT]) & 0x8000) == 0x8000)
         {
             if(IsHoveringChassis())
             {
@@ -886,7 +886,7 @@ void CMatrixRobotAI::LogicTact(int ms)
             }
         }
 
-        if(is_strafing <= 0 && (GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_STRAFE_RIGHT]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_STRAFE_RIGHT_ALT]) & 0x8000) == 0x8000)
+        if(is_strafing <= 0 && (GetAsyncKeyState(g_Config.m_KeyActions[KA_ROBOT_STRAFE_RIGHT]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_ROBOT_STRAFE_RIGHT_ALT]) & 0x8000) == 0x8000)
         {
             if(IsHoveringChassis())
             {
@@ -936,7 +936,7 @@ void CMatrixRobotAI::LogicTact(int ms)
         }
 
         //Поворот шасси (и, как следствие, камеры)
-        if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_ROTATE_LEFT]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_ROTATE_LEFT_ALT]) & 0x8000) == 0x8000)
+        if((GetAsyncKeyState(g_Config.m_KeyActions[KA_ROBOT_ROTATE_LEFT]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_ROBOT_ROTATE_LEFT_ALT]) & 0x8000) == 0x8000)
         {
             //RotateRobotLeft(); //Вроде как тут обработчик учитывает ещё и отклонение по оси Z, но я не уверен, что оно до сих пор актуально
 
@@ -951,7 +951,7 @@ void CMatrixRobotAI::LogicTact(int ms)
             SETFLAG(m_ObjectFlags, ROBOT_FLAG_ROTATING);
             is_rotating = true;
         }
-        if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_ROTATE_RIGHT]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_ROTATE_RIGHT_ALT]) & 0x8000) == 0x8000)
+        if((GetAsyncKeyState(g_Config.m_KeyActions[KA_ROBOT_ROTATE_RIGHT]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_ROBOT_ROTATE_RIGHT_ALT]) & 0x8000) == 0x8000)
         {
             //RotateRobotRight(); //Вроде как тут обработчик учитывает ещё и отклонение по оси Z, но я не уверен, что оно до сих пор актуально
 
@@ -3325,7 +3325,7 @@ void CMatrixRobotAI::WallAvoid(const D3DXVECTOR3& o, const D3DXVECTOR3& dest)
 
         if(IsInManualControl())
         {
-            if(((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_ROTATE_LEFT]) & 0x8000) == 0x8000) || ((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_ROTATE_RIGHT]) & 0x8000) == 0x8000))
+            if(((GetAsyncKeyState(g_Config.m_KeyActions[KA_ROBOT_ROTATE_LEFT]) & 0x8000) == 0x8000) || ((GetAsyncKeyState(g_Config.m_KeyActions[KA_ROBOT_ROTATE_RIGHT]) & 0x8000) == 0x8000))
             {
                 ZeroMemory(&m_CollAvoid, sizeof(D3DXVECTOR3));
             }

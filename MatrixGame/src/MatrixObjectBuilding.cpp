@@ -1430,9 +1430,9 @@ void CMatrixBuilding::Reinforcements()
 bool CMatrixBuilding::BuildFlyer(EFlyerKind kind)
 {
     CMatrixFlyer* fl = g_MatrixMap->StaticAdd<CMatrixFlyer>();
+    fl->m_FlyerKind = kind;
 
     SetSpawningUnit(true);
-    fl->m_FlyerKind = kind;
     fl->SetDeliveryCopter(false);
 
     //Готовый вертолёт выезжает с базы

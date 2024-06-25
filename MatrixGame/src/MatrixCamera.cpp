@@ -14,10 +14,10 @@
 
 void SetMaxCameraDistance(float perc)
 {
-    g_MaxViewDistance = 4000.0 * (1.0 + 0.01 * perc);
+    g_MaxViewDistance = 4000.0f * (1.0f + 0.01f * perc);
 }
 
-void  SAutoFlyData::Release(void)
+void  SAutoFlyData::Release()
 {
     KillTrajectory();
     for(int i = 0; i < m_WarPairsCnt; ++i)
@@ -38,10 +38,8 @@ void  SAutoFlyData::Release(void)
 
 }
 
-void SAutoFlyData::Stat(void)
+void SAutoFlyData::Stat()
 {
-    DTRACE();
-
     if((g_MatrixMap->GetTime() - m_LastStatTime) < 60000) return;
 
     if(!g_MatrixMap->IsPaused())
@@ -51,11 +49,8 @@ void SAutoFlyData::Stat(void)
     }
 }
 
-
-void SAutoFlyData::KillTrajectory(void)
+void SAutoFlyData::KillTrajectory()
 {
-DTRACE();
-
     //if(m_Traj)
     //{
     //    HDelete(CTrajectory, m_Traj, g_MatrixHeap);
@@ -63,12 +58,10 @@ DTRACE();
     //}
 }
 
-void SAutoFlyData::AddWarPair(CMatrixMapStatic *tgt, CMatrixMapStatic *attacker)
+void SAutoFlyData::AddWarPair(CMatrixMapStatic* tgt, CMatrixMapStatic* attacker)
 {
-DTRACE();
-
-    SObjectCore *core0 = tgt->GetCore(DEBUG_CALL_INFO);
-    SObjectCore *core1 = attacker->GetCore(DEBUG_CALL_INFO);
+    SObjectCore* core0 = tgt->GetCore(DEBUG_CALL_INFO);
+    SObjectCore* core1 = attacker->GetCore(DEBUG_CALL_INFO);
 
     for(int i = 0; i < m_WarPairsCnt;)
     {
@@ -103,7 +96,6 @@ DTRACE();
     core0->Release();
     core1->Release();
 }
-
 
 //void SAutoFlyData::BuildTrajectory(ETrajectoryStatus status)
 //{

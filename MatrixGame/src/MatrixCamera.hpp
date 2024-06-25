@@ -141,12 +141,12 @@ struct SAutoFlyData
 
 class CMatrixCamera : public CMain
 {
-    D3DVIEWPORT9    m_ViewPort;
-	D3DXMATRIX      m_MatProj;
-	D3DXMATRIX      m_MatView;
-    D3DXMATRIX      m_MatViewInversed;
+    D3DVIEWPORT9    m_ViewPort = {};
+    D3DXMATRIX      m_MatProj = {};
+	D3DXMATRIX      m_MatView = {};
+    D3DXMATRIX      m_MatViewInversed = {};
 
-    D3DXMATRIX      m_DN_iview;
+    D3DXMATRIX      m_DN_iview = {};
     D3DXVECTOR3     m_DN_fc = { 0.0f, 0.0f, 0.0f };
 
     D3DXVECTOR3     m_FrustumCenter = { 0.0f, 0.0f, 0.0f };

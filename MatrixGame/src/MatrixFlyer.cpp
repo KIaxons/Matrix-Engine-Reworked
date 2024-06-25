@@ -18,19 +18,20 @@
 D3D_VB CMatrixFlyer::m_VB;
 int    CMatrixFlyer::m_VB_ref;
 
-CMatrixFlyer::CMatrixFlyer() : CMatrixMapStatic()
+CMatrixFlyer::CMatrixFlyer(EFlyerKind kind) : m_FlyerKind(kind)
 {
     m_Core->m_Type = OBJECT_TYPE_FLYER;
 
     //SetDirectionAngle(1);
     SetDirectionAngle(0);
 
-    InitMaxHitpoints(5000);
+    InitMaxHitpoints(FlyerSpecifications[kind].hitpoints);
+    SetName(g_MatrixData->BlockGet(BLOCK_PATH_FLYERS_CONFIG)->BlockGet(CWStr(kind))->ParGet(L"Name"));
 
     InitBuffers();
     ++m_VB_ref;
 
-    m_HealthBar.Modify(1000000, 0, PB_FLYER_WIDTH, 1);
+    m_HealthBar.Modify(1000000.0f, 0.0f, PB_FLYER_WIDTH, 1);
 
     if(g_Config.m_UnitShadows) m_ShadowType = SHADOW_STENCIL;
 }
@@ -358,7 +359,7 @@ void CMatrixFlyer::GetResources(dword need)
 
         //Ресурсы вертолётам загружаются из обычной data.txt, а не из отдельного кэша (да и нахера он нужен вообще?)
         CBlockPar* flb = g_MatrixData->BlockPathGet(BLOCK_PATH_FLYERS_CONFIG);
-        flb = flb->BlockGetNE(CWStr((int)m_FlyerKind + 1, g_CacheHeap).Get());
+        flb = flb->BlockGetNE(CWStr((int)m_FlyerKind, g_CacheHeap).Get());
 
         if(flb)
         {
@@ -707,22 +708,22 @@ void CMatrixFlyer::LogicTactArcade(SFlyerTactData& td)
         MoveBackward();
         SETFLAG(m_Flags, FLYER_MANUAL);
     }
-    if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_STRAFE_LEFT]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_STRAFE_LEFT_ALT]) & 0x8000) == 0x8000)
+    if((GetAsyncKeyState(g_Config.m_KeyActions[KA_FLYER_STRAFE_LEFT]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_FLYER_STRAFE_LEFT_ALT]) & 0x8000) == 0x8000)
     {
         MoveLeft();
         SETFLAG(m_Flags, FLYER_MANUAL);
     }
-    if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_STRAFE_RIGHT]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_STRAFE_RIGHT_ALT]) & 0x8000) == 0x8000)
+    if((GetAsyncKeyState(g_Config.m_KeyActions[KA_FLYER_STRAFE_RIGHT]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_FLYER_STRAFE_RIGHT_ALT]) & 0x8000) == 0x8000)
     {
         MoveRight();
         SETFLAG(m_Flags, FLYER_MANUAL);
     }
-    if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_UP]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_UP_ALT]) & 0x8000) == 0x8000)
+    if((GetAsyncKeyState(g_Config.m_KeyActions[KA_FLYER_UP]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_FLYER_UP_ALT]) & 0x8000) == 0x8000)
     {
         MoveUp(FlyerSpecifications[m_FlyerKind]);
         //SETFLAG(m_Flags, FLYER_MANUAL);
     }
-    if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_DOWN]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_DOWN_ALT]) & 0x8000) == 0x8000)
+    if((GetAsyncKeyState(g_Config.m_KeyActions[KA_FLYER_DOWN]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_FLYER_DOWN_ALT]) & 0x8000) == 0x8000)
     {
         MoveDown(FlyerSpecifications[m_FlyerKind]);
         //SETFLAG(m_Flags, FLYER_MANUAL);
@@ -1089,23 +1090,20 @@ void CMatrixFlyer::ApplyOrder(
     {
         bp = g_MatrixData->BlockPathGet(BLOCK_PATH_REINFORCEMENTS);
 
-        float dist = bp->ParGet(L"FlightDistance").GetDouble() + FSRND(150);
-        float height = bp->ParGet(L"FlightHeightAboveSeaLevel").GetDouble();
+        float dist = bp->ParGet(L"FlightDistance").GetFloat() + FSRND(150.0f);
+        float height = bp->ParGet(L"FlightHeightAboveSeaLevel").GetFloat();
 
         float z = g_MatrixMap->GetZ(pos.x, pos.y);
-        D3DXVECTOR3 p(pos.x, pos.y, z + bp->ParGet(L"RobotDropHeight").GetDouble());
+        D3DXVECTOR3 p(pos.x, pos.y, z + bp->ParGet(L"RobotDropHeight").GetFloat());
 
-        D3DXVECTOR3 dir;
-        dir.x = TableSin(ang);
-        dir.y = TableCos(ang);
-        dir.z = 0;
+        D3DXVECTOR3 dir = { TableSin(ang), TableCos(ang), 0.0f };
 
         D3DXVECTOR3 pts[4];
 
-        pts[0] = p - dir * dist + D3DXVECTOR3(0, 0, height);
-        pts[1] = p - dir * 100;
-        pts[2] = p + dir * 100;
-        pts[3] = p + dir * dist * 2 + D3DXVECTOR3(0, 0, height * 3);
+        pts[0] = p - dir * dist + D3DXVECTOR3(0.0f, 0.0f, height);
+        pts[1] = p - dir * 100.0f;
+        pts[2] = p + dir * 100.0f;
+        pts[3] = p + dir * dist * 2.0f + D3DXVECTOR3(0.0f, 0.0f, height * 3.0f);
 
         m_Pos = pts[0];
 
@@ -1291,7 +1289,7 @@ DTRACE();
     if(m_EngineUnit >= 0)
     {
         float ea = m_Modules[m_EngineUnit].m_Engine.m_Angle;
-        float dang = AngleDist((double)ea, (double)m_TargetEngineAngle);
+        float dang = (float)AngleDist((double)ea, (double)m_TargetEngineAngle);
         ea += dang * td.mul;
         for(int ii = m_EngineUnit; ii < m_ModulesCount; ++ii)
         {
@@ -1299,10 +1297,10 @@ DTRACE();
         }
     }
 
-    float dang = AngleDist((double)m_Pitch, (double)m_TargetPitchAngle);
+    float dang = (float)AngleDist((double)m_Pitch, (double)m_TargetPitchAngle);
     m_Pitch += dang * td.mul;
 
-    dang = AngleDist((double)m_Roll, (double)m_TargetRollAngle);
+    dang = (float)AngleDist((double)m_Roll, (double)m_TargetRollAngle);
     m_Roll += dang * td.mul;
 
     //Здесь происходит корректировка высоты полёта
@@ -1314,23 +1312,6 @@ DTRACE();
         m_Pos.z += (newz - m_Pos.z) * td.mul + m_AltitudeCorrection;
         RChange(MR_Matrix);
     }
-
-#ifdef _DEBUG1
-    for(float yy = m_Pos.y - 100; yy < m_Pos.y + 100; yy += 10)
-    {
-        for(float xx = m_Pos.x - 100; xx < m_Pos.x + 100; xx += 10)
-        {
-            float z = g_MatrixMap->GetZInterpolated(xx, yy);
-            float z1 = g_MatrixMap->GetZInterpolated(xx + 10, yy);
-            float z2 = g_MatrixMap->GetZInterpolated(xx + 10, yy + 10);
-            D3DXVECTOR3 p0(xx, yy, z);
-            D3DXVECTOR3 p1(xx + 10, yy, z1);
-            D3DXVECTOR3 p2(xx + 10, yy + 10, z2);
-            CHelper::Create(1, 0)->Line(p0, p1);
-            CHelper::Create(1, 0)->Line(p1, p2);
-        }
-    }
-#endif
 
     if(IsCarryingRobot())
     {
