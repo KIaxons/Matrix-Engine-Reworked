@@ -100,8 +100,12 @@ void CMatrixTurret::Dismantle()
 {
     m_CurrentState = TURRET_UNDER_DECONSTRUCTION;
     m_HitpointsBeforeDismantle = m_Hitpoints;
+
+    for(int i = 0; i < m_TurretWeapon.size(); ++i) m_TurretWeapon[i].m_Weapon->FireEnd();
+    EndFireAnimation();
     ShowHitpoints();
     SetInvulnerability();
+
     m_ParentBuilding->m_BuildingQueue.AddItem(this);
 }
 

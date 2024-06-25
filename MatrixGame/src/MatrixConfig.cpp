@@ -622,7 +622,7 @@ void CMatrixConfig::ReadParams()
                     }
                     else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
 
-                    weapon_data.light_radius = gun_flash->ParGetNE(L"LightSpotSize").GetInt();
+                    weapon_data.light_radius = gun_flash->ParGetNE(L"LightSpotSize").GetFloat();
                     if(weapon_data.light_radius)
                     {
                         weapon_data.light_duration = int(1000.0f * gun_flash->ParGetNE(L"LightSpotDuration").GetFloat());
@@ -679,7 +679,7 @@ void CMatrixConfig::ReadParams()
                     }
                     else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
 
-                    weapon_data.light_radius = gun_flash->ParGetNE(L"LightSpotSize").GetInt();
+                    weapon_data.light_radius = gun_flash->ParGetNE(L"LightSpotSize").GetFloat();
                     if(weapon_data.light_radius)
                     {
                         weapon_data.light_duration = int(1000.0f * gun_flash->ParGetNE(L"LightSpotDuration").GetFloat());

@@ -642,8 +642,8 @@ struct SWeaponsConsts
     int   contrail_fire_effect_starts = 0;
     dword hex_BGRA_sprites_color = 0;
 
-    int   light_radius = 0;
-    int   light_duration = 0;
+    float light_radius = 0.0f;
+    float light_duration = 0.0f;
     dword hex_BGRA_light_color = 0;
 
     SFloatRGBColor close_color_rgb = { 0.0f, 0.0f, 0.0f };

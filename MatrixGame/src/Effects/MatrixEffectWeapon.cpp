@@ -89,7 +89,7 @@ DTRACE();
     }
     else if(hiti == TRACE_STOP_WATER && w->m_WeaponNum != WEAPON_FLAMETHROWER && w->m_WeaponNum != WEAPON_BOMB)
     {
-        CMatrixEffect::CreateKonusSplash(pos, D3DXVECTOR3(0, 0, 1), 10, 5, FSRND(M_PI), 1000, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged,TEXTURE_PATH_SPLASH));
+        CMatrixEffect::CreateKonusSplash(pos, D3DXVECTOR3(0, 0, 1), 10, 5, FSRND((float)M_PI), 1000, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged,TEXTURE_PATH_SPLASH));
     }
 
     if(odead) hiti = TRACE_STOP_NONE;
@@ -236,7 +236,7 @@ void CMatrixEffectWeapon::FireWeapon()
                 if(g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_count) //На случай, если спрайтовую "вспышку" отрубили совсем
                 {
                     int f = IRND(g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_count);
-                    CMatrixEffect::CreateSpritesLine(nullptr, m_Pos, m_Pos + m_Dir * g_Config.m_WeaponsConsts[m_WeaponNum].sprites_lenght, g_Config.m_WeaponsConsts[m_WeaponNum].sprites_width, 0xFFFFFFFF, 0, 1000, m_SpriteTextures[g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_num[f]].tex);
+                    CMatrixEffect::CreateSpritesLine(nullptr, m_Pos, m_Pos + m_Dir * (float)g_Config.m_WeaponsConsts[m_WeaponNum].sprites_lenght, (float)g_Config.m_WeaponsConsts[m_WeaponNum].sprites_width, 0xFFFFFFFF, 0, 1000, m_SpriteTextures[g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_num[f]].tex);
                 }
 
                 break;
@@ -285,7 +285,7 @@ void CMatrixEffectWeapon::FireWeapon()
                     }
                 }
                 mo.hm.splash_radius = g_Config.m_WeaponsConsts[m_WeaponNum].projectile_splash_radius;
-                mo.hm.max_lifetime = g_Config.m_WeaponsConsts[m_WeaponNum].projectile_max_lifetime;
+                mo.hm.max_lifetime = (float)g_Config.m_WeaponsConsts[m_WeaponNum].projectile_max_lifetime;
 
                 if(m_User) mo.hm.missile_owner = (CMatrixMapStatic*)m_User;
 
@@ -320,7 +320,7 @@ void CMatrixEffectWeapon::FireWeapon()
                 if(g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_count) //На случай, если спрайтовую "вспышку" отрубили совсем
                 {
                     int f = IRND(g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_count);
-                    CMatrixEffect::CreateSpritesLine(nullptr, m_Pos, m_Pos + m_Dir * g_Config.m_WeaponsConsts[m_WeaponNum].sprites_lenght, g_Config.m_WeaponsConsts[m_WeaponNum].sprites_width, 0xFFFFFFFF, 0, 1000, m_SpriteTextures[g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_num[f]].tex);
+                    CMatrixEffect::CreateSpritesLine(nullptr, m_Pos, m_Pos + m_Dir * (float)g_Config.m_WeaponsConsts[m_WeaponNum].sprites_lenght, (float)g_Config.m_WeaponsConsts[m_WeaponNum].sprites_width, 0xFFFFFFFF, 0, 1000, m_SpriteTextures[g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_num[f]].tex);
                 }
 
                 break;
@@ -495,13 +495,13 @@ void CMatrixEffectWeapon::FireWeapon()
             else if(s == TRACE_STOP_WATER)
             {
                 splash = D3DXVECTOR3(0, 0, 1);
-                CMatrixEffect::CreateKonusSplash(hitpos, splash, 10, 5, FSRND(M_PI), 1000, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged, TEXTURE_PATH_SPLASH));
+                CMatrixEffect::CreateKonusSplash(hitpos, splash, 10, 5, FSRND((float)M_PI), 1000, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged, TEXTURE_PATH_SPLASH));
             }
             else
             {
                 g_MatrixMap->GetNormal(&splash, hitpos.x, hitpos.y);
-                CMatrixEffect::CreateKonus(nullptr, hitpos, splash, 5, 10, FSRND(M_PI), 300, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged, TEXTURE_PATH_GUN_BULLETS1));
-                CMatrixEffect::CreateKonus(nullptr, hitpos, splash, 5, 5, FSRND(M_PI), 300, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged, TEXTURE_PATH_GUN_BULLETS2));
+                CMatrixEffect::CreateKonus(nullptr, hitpos, splash, 5, 10, FSRND((float)M_PI), 300, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged, TEXTURE_PATH_GUN_BULLETS1));
+                CMatrixEffect::CreateKonus(nullptr, hitpos, splash, 5, 5, FSRND((float)M_PI), 300, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged, TEXTURE_PATH_GUN_BULLETS2));
             }
 
             if(FRND(1) < 0.1f)
@@ -543,7 +543,7 @@ void CMatrixEffectWeapon::FireWeapon()
             }
             else if(s == TRACE_STOP_LANDSCAPE)
             {
-                CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND(M_PI), FRND(1) + 0.5f, SPOT_PLASMA_HIT);
+                CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND((float)M_PI), FRND(1) + 0.5f, SPOT_PLASMA_HIT);
 
                 //e = CMatrixEffect::CreateShorted(hitpos + D3DXVECTOR3(FSRND(5), FSRND(5), 0), hitpos + D3DXVECTOR3(FSRND(5), FSRND(5), 0), int(FRND(500) + 400));
                 //g_MatrixMap->AddEffect(e);
@@ -581,7 +581,7 @@ void CMatrixEffectWeapon::FireWeapon()
             }
             else if(s == TRACE_STOP_LANDSCAPE)
             {
-                CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND(M_PI), FRND(1) + 0.5f, SPOT_PLASMA_HIT);
+                CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND((float)M_PI), FRND(1.0f) + 0.5f, SPOT_PLASMA_HIT);
                 CMatrixEffect::CreateExplosion(hitpos, ExplosionLaserHit);
             }
             else if(s == TRACE_STOP_WATER)
@@ -617,7 +617,7 @@ void CMatrixEffectWeapon::FireWeapon()
     }
 }
 
-void CMatrixEffectWeapon::FireEnd(void)
+void CMatrixEffectWeapon::FireEnd()
 {
     if(!IsFire()) return;
     RESETFLAG(m_Flags, WEAPFLAGS_FIRE);

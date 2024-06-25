@@ -362,7 +362,7 @@ CMatrixEffectExplosion::CMatrixEffectExplosion(const D3DXVECTOR3& pos, const SEx
         m_Deb[i].type = DEB_FIRE;
 
         float r = (float)RND(m_Props->min_speed, m_Props->max_speed);
-        float a = FSRND(M_PI);
+        float a = FSRND((float)M_PI);
         m_Deb[i].v.x = TableSin(a) * r * 0.5f;
         m_Deb[i].v.y = TableCos(a) * r * 0.5f;
         m_Deb[i].v.z = (float)RND(m_Props->min_speed_z * 0.5f, m_Props->max_speed_z * 0.5f);
@@ -376,11 +376,11 @@ CMatrixEffectExplosion::CMatrixEffectExplosion(const D3DXVECTOR3& pos, const SEx
         --intense_cnt;
         m_Deb[i].type = DEB_INTENSE;
         m_Deb[i].billboard = (CSprite*)HAlloc(sizeof(CSprite), m_Heap);
-        m_Deb[i].billboard->CSprite::CSprite(TRACE_PARAM_CALL pos, INTENSE_INIT_SIZE, FSRND(M_PI), 0x1F807E1B, m_SpriteTextures[BBT_INTENSE].tex);
+        m_Deb[i].billboard->CSprite::CSprite(TRACE_PARAM_CALL pos, INTENSE_INIT_SIZE, FSRND((float)M_PI), 0x1F807E1B, m_SpriteTextures[BBT_INTENSE].tex);
         m_Deb[i].ttm = FRND(200);
         
         float sn, cs;
-        SinCos(FSRND(M_PI), &sn, &cs);
+        SinCos(FSRND((float)M_PI), &sn, &cs);
         m_Deb[i].v = D3DXVECTOR3(float(INTENSE_DISPLACE_RADIUS * cs), float(INTENSE_DISPLACE_RADIUS * sn), 0);
         m_Deb[i].ttl = INTENSE_TTL;
     }
@@ -397,7 +397,7 @@ CMatrixEffectExplosion::CMatrixEffectExplosion(const D3DXVECTOR3& pos, const SEx
         //m_Deb[i].len = 20;
 
         float r = (float)RND(m_Props->min_speed, m_Props->max_speed);
-        SinCos(FSRND(M_PI), &m_Deb[i].v.x, &m_Deb[i].v.y);
+        SinCos(FSRND((float)M_PI), &m_Deb[i].v.x, &m_Deb[i].v.y);
         m_Deb[i].v.x *= r;
         m_Deb[i].v.y *= r;
         m_Deb[i].v.z = (float)RND(m_Props->min_speed_z, m_Props->max_speed_z);
@@ -425,7 +425,7 @@ CMatrixEffectExplosion::CMatrixEffectExplosion(const D3DXVECTOR3& pos, const SEx
         ASSERT(m_Deb[i].index >= 0);
 
         float r = (float)RND(m_Props->min_speed, m_Props->max_speed);
-        SinCos(FSRND(M_PI), &m_Deb[i].v.x, &m_Deb[i].v.y); m_Deb[i].v.x *= r; m_Deb[i].v.y *= r;
+        SinCos(FSRND((float)M_PI), &m_Deb[i].v.x, &m_Deb[i].v.y); m_Deb[i].v.x *= r; m_Deb[i].v.y *= r;
         m_Deb[i].v.z = (float)RND(m_Props->min_speed_z, m_Props->max_speed_z);
         m_Deb[i].ttl = (float)RND(m_Props->deb_min_ttl, m_Props->deb_max_ttl);
     }
@@ -590,33 +590,31 @@ DTRACE();
 
 void CMatrixEffectExplosion::Tact(float step)
 {
-    DTRACE();
-
-    float dtime = (DEBRIS_SPEED*step);
+    float dtime = (DEBRIS_SPEED * step);
 
     m_Time += dtime;
 
     int i;
-
-    if (m_Light.effect)
+    if(m_Light.effect)
     {
-        if (m_Time < m_Props->light_time1)
+        if(m_Time < m_Props->light_time1)
         {
             float k = (m_Time / m_Props->light_time1);
 
-            ((CMatrixEffectPointLight *)m_Light.effect)->SetColor(LIC(m_Props->light_color1, m_Props->light_color2, k));
-            ((CMatrixEffectPointLight *)m_Light.effect)->SetRadius(LERPFLOAT(k, m_Props->light_radius1, m_Props->light_radius2));
-        } else
+            ((CMatrixEffectPointLight*)m_Light.effect)->SetColor(LIC(m_Props->light_color1, m_Props->light_color2, k));
+            ((CMatrixEffectPointLight*)m_Light.effect)->SetRadius(LERPFLOAT(k, m_Props->light_radius1, m_Props->light_radius2));
+        }
+        else
         {
             float kill_time = float(m_Props->light_time2 - m_Props->light_time1) / DEBRIS_SPEED;
-            ((CMatrixEffectPointLight *)m_Light.effect)->Kill(kill_time);
+            ((CMatrixEffectPointLight*)m_Light.effect)->Kill(kill_time);
             m_Light.Unconnect();
         }
 
     }
 
     /*
-    for(i = 0; i<m_DebrisCnt; ++i)
+    for(i = 0; i < m_DebrisCnt; ++i)
     {
         m_Debris[i].Tact(step);
     }
@@ -625,7 +623,7 @@ void CMatrixEffectExplosion::Tact(float step)
     // update debrises lives
 
     i = 0;
-    while(i<m_DebCnt)
+    while(i < m_DebCnt)
     {
         if(m_Deb[i].type == DEB_INTENSE)
         {
@@ -651,14 +649,14 @@ void CMatrixEffectExplosion::Tact(float step)
         ++i;
     }
 
-    if(m_DebCnt == 0)
+    if(!m_DebCnt)
     {
         if(m_Light.effect) return; // light not yet finished
         g_MatrixMap->SubEffect(this);
         return;
     }
 
-    for(i=0; i<m_DebCnt; ++i)
+    for(i = 0; i < m_DebCnt; ++i)
     {
         SDebris* deb = m_Deb + i;
 
@@ -668,9 +666,9 @@ void CMatrixEffectExplosion::Tact(float step)
             {
                 float t = 1.0f - ((float)deb->ttl * INVERT(INTENSE_TTL));
 
-                float displace_factor = (t > 0.05f)?1:t*20;
+                float displace_factor = (t > 0.05f) ? 1 : t * 20;
 
-                m_Deb[i].billboard->DisplaceTo(D3DXVECTOR2(deb->v.x * displace_factor,deb->v.y * displace_factor));
+                m_Deb[i].billboard->DisplaceTo(D3DXVECTOR2(deb->v.x * displace_factor, deb->v.y * displace_factor));
                 m_Deb[i].billboard->SetScale(1.0f + (INTENSE_END_SIZE / INTENSE_INIT_SIZE - 1.0f) * displace_factor);
 
                 const SGradient   R[3] = 
@@ -695,16 +693,16 @@ void CMatrixEffectExplosion::Tact(float step)
                 };
 
                 byte a = (byte)Float2Int((1.0f - KSCALE(t, 0.0f, 1.0f)) * 255);
-                byte r = (byte)Float2Int(CalcGradient(t,R));
-                byte g = (byte)Float2Int(CalcGradient(t,G));
-                byte b = (byte)Float2Int(CalcGradient(t,B));
-                deb->billboard->SetColor((a<<24) | (r<<16) | (g<<8) | b);
-
+                byte r = (byte)Float2Int(CalcGradient(t, R));
+                byte g = (byte)Float2Int(CalcGradient(t, G));
+                byte b = (byte)Float2Int(CalcGradient(t, B));
+                deb->billboard->SetColor((a << 24) | (r << 16) | (g << 8) | b);
             }
             continue;
-        } else  if (m_Deb[i].type == DEB_FIRE)
+        }
+        else if(m_Deb[i].type == DEB_FIRE)
         {
-            if (deb->light.effect == nullptr || deb->fire.effect == nullptr)
+            if(deb->light.effect == nullptr || deb->fire.effect == nullptr)
             {
                 // эффект скончался.
                 deb->ttl = 1;
@@ -719,18 +717,18 @@ void CMatrixEffectExplosion::Tact(float step)
         *pos += deb->v * dtime;
 
         float z = g_MatrixMap->GetZ(pos->x, pos->y);
-        if (pos->z < WATER_LEVEL)
+        if(pos->z < WATER_LEVEL)
         {
-            if (z <= WATER_LEVEL)
+            if(z <= WATER_LEVEL)
             {
                 // in water
                 deb->ttl = 1;
-                CMatrixEffect::CreateKonusSplash(*pos, D3DXVECTOR3(0,0,1), 10, 5, FSRND(M_PI), 1000, true, (CTextureManaged *)g_Cache->Get(cc_TextureManaged,TEXTURE_PATH_SPLASH));
+                CMatrixEffect::CreateKonusSplash(*pos, D3DXVECTOR3(0,0,1), 10, 5, FSRND((float)M_PI), 1000, true, (CTextureManaged *)g_Cache->Get(cc_TextureManaged,TEXTURE_PATH_SPLASH));
                 continue;
             }
         }
 
-        if (z > pos->z)
+        if(z > pos->z)
         {
             float vl = D3DXVec3Length(&deb->v);
             D3DXVECTOR3 n;
@@ -746,25 +744,25 @@ void CMatrixEffectExplosion::Tact(float step)
             }
         }
 
-        if (deb->type == DEB_FIRE)
+        if(deb->type == DEB_FIRE)
         {
             ASSERT(deb->light.effect);
             ((CMatrixEffectPointLight *)deb->light.effect)->SetPos(*pos);
-        } else if (deb->type == DEB_SPARK)
+        }
+        else if(deb->type == DEB_SPARK)
         {
             float k = deb->ttl * deb->unttl;
             float len = 5 * k * k + 1;
 
             D3DXVECTOR3 delta(*pos - deb->prepos);
             float x = D3DXVec3Length(&delta);
-            if (x > len)
+
+            if(x > len)
             {
                 deb->prepos += delta * (x-len) / x;
             }
+
             deb->bline->SetPos(deb->prepos, *pos);
         }
     }
-
-
 }
-
