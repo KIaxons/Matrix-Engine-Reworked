@@ -351,15 +351,16 @@ void CMatrixSideUnit::SpawnDeliveryFlyer(
     int place,
     const CPoint& b_pos,
     int robot_template,
-    EFlyerKind flyer_type,
-    float flyer_structure
+    EFlyerKind flyer_type
 )
 {
     if(g_MatrixMap->m_AD_Obj_cnt >= MAX_ALWAYS_DRAW_OBJ) return;
 
-    CMatrixFlyer* flyer = g_MatrixMap->StaticAdd<CMatrixFlyer>(true);
-    flyer->m_FlyerKind = flyer_type;
-    flyer->InitMaxHitpoints(flyer_structure);
+    //CMatrixFlyer* flyer = g_MatrixMap->StaticAdd<CMatrixFlyer>(true);
+    //flyer->m_FlyerKind = flyer_type;
+
+    CMatrixFlyer* flyer = HNew(Base::g_MatrixHeap) CMatrixFlyer(flyer_type);
+    g_MatrixMap->AddObject(flyer, true);
 
     g_MatrixMap->m_AD_Obj[g_MatrixMap->m_AD_Obj_cnt] = flyer;
     ++g_MatrixMap->m_AD_Obj_cnt;
@@ -367,7 +368,7 @@ void CMatrixSideUnit::SpawnDeliveryFlyer(
     flyer->ApplyOrder(to, m_Id, order, ang, place, b_pos, robot_template);
 }
 
-void CMatrixSideUnit::BuildCrazyBot(void)
+void CMatrixSideUnit::BuildCrazyBot()
 {
     SRobotTemplate bot;
 
@@ -377,7 +378,7 @@ void CMatrixSideUnit::BuildCrazyBot(void)
     bot.m_Head.m_nKind = (ERobotModuleKind)(ROBOT_HEADS_COUNT ? g_MatrixMap->Rnd(1, ROBOT_HEADS_COUNT) : RUK_EMPTY);
 
     int hull_kind = bot.m_Hull.m_Module.m_nKind;
-    for(int i = 0; i < g_Config.m_RobotHullsConsts[hull_kind].weapon_pylon_data.size(); ++i)
+    for(int i = 0; i < (int)g_Config.m_RobotHullsConsts[hull_kind].weapon_pylon_data.size(); ++i)
     {
         int weapon_kind = RUK_EMPTY;
 

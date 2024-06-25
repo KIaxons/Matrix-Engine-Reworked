@@ -17,7 +17,7 @@ void SetMaxCameraDistance(float perc)
     g_MaxViewDistance = 4000.0f * (1.0f + 0.01f * perc);
 }
 
-void  SAutoFlyData::Release()
+void SAutoFlyData::Release()
 {
     KillTrajectory();
     for(int i = 0; i < m_WarPairsCnt; ++i)
@@ -35,7 +35,6 @@ void  SAutoFlyData::Release()
         m_WarPairCurrent.attacker = nullptr;
         m_WarPairCurrent.target = nullptr;
     }
-
 }
 
 void SAutoFlyData::Stat()

@@ -26,7 +26,7 @@ enum EFrustumPlane
 #define CAM_ACTION_ROT_RIGHT    SETBIT(5)
 #define CAM_ACTION_ROT_UP       SETBIT(6)
 #define CAM_ACTION_ROT_DOWN     SETBIT(7)
-#define CAM_ACTION_SPEED_UP    SETBIT(8)
+#define CAM_ACTION_SPEED_UP     SETBIT(8)
 
 #define CAM_LINK_POINT_CHANGED  SETBIT(9)   // camera changes its link point
 //#define CAM_PREVARCADED       SETBIT(10)
@@ -62,14 +62,12 @@ void SetMaxCameraDistance(float perc);
 //#define FOG_FAR_K               0.7 //Точка удаления от камеры, в которой начинается отрисовка сплошного тумана
 
 
-//#define MAX_TIME_ON_TRAJ        8000
+//#define MAX_TIME_ON_TRAJ      8000
 #define MAX_WAR_PAIRS           16
 #define RECALC_DEST_ANGZ_PERIOD 150
 #define WAR_PAIR_TTL            1000
 #define OBZOR_TIME              12500
 #define PI                      3.141592653589793
-
-//const static double pi = 3.141592653589793;
 
 struct SObjectCore;
 

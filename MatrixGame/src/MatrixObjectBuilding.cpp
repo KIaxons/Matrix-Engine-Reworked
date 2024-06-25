@@ -1420,7 +1420,7 @@ void CMatrixBuilding::Reinforcements()
         CPoint bpos(Float2Int((m_Pos.x + m_Core->m_Matrix._21 * 50) * INVERT(GLOBAL_SCALE_MOVE)) - ROBOT_MOVECELLS_PER_SIZE / 2,
             Float2Int((m_Pos.y + m_Core->m_Matrix._22 * 50) * INVERT(GLOBAL_SCALE_MOVE)) - ROBOT_MOVECELLS_PER_SIZE / 2);
         su->SpawnDeliveryFlyer(D3DXVECTOR2(pos.x * GLOBAL_SCALE_MOVE + ROBOT_MOVECELLS_PER_SIZE * GLOBAL_SCALE_MOVE / 2, pos.y * GLOBAL_SCALE_MOVE + ROBOT_MOVECELLS_PER_SIZE * GLOBAL_SCALE_MOVE / 2),
-            FO_GIVE_BOT, angle, place, bpos, template_num, template_scores < 75 ? (EFlyerKind)bp->ParGet(L"FlyersType").GetInt() : (EFlyerKind)bp->ParGet(L"FlyersTypeBest").GetInt(), max(10.0f * bp->ParGet(L"FlyersStructure").GetFloat(), 10.0f));
+            FO_GIVE_BOT, angle, place, bpos, template_num, template_scores < 75 ? (EFlyerKind)bp->ParGet(L"FlyersType").GetInt() : (EFlyerKind)bp->ParGet(L"FlyersTypeBest").GetInt());
 
         //CHelper::Create(100, 0)->Cone(D3DXVECTOR3(pos.x * GLOBAL_SCALE_MOVE, pos.y * GLOBAL_SCALE_MOVE, 0),
         //    D3DXVECTOR3(pos.x * GLOBAL_SCALE_MOVE, pos.y * GLOBAL_SCALE_MOVE, 100), 10, 10, 0xFFFFFFFF, 0, 10);
@@ -1429,8 +1429,11 @@ void CMatrixBuilding::Reinforcements()
 
 bool CMatrixBuilding::BuildFlyer(EFlyerKind kind)
 {
-    CMatrixFlyer* fl = g_MatrixMap->StaticAdd<CMatrixFlyer>();
-    fl->m_FlyerKind = kind;
+    //CMatrixFlyer* fl = g_MatrixMap->StaticAdd<CMatrixFlyer>(true);
+    //fl->m_FlyerKind = kind;
+
+    CMatrixFlyer* fl = HNew(Base::g_MatrixHeap) CMatrixFlyer(kind);
+    g_MatrixMap->AddObject(fl, true);
 
     SetSpawningUnit(true);
     fl->SetDeliveryCopter(false);

@@ -4620,10 +4620,10 @@ void __stdcall CIFaceList::PlayerAction(void* object)
             else if(element->m_strName == IF_BUILD_FLYER_2)
             {
                 //CMatrixFlyer* fl = g_MatrixMap->StaticAdd<CMatrixFlyer>();
-                //fl->m_FlyerKind = FLYER_TRANSPORT;
+                //fl->m_FlyerKind = FLYER_ATTACK;
                 //fl->SetDeliveryCopter(false);
                 //base->m_BS.AddItem(fl);
-                base->BuildFlyer(FLYER_TRANSPORT);
+                base->BuildFlyer(FLYER_ATTACK);
             }
             else if(element->m_strName == IF_BUILD_FLYER_3)
             {
@@ -4636,10 +4636,10 @@ void __stdcall CIFaceList::PlayerAction(void* object)
             else if(element->m_strName == IF_BUILD_FLYER_4)
             {
                 //CMatrixFlyer* fl = g_MatrixMap->StaticAdd<CMatrixFlyer>();
-                //fl->m_FlyerKind = FLYER_ATTACK;
+                //fl->m_FlyerKind = FLYER_TRANSPORT;
                 //fl->SetDeliveryCopter(false);
                 //base->m_BS.AddItem(fl);
-                base->BuildFlyer(FLYER_ATTACK);
+                base->BuildFlyer(FLYER_TRANSPORT);
             }
         }
     }
@@ -4957,12 +4957,13 @@ void CIFaceList::CreatePersonal()
             else if(go->ReturnObject()->GetObjectType() == OBJECT_TYPE_FLYER)
             {
                 CIFaceImage* img;
-
-                int flyer_kind = ((CMatrixFlyer*)go->ReturnObject())->m_FlyerKind;
-                if(flyer_kind == FLYER_SPEED) img = interfaces->FindImageByName(CWStr(IF_FLYER_1_IMG));
-                else if(flyer_kind == FLYER_TRANSPORT) img = interfaces->FindImageByName(CWStr(IF_FLYER_2_IMG));
-                else if(flyer_kind == FLYER_BOMB) img = interfaces->FindImageByName(CWStr(IF_FLYER_3_IMG));
-                else /*if(flyer_kind == FLYER_ATTACK)*/ img = interfaces->FindImageByName(CWStr(IF_FLYER_4_IMG));
+                switch(go->ReturnObject()->AsFlyer()->m_FlyerKind)
+                {
+                    case FLYER_SPEED: img = interfaces->FindImageByName(CWStr(IF_FLYER_1_IMG)); break;
+                    case FLYER_ATTACK: img = interfaces->FindImageByName(CWStr(IF_FLYER_2_IMG)); break;
+                    case FLYER_BOMB: img = interfaces->FindImageByName(CWStr(IF_FLYER_3_IMG)); break;
+                    case FLYER_TRANSPORT: img = interfaces->FindImageByName(CWStr(IF_FLYER_4_IMG)); break;
+                }
 
                 tex = img->m_Image;
                 xbig = img->m_xTexPos;
@@ -5117,7 +5118,6 @@ void CIFaceList::ResetOrderingMode()
 
 void CIFaceList::CreateQueueIcon(int num, CMatrixBuilding* base, CMatrixMapStatic* object)
 {
-    DTRACE();
     if(!object) return;
 
     CInterface* ifs = m_First;
@@ -5147,45 +5147,56 @@ void CIFaceList::CreateQueueIcon(int num, CMatrixBuilding* base, CMatrixMapStati
             }
             else if(object->IsFlyer())
             {
-                if(((CMatrixFlyer*)object)->m_FlyerKind == FLYER_SPEED)
+                switch(object->AsFlyer()->m_FlyerKind)
                 {
-                    tex_med = ifs->FindImageByName(CWStr(IF_FLYER_1_ICON_BIG))->m_Image;
-                    tex_small = ifs->FindImageByName(CWStr(IF_FLYER_1_ICON_SMALL))->m_Image;
+                    case FLYER_SPEED:
+                    {
+                        tex_med = ifs->FindImageByName(CWStr(IF_FLYER_1_ICON_BIG))->m_Image;
+                        tex_small = ifs->FindImageByName(CWStr(IF_FLYER_1_ICON_SMALL))->m_Image;
 
-                    xmed = ifs->FindImageByName(CWStr(IF_FLYER_1_ICON_BIG))->m_xTexPos;
-                    ymed = ifs->FindImageByName(CWStr(IF_FLYER_1_ICON_BIG))->m_yTexPos;
-                    xsmall = ifs->FindImageByName(CWStr(IF_FLYER_1_ICON_SMALL))->m_xTexPos;
-                    ysmall = ifs->FindImageByName(CWStr(IF_FLYER_1_ICON_SMALL))->m_yTexPos;
-                }
-                else if(((CMatrixFlyer*)object)->m_FlyerKind == FLYER_TRANSPORT)
-                {
-                    tex_med = ifs->FindImageByName(CWStr(IF_FLYER_2_ICON_BIG))->m_Image;
-                    tex_small = ifs->FindImageByName(CWStr(IF_FLYER_2_ICON_SMALL))->m_Image;
+                        xmed = ifs->FindImageByName(CWStr(IF_FLYER_1_ICON_BIG))->m_xTexPos;
+                        ymed = ifs->FindImageByName(CWStr(IF_FLYER_1_ICON_BIG))->m_yTexPos;
+                        xsmall = ifs->FindImageByName(CWStr(IF_FLYER_1_ICON_SMALL))->m_xTexPos;
+                        ysmall = ifs->FindImageByName(CWStr(IF_FLYER_1_ICON_SMALL))->m_yTexPos;
 
-                    xmed = ifs->FindImageByName(CWStr(IF_FLYER_2_ICON_BIG))->m_xTexPos;
-                    ymed = ifs->FindImageByName(CWStr(IF_FLYER_2_ICON_BIG))->m_yTexPos;
-                    xsmall = ifs->FindImageByName(CWStr(IF_FLYER_2_ICON_SMALL))->m_xTexPos;
-                    ysmall = ifs->FindImageByName(CWStr(IF_FLYER_2_ICON_SMALL))->m_yTexPos;
-                }
-                else if(((CMatrixFlyer*)object)->m_FlyerKind == FLYER_BOMB)
-                {
-                    tex_med = ifs->FindImageByName(CWStr(IF_FLYER_3_ICON_BIG))->m_Image;
-                    tex_small = ifs->FindImageByName(CWStr(IF_FLYER_3_ICON_SMALL))->m_Image;
+                        break;
+                    }
+                    case FLYER_ATTACK:
+                    {
+                        tex_med = ifs->FindImageByName(CWStr(IF_FLYER_2_ICON_BIG))->m_Image;
+                        tex_small = ifs->FindImageByName(CWStr(IF_FLYER_2_ICON_SMALL))->m_Image;
 
-                    xmed = ifs->FindImageByName(CWStr(IF_FLYER_3_ICON_BIG))->m_xTexPos;
-                    ymed = ifs->FindImageByName(CWStr(IF_FLYER_3_ICON_BIG))->m_yTexPos;
-                    xsmall = ifs->FindImageByName(CWStr(IF_FLYER_3_ICON_SMALL))->m_xTexPos;
-                    ysmall = ifs->FindImageByName(CWStr(IF_FLYER_3_ICON_SMALL))->m_yTexPos;
-                }
-                else if(((CMatrixFlyer*)object)->m_FlyerKind == FLYER_ATTACK)
-                {
-                    tex_med = ifs->FindImageByName(CWStr(IF_FLYER_4_ICON_BIG))->m_Image;
-                    tex_small = ifs->FindImageByName(CWStr(IF_FLYER_4_ICON_SMALL))->m_Image;
+                        xmed = ifs->FindImageByName(CWStr(IF_FLYER_2_ICON_BIG))->m_xTexPos;
+                        ymed = ifs->FindImageByName(CWStr(IF_FLYER_2_ICON_BIG))->m_yTexPos;
+                        xsmall = ifs->FindImageByName(CWStr(IF_FLYER_2_ICON_SMALL))->m_xTexPos;
+                        ysmall = ifs->FindImageByName(CWStr(IF_FLYER_2_ICON_SMALL))->m_yTexPos;
 
-                    xmed = ifs->FindImageByName(CWStr(IF_FLYER_4_ICON_BIG))->m_xTexPos;
-                    ymed = ifs->FindImageByName(CWStr(IF_FLYER_4_ICON_BIG))->m_yTexPos;
-                    xsmall = ifs->FindImageByName(CWStr(IF_FLYER_4_ICON_SMALL))->m_xTexPos;
-                    ysmall = ifs->FindImageByName(CWStr(IF_FLYER_4_ICON_SMALL))->m_yTexPos;
+                        break;
+                    }
+                    case FLYER_BOMB:
+                    {
+                        tex_med = ifs->FindImageByName(CWStr(IF_FLYER_3_ICON_BIG))->m_Image;
+                        tex_small = ifs->FindImageByName(CWStr(IF_FLYER_3_ICON_SMALL))->m_Image;
+
+                        xmed = ifs->FindImageByName(CWStr(IF_FLYER_3_ICON_BIG))->m_xTexPos;
+                        ymed = ifs->FindImageByName(CWStr(IF_FLYER_3_ICON_BIG))->m_yTexPos;
+                        xsmall = ifs->FindImageByName(CWStr(IF_FLYER_3_ICON_SMALL))->m_xTexPos;
+                        ysmall = ifs->FindImageByName(CWStr(IF_FLYER_3_ICON_SMALL))->m_yTexPos;
+
+                        break;
+                    }
+                    case FLYER_TRANSPORT:
+                    {
+                        tex_med = ifs->FindImageByName(CWStr(IF_FLYER_4_ICON_BIG))->m_Image;
+                        tex_small = ifs->FindImageByName(CWStr(IF_FLYER_4_ICON_SMALL))->m_Image;
+
+                        xmed = ifs->FindImageByName(CWStr(IF_FLYER_4_ICON_BIG))->m_xTexPos;
+                        ymed = ifs->FindImageByName(CWStr(IF_FLYER_4_ICON_BIG))->m_yTexPos;
+                        xsmall = ifs->FindImageByName(CWStr(IF_FLYER_4_ICON_SMALL))->m_xTexPos;
+                        ysmall = ifs->FindImageByName(CWStr(IF_FLYER_4_ICON_SMALL))->m_yTexPos;
+
+                        break;
+                    }
                 }
 
                 flyer = true;

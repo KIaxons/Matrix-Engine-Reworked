@@ -25,8 +25,8 @@ CMatrixFlyer::CMatrixFlyer(EFlyerKind kind) : m_FlyerKind(kind)
     //SetDirectionAngle(1);
     SetDirectionAngle(0);
 
-    InitMaxHitpoints(FlyerSpecifications[kind].hitpoints);
-    SetName(g_MatrixData->BlockGet(BLOCK_PATH_FLYERS_CONFIG)->BlockGet(CWStr(kind))->ParGet(L"Name"));
+    InitMaxHitpoints(FlyerSpecifications[m_FlyerKind].hitpoints);
+    SetName(g_MatrixData->BlockGet(BLOCK_PATH_FLYERS_CONFIG)->BlockGet(CWStr(m_FlyerKind))->ParGet(L"Name"));
 
     InitBuffers();
     ++m_VB_ref;

@@ -557,7 +557,7 @@ public:
     //void SetArcadedRobotArmorP(const D3DXVECTOR3 &p);
     void InterpolateManualControlledRobotHullPos(int ms);
 
-    void SpawnDeliveryFlyer(const D3DXVECTOR2& to, EFlyerOrder order, float ang, int place, const CPoint& b_pos, int robot_template, enum EFlyerKind flyer_type, float flyer_structure);
+    void SpawnDeliveryFlyer(const D3DXVECTOR2& to, EFlyerOrder order, float ang, int place, const CPoint& b_pos, int robot_template, enum EFlyerKind flyer_type);
 
     // STUB:
     int IsInPlaces(const CPoint* places, int placescnt, int x, int y);

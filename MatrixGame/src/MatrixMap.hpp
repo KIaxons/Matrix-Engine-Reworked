@@ -554,7 +554,6 @@ public:
     template <class O> inline O* StaticAdd(bool add_to_logic = true)
     {
         O* o = HNew(Base::g_MatrixHeap) O();
-        //O* o = new O();
         AddObject(o, add_to_logic && o->GetObjectType() != OBJECT_TYPE_MAPOBJECT);
         return o;
     }
