@@ -437,7 +437,7 @@ public:
                 if(cf->IsBase()) return false;
                 if(cf->GetSide() != robot->GetSide())
                 {
-                    if((float(cf->m_TrueColor.m_ColoredCnt) / MAX_CAPTURE_CIRCLES) > (1.0 - (robot->AsRobot()->GetHitpoints() * 1.1f) / robot->AsRobot()->GetMaxHitPoints())) return false;
+                    if((float(cf->m_TrueColor.m_ColoredCnt) / MAX_CAPTURE_CIRCLES) > (1.0 - (robot->AsRobot()->GetHitpoints() * 1.1f) / robot->AsRobot()->GetMaxHitpoints())) return false;
                 }
                 */
             }

@@ -214,7 +214,7 @@ public:
     }
 
     float GetHitpoints() const { return m_Hitpoints / 10; }
-    float GetMaxHitPoints() { return m_MaxHitpoints / 10; }
+    float GetMaxHitpoints() { return m_MaxHitpoints / 10; }
     void  InitMaxHitpoints(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
 
     void MarkCrazy() { SETFLAG(m_ObjectFlags, ROBOT_CRAZY); }

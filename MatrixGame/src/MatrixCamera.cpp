@@ -208,7 +208,7 @@ static bool SeekCamObjects(const D3DXVECTOR2& center, CMatrixMapStatic* ms, dwor
     }
     else if(ms->IsRobot())
     {
-        vecs[1] += dir * (1.1f - ms->AsRobot()->GetHitpoints() / ms->AsRobot()->GetMaxHitPoints());
+        vecs[1] += dir * (1.1f - ms->AsRobot()->GetHitpoints() / ms->AsRobot()->GetMaxHitpoints());
     }
 
     return true;

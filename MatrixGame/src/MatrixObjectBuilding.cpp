@@ -108,19 +108,10 @@ void CMatrixBuilding::GetResources(dword need)
 
         if(!m_GGraph->IsAlreadyLoaded())
         {
-            float hp = g_Config.m_BuildingsHitPoints[m_Kind];
+            float hp = g_Config.m_BuildingsConsts[m_Kind + 1].structure;
             InitMaxHitpoints(hp);
 
-            CWStr path = CWStr(L"");
-            switch(m_Kind)
-            {
-                case BUILDING_BASE: path = g_CacheData->ParPathGet(L"Building.ConstructionBase"); break;
-                case BUILDING_TITAN: path = g_CacheData->ParPathGet(L"Building.TitanFactory"); break;
-                case BUILDING_ELECTRONIC: path = g_CacheData->ParPathGet(L"Building.ElectronicFactory"); break;
-                case BUILDING_ENERGY: path = g_CacheData->ParPathGet(L"Building.EnergyFactory"); break;
-                case BUILDING_PLASMA: path = g_CacheData->ParPathGet(L"Building.PlasmaFactory"); break;
-                case BUILDING_REPAIR: path = g_CacheData->ParPathGet(L"Building.RepairFactory"); break;
-            }
+            CWStr path = g_CacheData->BlockGet(L"Building")->ParGet(g_Config.m_BuildingsConsts[m_Kind + 1].type_name);
 
             //Собираем готовую сгруппированную модель здания из субмоделей и текстур, прописанных в файле .cvo, размещённому по переданному пути
             //Путь до отдельной, но общего для всех зданий модели платформы (Platform.vo) прописан там же
@@ -1892,14 +1883,14 @@ void CBuildingQueue::TickTimer(int ms)
         {
             float time_to_finish = g_Config.m_TurretsConsts[turret->m_TurretKind].construction_time;
 
-            float x = g_IFaceList->GetMainX() + 283;
-            float y = g_IFaceList->GetMainY() + 71;
+            float x = g_IFaceList->GetMainX() + 283.0f;
+            float y = g_IFaceList->GetMainY() + 71.0f;
             float percent_done = float(m_Timer) / time_to_finish;
-            m_ProgressBar.Modify(100000.0f, 0);
+            m_ProgressBar.Modify(100000.0f, 0.0f);
             m_ProgressBar.Modify(percent_done);
 
             //turret->SetPBOutOfScreen();
-            turret->SetHitpoints(turret->GetMaxHitPoints() * percent_done);
+            turret->SetHitpoints(turret->GetMaxHitpoints() * percent_done);
 
             if((ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED) && ps->m_ActiveObject == m_ParentBase)
             {
@@ -1951,24 +1942,26 @@ void CBuildingQueue::TickTimer(int ms)
                         g_IFaceList->CreateDynamicTurrets(m_ParentBase);
                     }
                 }
+
+                LIST_DEL(m_Top, m_Top, m_Bottom, m_PrevQueueItem, m_NextQueueItem);
+                --m_Items;
             }
         }
         //Турель разбирается
-        else //if(turret->m_CurrentState == TURRET_UNDER_DECONSTRUCTION)
+        else if(turret->m_CurrentState == TURRET_UNDER_DECONSTRUCTION)
         {
-            float time_to_finish = g_Config.m_TurretsConsts[turret->m_TurretKind].deconstruction_time;
+            float hp_left_percent = turret->GetHitpointsBeforeDismantle() / turret->GetMaxHitpoints();
+            float time_to_finish = g_Config.m_TurretsConsts[turret->m_TurretKind].deconstruction_time * hp_left_percent;
 
-            float x = g_IFaceList->GetMainX() + 283;
-            float y = g_IFaceList->GetMainY() + 71;
+            float x = g_IFaceList->GetMainX() + 283.0f;
+            float y = g_IFaceList->GetMainY() + 71.0f;
 
             float percent_done = float(m_Timer) / time_to_finish;
-            m_ProgressBar.Modify(100000.0f, 0);
+            m_ProgressBar.Modify(100000.0f, 0.0f);
             m_ProgressBar.Modify(percent_done);
 
-            //m_HitpointsBeforeDismantle
-
-            //percent_done = PortionInDiapason(float(m_Timer) / time_to_finish, 0.0f, 1.0f, 1.0f, 0.0f); //Здоровье разбираемой турели будет убывать
-            //turret->SetHitpoints(turret->GetHitpoints() * percent_done);
+            percent_done = PortionInDiapason(percent_done, 0.0f, 1.0f, 1.0f, 0.0f); //Здоровье разбираемой турели будет убывать
+            turret->SetHitpoints(turret->GetHitpointsBeforeDismantle() * percent_done);
 
             if((ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED) && ps->m_ActiveObject == m_ParentBase)
             {
@@ -1988,12 +1981,12 @@ void CBuildingQueue::TickTimer(int ms)
                 int kind = turret->m_TurretKind;
                 STurretsConsts* turret_info = &g_Config.m_TurretsConsts[kind];
 
+                //25% стоимости в ресурсах получается при разборе гарантированно, а ещё 50% зависит от оставшегося количества HP
                 CMatrixSideUnit* side = g_MatrixMap->GetSideById(side_id);
-                float hit_points_left = turret->GetHitpoints() / turret->GetMaxHitPoints();
-                side->AddResourceAmount(TITAN, (int)floor(float(turret_info->cost_titan) * hit_points_left));
-                side->AddResourceAmount(ELECTRONICS, (int)floor(float(turret_info->cost_electronics) * hit_points_left));
-                side->AddResourceAmount(ENERGY, (int)floor(float(turret_info->cost_energy) * hit_points_left));
-                side->AddResourceAmount(PLASMA, (int)floor(float(turret_info->cost_plasma) * hit_points_left));
+                if(turret_info->cost_titan) side->AddResourceAmount(TITAN, (int)roundf((0.25f * float(turret_info->cost_titan)) + (0.5f * float(turret_info->cost_titan) * hp_left_percent)));
+                if(turret_info->cost_electronics) side->AddResourceAmount(ELECTRONICS, (int)roundf((0.25f * float(turret_info->cost_electronics)) + (0.5f * float(turret_info->cost_electronics) * hp_left_percent)));
+                if(turret_info->cost_energy) side->AddResourceAmount(ENERGY, (int)roundf((0.25f * float(turret_info->cost_energy)) + (0.5f * float(turret_info->cost_energy) * hp_left_percent)));
+                if(turret_info->cost_plasma) side->AddResourceAmount(PLASMA, (int)roundf((0.25f * float(turret_info->cost_plasma)) + (0.5f * float(turret_info->cost_plasma) * hp_left_percent)));
 
                 m_Timer = 0;
                 m_ProgressBar.KillClone(PBC_CLONE1);
@@ -2014,6 +2007,7 @@ void CBuildingQueue::TickTimer(int ms)
 
                 --turret->m_ParentBuilding->m_TurretsHave;
                 if(side_id != NEUTRAL_SIDE) g_MatrixMap->GetSideById(side_id)->IncStatValue(STAT_TURRET_KILL);
+                turret->UnjoinGroup();
                 g_MatrixMap->StaticDelete(turret);
             }
         }
@@ -2035,6 +2029,7 @@ void CBuildingQueue::AddItem(CMatrixMapStatic* item)
     } 
 }
 
+//Отменяем постройку робота, вертолёта или турели
 int CBuildingQueue::DeleteItem(int no)
 {
     if(m_Items)
@@ -2055,6 +2050,7 @@ int CBuildingQueue::DeleteItem(int no)
         while(items)
         {
             ++i;
+
             if(i == no)
             {
                 LIST_DEL(items, m_Top, m_Bottom, m_PrevQueueItem, m_NextQueueItem);
@@ -2065,9 +2061,19 @@ int CBuildingQueue::DeleteItem(int no)
                 }
                 else if(items->IsTurret())
                 {
-                    ReturnTurretResources(items->AsTurret());
-                    items->UnjoinGroup();
-                    g_MatrixMap->StaticDelete(items);
+                    CMatrixTurret* turret = items->AsTurret();
+
+                    if(turret->m_CurrentState == TURRET_UNDER_CONSTRUCTION)
+                    {
+                        ReturnTurretResources(turret);
+                        items->UnjoinGroup();
+                        g_MatrixMap->StaticDelete(items);
+                    }
+                    else //if(turret->m_CurrentState == TURRET_UNDER_DECONSTRUCTION)
+                    {
+                        turret->m_CurrentState = TURRET_IDLE;
+                        turret->ResetInvulnerability();
+                    }
                 }
                 else if(items->IsFlyer())
                 {
@@ -2080,6 +2086,7 @@ int CBuildingQueue::DeleteItem(int no)
             items = items->m_NextQueueItem;           
         }
     }
+
     return 0;
 }
 

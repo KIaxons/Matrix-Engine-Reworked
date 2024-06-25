@@ -91,8 +91,6 @@ enum ERobotModuleKind
     RUK_WEAPON_REPAIRER        = 10,
 };
 
-#define BUILDING_TYPES_COUNT 6
-
 enum ETurretKind
 {
     TURRET_LIGHT_CANNON = 1,
@@ -101,6 +99,20 @@ enum ETurretKind
     TURRET_MISSILE_CANNON,
 
     TURRET_KINDS_TOTAL = 4
+};
+
+//Дебилы, как всегда, сохраняли данные о зданиях в файле карты в виде чисел, а не строк, поэтому нумерация здесь нахуй сбита (относительно последовательности ресурсов в игре) и без правки всех карт изменена быть не может
+//В противном случае все заданные заводы на картах изменят тип
+enum EBuildingType
+{
+    BUILDING_BASE = 0,
+    BUILDING_TITAN = 1,
+    BUILDING_ELECTRONIC = 3,
+    BUILDING_ENERGY = 4,
+    BUILDING_PLASMA = 2,
+    BUILDING_REPAIR = 5,
+
+    BUILDING_KINDS_TOTAL
 };
 
 enum EKeyAction
@@ -666,6 +678,15 @@ struct SWeaponsConsts
 
 //Не забывать обновлять, ResetMenu и выборе модулей по клавишам с клавиатуры (//Были нажаты цифровые клавиши 1-9 (по местной нумерации 2-10)), чтобы не крашила при невалиде в шаблоне!
 
+
+struct SBuildingsConsts {
+    CWStr type_name = (CWStr)L"";
+    float structure = 50000.0f;
+
+    CWStr name = (CWStr)L"";
+    CWStr description = (CWStr)L"";
+};
+
 //Не забыть про лимиты установки модулей MR_MAX_MODULES и RUK_WEAPON_PYLONS_COUNT
 class CMatrixConfig : public CMain
 {
@@ -680,14 +701,11 @@ public:
     std::vector<SRobotWeaponsConsts> m_RobotWeaponsConsts;
 
     std::vector<STurretsConsts> m_TurretsConsts;
-
+    std::vector<SBuildingsConsts> m_BuildingsConsts;
     std::vector<SWeaponsConsts> m_WeaponsConsts;
-
 
     SStringPair* m_Cursors = nullptr;
     int          m_CursorsCnt = 0;
-
-    float        m_BuildingsHitPoints[BUILDING_TYPES_COUNT] = { 5000.0f, 3000.0f, 3000.0f, 3000.0f, 3000.0f, 3000.0f }; //Стоковые значения для базы и заводов (в любом случае перезаписываются из конфига во время инициализации игры)
 
     int          m_ReinforcementsTime = 0;
 

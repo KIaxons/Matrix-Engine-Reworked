@@ -57,18 +57,6 @@ enum EBuildingTurrets
     REPAIR_FACTORY_TURRETS_LIMIT = 4
 };
 
-//Дебилы, как всегда, сохраняли данные о зданиях в файле карты в виде чисел, а не строк, поэтому нумерация здесь нахуй сбита (относительно последовательности ресурсов в игре) и без правки всех карт изменена быть не может
-//В противном случае все заданные заводы на картах изменят тип
-enum EBuildingType
-{
-    BUILDING_BASE = 0,
-    BUILDING_TITAN = 1,
-    BUILDING_ELECTRONIC = 3,
-    BUILDING_ENERGY = 4,
-    BUILDING_PLASMA = 2,
-    BUILDING_REPAIR = 5
-};
-
 enum EBaseState
 {
 	BASE_CLOSED,
@@ -340,7 +328,7 @@ public:
         m_MaxHitpoints = hp;
         m_MaxHitpointsInversed = 1.0f / hp;
     }
-    float GetMaxHitPoints()
+    float GetMaxHitpoints()
     {
         return m_MaxHitpoints / 10;
     }

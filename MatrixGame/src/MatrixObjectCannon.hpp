@@ -170,7 +170,8 @@ public:
 
     void  ShowHitpoints()            { m_ShowHitpointsTime = HITPOINT_SHOW_TIME; }
     float GetHitpoints() const       { return m_Hitpoints; }
-    float GetMaxHitPoints()          { return m_MaxHitpoints; }
+    float GetMaxHitpoints()          { return m_MaxHitpoints; }
+    float GetHitpointsBeforeDismantle() const { return m_HitpointsBeforeDismantle; }
     void  InitMaxHitpoints(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
     void  SetHitpoints(float hp)     { m_Hitpoints = hp; }
     float GetMaxHitpointsInversed()  { return m_MaxHitpointsInversed; }

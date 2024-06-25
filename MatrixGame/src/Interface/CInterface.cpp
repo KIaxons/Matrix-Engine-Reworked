@@ -1572,33 +1572,28 @@ void CInterface::Init(void)
                             }
                         }
                     }
+                    else if(player_side->m_CurrSel == TURRET_SELECTED)
+                    {
+                        if(player_side->m_ActiveObject)
+                        {
+                            int kind = player_side->m_ActiveObject->AsTurret()->m_TurretKind;
+                            if(name != g_Config.m_TurretsConsts[kind].name)
+                            {
+                                new_name = true;
+                                name = g_Config.m_TurretsConsts[kind].name;
+                            }
+                        }
+                    }
                     else if(player_side->m_CurrSel == BUILDING_SELECTED || player_side->m_CurrSel == BASE_SELECTED)
                     {
-                        CBlockPar* bp_tmp = g_MatrixData->BlockGet(IF_LABELS_BLOCKPAR)->BlockGet(L"Buildings");
-                        if(player_side->m_ActiveObject && player_side->m_ActiveObject->AsBuilding()->IsBase() && name != bp_tmp->ParGet(L"Base_Name"))
+                        if(player_side->m_ActiveObject)
                         {
-                            new_name = true;
-                            name = bp_tmp->ParGet(L"Base_Name");
-                        }
-                        else if(player_side->m_ActiveObject && player_side->m_ActiveObject->AsBuilding()->m_Kind == BUILDING_TITAN && name != bp_tmp->ParGet(L"Titan_Name"))
-                        {
-                            new_name = true;
-                            name = bp_tmp->ParGet(L"Titan_Name");
-                        }
-                        else if(player_side->m_ActiveObject && player_side->m_ActiveObject->AsBuilding()->m_Kind == BUILDING_ELECTRONIC && name != bp_tmp->ParGet(L"Electronics_Name"))
-                        {
-                            new_name = true;
-                            name = bp_tmp->ParGet(L"Electronics_Name");
-                        }
-                        else if(player_side->m_ActiveObject && player_side->m_ActiveObject->AsBuilding()->m_Kind == BUILDING_ENERGY && name != bp_tmp->ParGet(L"Energy_Name"))
-                        {
-                            new_name = true;
-                            name = bp_tmp->ParGet(L"Energy_Name");
-                        }
-                        else if(player_side->m_ActiveObject && player_side->m_ActiveObject->AsBuilding()->m_Kind == BUILDING_PLASMA && name != bp_tmp->ParGet(L"Plasma_Name"))
-                        {
-                            new_name = true;
-                            name = bp_tmp->ParGet(L"Plasma_Name");
+                            int kind = player_side->m_ActiveObject->AsBuilding()->m_Kind;
+                            if(name != g_Config.m_BuildingsConsts[kind + 1].name)
+                            {
+                                new_name = true;
+                                name = g_Config.m_BuildingsConsts[kind + 1].name;
+                            }
                         }
                     }
                 }
@@ -1611,7 +1606,7 @@ void CInterface::Init(void)
                             if(lives != cur_r->GetHitpoints())
                             {
                                 lives = cur_r->GetHitpoints();
-                                max_lives = cur_r->GetMaxHitPoints();
+                                max_lives = cur_r->GetMaxHitpoints();
                                 new_lives = true;
                             }
                         }
@@ -1621,7 +1616,7 @@ void CInterface::Init(void)
                         if(lives != player_side->m_ActiveObject->AsBuilding()->GetHitpoints())
                         {
                             lives = player_side->m_ActiveObject->AsBuilding()->GetHitpoints();
-                            max_lives = player_side->m_ActiveObject->AsBuilding()->GetMaxHitPoints();
+                            max_lives = player_side->m_ActiveObject->AsBuilding()->GetMaxHitpoints();
                             new_lives = true;
                         }
                     }
@@ -1690,7 +1685,7 @@ void CInterface::Init(void)
                 else if(player_side->m_CurrSel == BUILDING_SELECTED || player_side->m_CurrSel == BASE_SELECTED)
                 {
                     CMatrixBuilding* bld = player_side->m_ActiveObject->AsBuilding();
-                    CBlockPar* bp_tmp = g_MatrixData->BlockGet(IF_LABELS_BLOCKPAR)->BlockGet(L"Buildings");
+
                     int income = player_side->GetIncomePerTime(int(bld->m_Kind), 60000);                    
                     if(pElement->m_strName == IF_BUILDING_OPIS)
                     {
@@ -1698,59 +1693,45 @@ void CInterface::Init(void)
                         {
                             pElement->SetVisibility(true);
                         }
+
                         if(btype != int(bld->m_Kind))
                         {
                             btype = int(bld->m_Kind);
-                            if(bld->m_Kind == BUILDING_BASE)
-                            {
-                                pElement->m_StateImages[IFACE_NORMAL].m_Caption = bp_tmp->ParGet(L"Base_Descr");
-                            }
-                            else if(bld->m_Kind == BUILDING_TITAN)
-                            {
-                                pElement->m_StateImages[IFACE_NORMAL].m_Caption = bp_tmp->ParGet(L"Titan_Descr");
-                            }
-                            else if(bld->m_Kind == BUILDING_ELECTRONIC)
-                            {
-                                pElement->m_StateImages[IFACE_NORMAL].m_Caption = bp_tmp->ParGet(L"Electronics_Descr");
-                            }
-                            else if(bld->m_Kind == BUILDING_ENERGY)
-                            {
-                                pElement->m_StateImages[IFACE_NORMAL].m_Caption = bp_tmp->ParGet(L"Energy_Descr");
-                            }
-                            else if(bld->m_Kind == BUILDING_PLASMA)
-                            {
-                                pElement->m_StateImages[IFACE_NORMAL].m_Caption = bp_tmp->ParGet(L"Plasma_Descr");
-                            }
+                            pElement->m_StateImages[IFACE_NORMAL].m_Caption = g_Config.m_BuildingsConsts[bld->m_Kind + 1].description;
                             pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
                         }
                     }
-                    else if(pElement->m_strName == IF_BASE_RES_INC && bld->m_Kind == BUILDING_BASE)
+                    else if(pElement->m_strName == IF_BASE_RES_INC)
                     {
-                        if(!bld->m_BuildingQueue.GetItemsCnt())
+                        if(bld->IsBase())
                         {
-                            pElement->SetVisibility(true);
+                            if(!bld->m_BuildingQueue.GetItemsCnt())
+                            {
+                                pElement->SetVisibility(true);
+                            }
+
+                            if(income != base_res_income)
+                            {
+                                base_res_income = income;
+                                CWStr suck = g_Config.m_BuildingsConsts[0].name;
+                                pElement->m_StateImages[IFACE_NORMAL].m_Caption = suck.Replace(CWStr(L"<resources>", g_CacheHeap), L"<Color=247,195,0>" + CWStr(base_res_income, g_CacheHeap) + L"</Color>");
+                                pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
+                            }
                         }
-                        
-                        if(income != base_res_income)
+                        else if(bld->m_Kind != BUILDING_REPAIR)
                         {
-                            base_res_income = income;
-                            CWStr suck(bp_tmp->ParGet(L"ResPer"), g_CacheHeap);
-                            pElement->m_StateImages[IFACE_NORMAL].m_Caption = suck.Replace(CWStr(L"<resources>", g_CacheHeap), L"<Color=247,195,0>" + CWStr(base_res_income, g_CacheHeap) + L"</Color>");
-                            pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
-                        }
-                    }
-                    else if(pElement->m_strName == IF_FACTORY_RES_INC && bld->m_Kind != BUILDING_BASE)
-                    {
-                        if(!bld->m_BuildingQueue.GetItemsCnt())
-                        {
-                            pElement->SetVisibility(true);
-                        }
-                        if(income != factory_res_income)
-                        {
-                            factory_res_income = income;
-                            CWStr suck(bp_tmp->ParGet(L"ResPer"), g_CacheHeap);
-                            pElement->m_StateImages[IFACE_NORMAL].m_Caption = suck.Replace(CWStr(L"<resources>", g_CacheHeap), L"<Color=247,195,0>" + CWStr(factory_res_income, g_CacheHeap) + L"</Color>");
-                            pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
+                            if(!bld->m_BuildingQueue.GetItemsCnt())
+                            {
+                                pElement->SetVisibility(true);
+                            }
+
+                            if(income != factory_res_income)
+                            {
+                                factory_res_income = income;
+                                CWStr suck = g_Config.m_BuildingsConsts[0].name;
+                                pElement->m_StateImages[IFACE_NORMAL].m_Caption = suck.Replace(CWStr(L"<resources>", g_CacheHeap), L"<Color=247,195,0>" + CWStr(factory_res_income, g_CacheHeap) + L"</Color>");
+                                pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
+                            }
                         }
                     }
                 }
@@ -1919,7 +1900,7 @@ void CInterface::Init(void)
                     else if(pElement->m_strName == IF_BUILD_ROBOT && !bld_tu && !bld_he)
                     {
                         //Делаем видимой, если выбрана строительная база
-                        if(bld->m_Kind == BUILDING_BASE)
+                        if(bld->IsBase())
                         {
                             pElement->SetVisibility(true);
                         }
@@ -1944,12 +1925,12 @@ void CInterface::Init(void)
                     else if(g_EnableFlyers && pElement->m_strName == IF_BUILD_FLYER && !bld_tu && !bld_he)
                     {
                         //Делаем видимой, если выбрана база
-                        if(bld->m_Kind == BUILDING_BASE) pElement->SetVisibility(true);
+                        if(bld->IsBase()) pElement->SetVisibility(true);
                     }
                     /*
                     else if(pElement->m_strName == IF_BUILD_REPAIR && !bld_tu && !bld_he && !bld_re)
                     {
-                        if(bld->m_Kind == BUILDING_BASE)
+                        if(bld->IsBase())
                         {
                             pElement->SetVisibility(true);
                         }

@@ -1442,10 +1442,25 @@ void CMatrixConfig::ReadParams()
     }
 
     //Загружаем характеристики зданий
-    int cnt = 1;
-    for(int i = 0; i < BUILDING_TYPES_COUNT; ++i, ++cnt)
+    bp_tmp = g_MatrixData->BlockPathGet(CONFIG_PATH_BUILDINGS);
+    for(int i = 0; i <= BUILDING_KINDS_TOTAL; ++i)
     {
-        m_BuildingsHitPoints[i] = max(10.0f * g_MatrixData->ParPathGet(L"BuildingsConfig." + CWStr(cnt) + L".Structure").GetFloat(), 10.0f);
+        SBuildingsConsts t;
+        m_BuildingsConsts.push_back(t);
+
+        if(!i) //Отводим нулевой элемент под общую информацию
+        {
+            m_BuildingsConsts[0].name = bp_tmp->ParGet(L"ResourcesProduction"); //Описание для кнопки выбора турели
+            continue;
+        }
+
+        CBlockPar* bp = bp_tmp->BlockGet(CWStr(i));
+
+        m_BuildingsConsts[i].type_name = bp->ParGet(L"Type");
+        m_BuildingsConsts[i].structure = max(10.0f * bp->ParGet(L"Structure").GetFloat(), 10.0f);
+
+        m_BuildingsConsts[i].name = bp->ParGet(L"Name");
+        m_BuildingsConsts[i].description = bp->ParGet(L"Description");
     }
 
     // timings

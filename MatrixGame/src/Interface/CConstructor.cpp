@@ -1911,8 +1911,6 @@ void GetConstructionName(CMatrixRobotAI* robot)
 {
     //CMatrixRobotAI* robot = m_Robot;
 
-    CBlockPar* bp_tmp = g_MatrixData->BlockGet(IF_LABELS_BLOCKPAR)->BlockGet(L"RobotNames");
-
     robot->m_Name = L"";
     for(int i = 0; i < robot->m_ModulesCount; ++i)
     {

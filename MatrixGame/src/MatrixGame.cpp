@@ -302,7 +302,7 @@ void MatrixGameInit
 
     // init menu replaces
 
-    CBlockPar* rr = Base::g_MatrixData->BlockGet(IF_LABELS_BLOCKPAR)->BlockGet(L"Replaces");
+    CBlockPar* rr = Base::g_MatrixData->BlockGet(L"Replaces");
     int cnt = rr->ParCount();
     for(int i = 0; i < cnt; ++i) repl->ParAdd(rr->ParGetName(i), rr->ParGet(i));
 

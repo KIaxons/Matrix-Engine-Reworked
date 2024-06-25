@@ -77,6 +77,7 @@
 #define MODULES_CONFIG_PATH_WEAPONS				L"RobotsConfig.Modules.Weapons"
 
 #define CONFIG_PATH_TURRETS						L"TurretsConfig"
+#define CONFIG_PATH_BUILDINGS					L"BuildingsConfig"
 #define CONFIG_PATH_WEAPON_EFFECTS				L"WeaponEffectsConfig"
 
 #define OBJECT_PATH_LOGO_RED                    L"Matrix\\Logos\\RobotLogosR.VO"
@@ -274,7 +275,6 @@
 // interface
 
 //system
-#define IF_LABELS_BLOCKPAR                      L"AllLabels"
 #define IF_LABELS                               L"Labels"
 #define IF_LABELS_TEXT                          L"LabelsText"
 #define IF_STATE_STATIC_LABEL                   L"StateStaticLabel"

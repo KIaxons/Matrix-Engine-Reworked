@@ -886,7 +886,7 @@ void CMatrixTurret::LogicTact(int tact)
             float percent_done = float(m_NextTimeAblaze) / float(g_Config.m_Timings[UNIT_TURRET]);
 
             if(m_NextTimeAblaze > )
-            SetHitpoints(GetMaxHitPoints() * percent_done);
+            SetHitpoints(GetMaxHitpoints() * percent_done);
         }
         */
 

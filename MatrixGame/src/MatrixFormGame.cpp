@@ -1038,8 +1038,8 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                                                 {
                                                     if(s->IsRobot() && !s->AsRobot()->IsAutomaticMode()) s->AsRobot()->MustDie();
                                                     /*
-                                                    else if(s->IsTurret()) s->AsTurret()->InitMaxHitpoints(s->AsTurret()->GetMaxHitPoints() * 20);
-                                                    else if(s->IsBuilding()) s->AsBuilding()->InitMaxHitpoints(s->AsBuilding()->GetMaxHitPoints() * 20);
+                                                    else if(s->IsTurret()) s->AsTurret()->InitMaxHitpoints(s->AsTurret()->GetMaxHitpoints() * 20);
+                                                    else if(s->IsBuilding()) s->AsBuilding()->InitMaxHitpoints(s->AsBuilding()->GetMaxHitpoints() * 20);
                                                     */
                                                 }
                                             }
@@ -1051,9 +1051,9 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                                             {
                                                 if(s->GetSide() == PLAYER_SIDE)
                                                 {
-                                                    if(s->IsRobot()) s->AsRobot()->InitMaxHitpoints(s->AsRobot()->GetMaxHitPoints() * 20);
-                                                    else if(s->IsTurret()) s->AsTurret()->InitMaxHitpoints(s->AsTurret()->GetMaxHitPoints() * 20);
-                                                    else if(s->IsBuilding()) s->AsBuilding()->InitMaxHitpoints(s->AsBuilding()->GetMaxHitPoints() * 20);
+                                                    if(s->IsRobot()) s->AsRobot()->InitMaxHitpoints(s->AsRobot()->GetMaxHitpoints() * 20);
+                                                    else if(s->IsTurret()) s->AsTurret()->InitMaxHitpoints(s->AsTurret()->GetMaxHitpoints() * 20);
+                                                    else if(s->IsBuilding()) s->AsBuilding()->InitMaxHitpoints(s->AsBuilding()->GetMaxHitpoints() * 20);
                                                 }
                                             }
 

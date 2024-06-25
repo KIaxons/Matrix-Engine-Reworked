@@ -266,7 +266,7 @@ skip:;
     }
 }
 
-void CMatrixMapStatic::UnjoinGroup(void)
+void CMatrixMapStatic::UnjoinGroup()
 {
     int ii = m_InCnt;
     while(ii > 0)
