@@ -106,7 +106,7 @@ DTRACE();
         posx += m_Dir * m_SegLen;
         pos1 = posx + m_Dir * FSRND(m_SegLen * 0.5f) + (m_Perp *  FRND(m_Dispersion));
 
-        BuildRotateMatrix(m, m_Pos0, m_Dir, FSRND(M_PI));
+        BuildRotateMatrix(m, m_Pos0, m_Dir, FSRND((float)M_PI));
         D3DXVec3TransformCoord(&pos1, &pos1, &m);
 
         m_BL[i].SetPos(pos0, pos1);

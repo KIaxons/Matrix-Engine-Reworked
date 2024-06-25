@@ -1611,6 +1611,15 @@ void CInterface::Init(void)
                             }
                         }
                     }
+                    else if(player_side->m_CurrSel == TURRET_SELECTED)
+                    {
+                        if(lives != player_side->m_ActiveObject->AsTurret()->GetHitpoints())
+                        {
+                            lives = player_side->m_ActiveObject->AsTurret()->GetHitpoints();
+                            max_lives = player_side->m_ActiveObject->AsTurret()->GetMaxHitpoints();
+                            new_lives = true;
+                        }
+                    }
                     else if(player_side->m_CurrSel == BUILDING_SELECTED || player_side->m_CurrSel == BASE_SELECTED)
                     {
                         if(lives != player_side->m_ActiveObject->AsBuilding()->GetHitpoints())

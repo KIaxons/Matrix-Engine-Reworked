@@ -154,8 +154,8 @@ public:
     {
         m_Core->m_Type = OBJECT_TYPE_TURRET;
 
-        InitMaxHitpoints(8000);
-        m_HealthBar.Modify(1000000, 0, PB_CANNON_WIDTH, 1);
+        InitMaxHitpoints(8000.0f);
+        m_HealthBar.Modify(1000000.0f, 0.0f, PB_CANNON_WIDTH, 1.0f);
         if(g_Config.m_BuildingShadows) m_ShadowType = SHADOW_STENCIL;
     }
 	~CMatrixTurret();
@@ -169,14 +169,14 @@ public:
     void DIPTact(float ms);
 
     void  ShowHitpoints()            { m_ShowHitpointsTime = HITPOINT_SHOW_TIME; }
-    float GetHitpoints() const       { return m_Hitpoints; }
-    float GetMaxHitpoints()          { return m_MaxHitpoints; }
-    float GetHitpointsBeforeDismantle() const { return m_HitpointsBeforeDismantle; }
+    float GetHitpoints() const       { return 0.1f * m_Hitpoints; }
+    float GetMaxHitpoints()          { return 0.1f * m_MaxHitpoints; }
+    float GetHitpointsBeforeDismantle() const { return 0.1f * m_HitpointsBeforeDismantle; }
     void  InitMaxHitpoints(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
     void  SetHitpoints(float hp)     { m_Hitpoints = hp; }
-    float GetMaxHitpointsInversed()  { return m_MaxHitpointsInversed; }
+    float GetMaxHitpointsInversed()  { return 0.1f * m_MaxHitpointsInversed; }
     float GetSeekRadius();
-    float GetFireRadius()           { return m_TurretWeaponsTopRange; }
+    float GetFireRadius()            { return m_TurretWeaponsTopRange; }
 
     bool Select();
     void UnSelect();

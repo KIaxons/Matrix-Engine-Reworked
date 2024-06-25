@@ -328,14 +328,8 @@ public:
         m_MaxHitpoints = hp;
         m_MaxHitpointsInversed = 1.0f / hp;
     }
-    float GetMaxHitpoints()
-    {
-        return m_MaxHitpoints / 10;
-    }
-    float GetHitpoints()
-    {
-        return m_Hitpoints / 10;
-    }
+    float GetMaxHitpoints() { return 0.1f * m_MaxHitpoints; }
+    float GetHitpoints() { return 0.1f * m_Hitpoints; }
     void ReleaseMe();
 
     void SetNeutral();

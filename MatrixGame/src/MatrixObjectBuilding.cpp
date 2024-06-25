@@ -1890,7 +1890,7 @@ void CBuildingQueue::TickTimer(int ms)
             m_ProgressBar.Modify(percent_done);
 
             //turret->SetPBOutOfScreen();
-            turret->SetHitpoints(turret->GetMaxHitpoints() * percent_done);
+            turret->SetHitpoints(10.0f * turret->GetMaxHitpoints() * percent_done);
 
             if((ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED) && ps->m_ActiveObject == m_ParentBase)
             {
@@ -1961,7 +1961,7 @@ void CBuildingQueue::TickTimer(int ms)
             m_ProgressBar.Modify(percent_done);
 
             percent_done = PortionInDiapason(percent_done, 0.0f, 1.0f, 1.0f, 0.0f); //Здоровье разбираемой турели будет убывать
-            turret->SetHitpoints(turret->GetHitpointsBeforeDismantle() * percent_done);
+            turret->SetHitpoints(10.0f * turret->GetHitpointsBeforeDismantle() * percent_done);
 
             if((ps->m_CurrSel == BASE_SELECTED || ps->m_CurrSel == BUILDING_SELECTED) && ps->m_ActiveObject == m_ParentBase)
             {

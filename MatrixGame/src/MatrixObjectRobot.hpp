@@ -213,8 +213,8 @@ public:
         m_HealthBar.Modify(m_Hitpoints * m_MaxHitpointsInversed);
     }
 
-    float GetHitpoints() const { return m_Hitpoints / 10; }
-    float GetMaxHitpoints() { return m_MaxHitpoints / 10; }
+    float GetHitpoints() const { return 0.1f * m_Hitpoints; }
+    float GetMaxHitpoints() { return 0.1f * m_MaxHitpoints; }
     void  InitMaxHitpoints(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
 
     void MarkCrazy() { SETFLAG(m_ObjectFlags, ROBOT_CRAZY); }

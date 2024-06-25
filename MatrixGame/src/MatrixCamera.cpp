@@ -195,8 +195,6 @@ DTRACE();
 
 static bool SeekCamObjects(const D3DXVECTOR2& center, CMatrixMapStatic* ms, dword user)
 {
-    DTRACE();
-
     D3DXVECTOR3* vecs = (D3DXVECTOR3*)user;
 
     D3DXVECTOR3 dir(ms->GetGeoCenter() - vecs[0]);

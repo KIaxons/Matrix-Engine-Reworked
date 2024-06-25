@@ -310,7 +310,7 @@ void CMatrixEffect::InitEffects(CBlockPar& bp_in)
         spot_tex.color = 0xFFFFFFFF; //÷вет в данном случае не используетс€
         spot_tex.func = CMatrixEffectLandscapeSpot::SpotTactConstant;
         spot_tex.texture = (CTextureManaged*)g_Cache->Get(cc_TextureManaged, g_Config.m_RobotChassisConsts[i].ground_trace.texture_path);
-        spot_tex.ttl = g_Config.m_RobotChassisConsts[i].ground_trace.trace_duration;
+        spot_tex.ttl = (float)g_Config.m_RobotChassisConsts[i].ground_trace.trace_duration;
         spot_tex.flags = 0;
 
         m_SpotProperties.push_back(spot_tex);

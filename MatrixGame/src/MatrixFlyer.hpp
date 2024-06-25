@@ -396,8 +396,8 @@ public:
     CMatrixFlyer::SCarryData* GetCarryData() { return &m_CarryData; };
 
     void  ShowHitpoints() { m_ShowHitpointsTime = HITPOINT_SHOW_TIME; }
-    float GetHitpoints() const { return m_Hitpoints; }
-    float GetMaxHitpoints() { return m_MaxHitpoints; }
+    float GetHitpoints() const { return 0.1f * m_Hitpoints; }
+    float GetMaxHitpoints() { return 0.1f * m_MaxHitpoints; }
     void  InitMaxHitpoints(float hp) { m_Hitpoints = hp; m_MaxHitpoints = hp; m_MaxHitpointsInversed = 1.0f / hp; }
 
     void SetHitpoint(float hp) { m_Hitpoints = hp; }

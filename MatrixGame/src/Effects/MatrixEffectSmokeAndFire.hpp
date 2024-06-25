@@ -191,10 +191,7 @@ public:
     virtual void Draw() { Draw(false); };
     void Draw(bool now);
     virtual void Tact(float tick);
-    virtual void Release()
-    {
-        HDelete(CMatrixEffectLinkedSpriteAnim, this, m_Heap);
-    };
+    virtual void Release() { HDelete(CMatrixEffectLinkedSpriteAnim, this, m_Heap); };
 
     virtual int Priority() { return MAX_EFFECT_PRIORITY; };
 

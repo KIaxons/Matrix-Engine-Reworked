@@ -209,7 +209,7 @@ void MO_Cannon_Round_Tact(D3DXMATRIX& m, SMOProps& props, float tact)
 
     if(props.gun.in_frustum_count > 0 && props.gun.contrail_sprite_num != SPR_NONE)
     {
-        CMatrixEffect::CreateSpritesLine(nullptr, props.curpos, hitpos, props.gun.contrail_width, props.gun.contrail_color, 0, props.gun.contrail_duration, CMatrixEffect::GetSingleBrightSpriteTex(props.gun.contrail_sprite_num));
+        CMatrixEffect::CreateSpritesLine(nullptr, props.curpos, hitpos, (float)props.gun.contrail_width, props.gun.contrail_color, 0, (float)props.gun.contrail_duration, CMatrixEffect::GetSingleBrightSpriteTex(props.gun.contrail_sprite_num));
         //DM("cc", CStr(props.curpos.x) + "," + CStr(props.curpos.y) + "," + CStr(props.curpos.z) + "," + CStr(hitpos.x) + "," + CStr(hitpos.x) + "," + CStr(hitpos.x));
     }
 
@@ -225,7 +225,7 @@ void MO_Cannon_Round_Tact(D3DXMATRIX& m, SMOProps& props, float tact)
             bool fire = false;
             if(hito == TRACE_STOP_LANDSCAPE)
             {
-                CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND(M_PI), FRND(3) + 6, SPOT_VORONKA);
+                CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND((float)M_PI), FRND(3) + 6, SPOT_VORONKA);
                 hitpos.z = g_MatrixMap->GetZ(hitpos.x, hitpos.y) + 10;
                 fire = true;
             }
@@ -415,7 +415,7 @@ void MO_Homing_Missile_Tact(D3DXMATRIX& m, SMOProps& props, float tact)
         bool fire = false;
         if(hit_obj == TRACE_STOP_LANDSCAPE)
         {
-            CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hit_pos.x, hit_pos.y), FSRND(M_PI), FRND(3) + 6, SPOT_VORONKA);
+            CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hit_pos.x, hit_pos.y), FSRND((float)M_PI), FRND(3) + 6, SPOT_VORONKA);
             hit_pos.z = g_MatrixMap->GetZ(hit_pos.x, hit_pos.y) + 10;
             fire = true;
         }
@@ -536,7 +536,7 @@ void MO_Grenade_Tact(D3DXMATRIX& m, SMOProps& props, float tact)
             bool fire = false;
             if(hito == TRACE_STOP_LANDSCAPE)
             {
-                CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND(M_PI), FRND(3) + 6, SPOT_VORONKA);
+                CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND((float)M_PI), FRND(3) + 6, SPOT_VORONKA);
                 hitpos.z = g_MatrixMap->GetZ(hitpos.x, hitpos.y) + 10;
                 fire = true;
             }
@@ -547,7 +547,7 @@ void MO_Grenade_Tact(D3DXMATRIX& m, SMOProps& props, float tact)
             float z = g_MatrixMap->GetZ(hitpos.x, hitpos.y);
             if(z > WATER_LEVEL)
             {
-                CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND(M_PI), FRND(3) + 6, SPOT_VORONKA);
+                CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND((float)M_PI), FRND(3) + 6, SPOT_VORONKA);
                 hitpos.z = z + 10;
                 CMatrixEffect::CreateExplosion(hitpos, ExplosionMissile, true);
             }

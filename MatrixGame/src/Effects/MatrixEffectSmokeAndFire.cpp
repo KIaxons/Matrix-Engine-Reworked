@@ -351,7 +351,7 @@ void CMatrixEffectFireStream::Draw(bool now)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //јнимаци€ декоративных спрайтовых анимаций, линкованных к матрицам на модели
 CMatrixEffectLinkedSpriteAnim::CMatrixEffectLinkedSpriteAnim(const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, float width, dword color, int frame_delay, bool camera_oriented, const std::vector<int>& sprites_num) :
-    m_FrameDelay(frame_delay), m_SpritesCount(sprites_num.size()), m_Sprites(new CSpriteSequence[m_SpritesCount])
+    m_FrameDelay(frame_delay), m_SpritesCount((byte)sprites_num.size()), m_Sprites(new CSpriteSequence[m_SpritesCount])
 {
     for(int i = 0; i < m_SpritesCount; ++i)
     {
@@ -369,7 +369,7 @@ CMatrixEffectLinkedSpriteAnim::CMatrixEffectLinkedSpriteAnim(const D3DXVECTOR3& 
 
 void CMatrixEffectLinkedSpriteAnim::Tact(float tick)
 {
-    m_NextFrameDelay = max(m_NextFrameDelay - tick, 0);
+    m_NextFrameDelay = max(m_NextFrameDelay - (int)tick, 0);
     if(!m_NextFrameDelay)
     {
         if(!g_MatrixMap->IsPaused()) m_CurFrame = m_CurFrame + 1 < m_SpritesCount ? m_CurFrame + 1 : 0; // рутим анимацию

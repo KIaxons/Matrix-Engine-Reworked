@@ -1291,7 +1291,7 @@ DTRACE();
     if(m_EngineUnit >= 0)
     {
         float ea = m_Modules[m_EngineUnit].m_Engine.m_Angle;
-        float dang = AngleDist(ea, m_TargetEngineAngle);
+        float dang = AngleDist((double)ea, (double)m_TargetEngineAngle);
         ea += dang * td.mul;
         for(int ii = m_EngineUnit; ii < m_ModulesCount; ++ii)
         {
@@ -1299,10 +1299,10 @@ DTRACE();
         }
     }
 
-    float dang = AngleDist(m_Pitch, m_TargetPitchAngle);
+    float dang = AngleDist((double)m_Pitch, (double)m_TargetPitchAngle);
     m_Pitch += dang * td.mul;
 
-    dang = AngleDist(m_Roll, m_TargetRollAngle);
+    dang = AngleDist((double)m_Roll, (double)m_TargetRollAngle);
     m_Roll += dang * td.mul;
 
     //Здесь происходит корректировка высоты полёта
@@ -1929,8 +1929,8 @@ void CMatrixFlyer::Begin(CMatrixBuilding* b)
     m_CurrentState = STATE_FLYER_IN_SPAWN;
     SetManualControlLocked(true);
 
-    m_Pos.x = b->m_Pos.x + FSRND(0.01);
-    m_Pos.y = b->m_Pos.y + FSRND(0.01);
+    m_Pos.x = b->m_Pos.x + FSRND(0.01f);
+    m_Pos.y = b->m_Pos.y + FSRND(0.01f);
     m_Pos.z = b->GetFloorZ();
 
     m_Side = b->GetSide();

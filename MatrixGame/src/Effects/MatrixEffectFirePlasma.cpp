@@ -104,7 +104,7 @@ DTRACE();
         
         if(hito == TRACE_STOP_LANDSCAPE)
         {
-            CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND(M_PI), FRND(1) + 0.5f, SPOT_PLASMA_HIT);
+            CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND((float)M_PI), FRND(1) + 0.5f, SPOT_PLASMA_HIT);
             CMatrixEffect::CreateSmoke(nullptr, hitpos, 100, 1400, 41, 0xFF909090);
         }
         else

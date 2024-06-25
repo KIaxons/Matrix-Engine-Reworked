@@ -2758,7 +2758,7 @@ static bool Egg1(const D3DXVECTOR2& center, CMatrixMapStatic* ms, dword user)
         ++(*egg);
 
         if(ms->GetSide() != PLAYER_SIDE) (*egg) += 100;
-        if((!robot->HaveBomb() || fabs(robot->GetMaxHitpoints() - robot->GetHitpoints()) > 1) && !robot->IsInPosition())
+        if((!robot->HaveBomb() || fabs(robot->GetMaxHitpoints() - robot->GetHitpoints()) > 1.0f) && !robot->IsInPosition())
         {
             (*egg) += 100;
         }
