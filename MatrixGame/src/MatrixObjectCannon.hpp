@@ -30,7 +30,7 @@ enum ECannonUnitType
 #define MR_MAX_TURRET_UNIT 3
 
 
-struct SMatrixCannonUnit
+struct SMatrixTurretUnit
 {
 	ECannonUnitType m_Type = TURRET_PART_EMPTY;
 
@@ -60,7 +60,7 @@ struct SMatrixCannonUnit
     };
 
     //Только для корректной инициализации переменных в union
-    SMatrixCannonUnit() : m_ShadowStencil(nullptr), m_DirectionAngle(0.0f), m_LinkMatrix(0), m_IMatrix(), m_Invert(0) {}
+    SMatrixTurretUnit() : m_ShadowStencil(nullptr), m_DirectionAngle(0.0f), m_LinkMatrix(0), m_IMatrix(), m_Invert(0) {}
 };
 
 class CMatrixTurret : public CMatrixMapStatic
@@ -81,6 +81,11 @@ protected:
     };
 
     CMatrixEffectSelection* m_Selection = nullptr;
+    CTextureManaged* m_BigTexture = nullptr;
+    //CTextureManaged* m_MedTexture = nullptr;
+#ifdef USE_SMALL_TEXTURE_IN_ROBOT_ICON
+    //CTextureManaged* m_SmallTexture = nullptr;   // hm, may be its no needed //may be, who cares :)
+#endif
 
     int m_UnderAttackTime = 0;
 
@@ -108,7 +113,7 @@ public:
     int m_TimeFromFire = CANNON_TIME_FROM_FIRE;
 
 	int m_ModulesCount = 0;
-	SMatrixCannonUnit m_Module[MR_MAX_TURRET_UNIT];
+	SMatrixTurretUnit m_Module[MR_MAX_TURRET_UNIT];
 
 	CMatrixShadowProj* m_ShadowProj = nullptr;
 
@@ -117,7 +122,7 @@ public:
     int m_NextTimeAblaze = 0;
     int m_NextTimeShorted = 0;
 
-    CMatrixMapStatic* m_TargetOverride = nullptr; //Цель, которая была задана турели принудительно извне (вероятнее всего, игроком)
+    CMatrixMapStatic* m_TargetCoreOverride = nullptr; //Цель, которая была задана турели принудительно извне (вероятнее всего, игроком)
     D3DXVECTOR3 m_TargetDisp = { 0.0f, 0.0f, 0.0f };
     D3DXVECTOR3 m_FireCenter = { 0.0f, 0.0f, 0.0f };
 
@@ -178,6 +183,13 @@ public:
     float GetSeekRadius();
     float GetFireRadius()            { return m_TurretWeaponsTopRange; }
 
+    CTextureManaged* GetBigTexture() { return m_BigTexture; }
+    //CTextureManaged* GetMedTexture() { return m_MedTexture; }
+#ifdef USE_SMALL_TEXTURE_IN_ROBOT_ICON
+    //CTextureManaged* GetSmallTexture() { return m_SmallTexture; }
+#endif
+
+    void CreateTextures();
     bool Select();
     void UnSelect();
 
@@ -224,10 +236,11 @@ public:
 	void OnLoad();
 
     virtual bool CalcBounds(D3DXVECTOR3& omin, D3DXVECTOR3& omax);
-    virtual int GetSide() const     { return m_Side; };
-    virtual bool NeedRepair() const { return m_Hitpoints < m_MaxHitpoints && m_CurrentState != TURRET_UNDER_CONSTRUCTION && m_CurrentState != TURRET_UNDER_DECONSTRUCTION; }
-        
-    virtual bool InRect(const CRect &rect)const;
+    virtual int GetSide() const      { return m_Side; };
+    virtual float NeedRepair() const { return !IsInvulnerable() && (m_MaxHitpoints - m_Hitpoints); }
+    virtual float GetHitpointsPercent() const { return m_Hitpoints / m_MaxHitpoints * 100.0f; }
+
+    virtual bool InRect(const CRect& rect) const;
 
     //void OnOutScreen() {};
 

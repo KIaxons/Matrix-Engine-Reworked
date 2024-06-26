@@ -199,13 +199,10 @@ void CMatrixEffectElevatorField::Tact(float t)
         }
     }
 
-
     //D3DXVec3TransformCoordArray(&m_BBoards[0].bb.m_Pos, sizeof(SElevatorFieldBBoard), &m_BBoards[0].bb.m_Pos, sizeof(SElevatorFieldBBoard), &m_Rot, m_AllBBCnt);
-
 }
-void CMatrixEffectElevatorField::Release(void)
+void CMatrixEffectElevatorField::Release()
 {
-    DTRACE();
     SetDIP();
     HDelete(CMatrixEffectElevatorField, this, m_Heap);
 }

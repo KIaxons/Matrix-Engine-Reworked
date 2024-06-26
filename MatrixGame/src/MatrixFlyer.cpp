@@ -2111,7 +2111,7 @@ void CMatrixFlyer::CreateTextures()
     rt[1].ts = TEXSIZE_64;
     rt[2].ts = TEXSIZE_32;
 
-    if(RenderToTexture(rt,3))
+    if(RenderToTexture(rt, 3))
     {
         m_BigTexture = rt[0].tex;
         m_MedTexture = rt[1].tex;

@@ -145,6 +145,7 @@ public:
 
 	int m_ModulesCount = 0;
     SMatrixRobotModule m_Module[MR_MAX_MODULES];
+    SMatrixRobotModule* m_HullModule = nullptr;
 
     SChassisData m_ChassisData;
 
@@ -188,7 +189,7 @@ public:
     {
         m_Core->m_Type = OBJECT_TYPE_ROBOT_AI;
 
-        m_HealthBar.Modify(1000000, 0, PB_ROBOT_WIDTH, 1);
+        m_HealthBar.Modify(1000000.0f, 0.0f, PB_ROBOT_WIDTH, 1.0f);
 
         if(g_PlayerRobotsAutoBoom == 1) m_AutoBoom = true; //Если подключён мод на автоподрыв (и в конфиге выставлено включение подрыва по умолчанию), то по умолчанию он будет включён
     }
@@ -254,7 +255,7 @@ public:
     void FirstStepLinkWalkingChassis();
 
     float GetChassisHeight() const;
-    float GetEyeLevel() const;
+    float GetEyeHeight(bool from_the_floor = true) const;
     float GetHullHeight() const;
 
     float Z_From_Pos();
@@ -290,7 +291,8 @@ public:
 
     virtual bool CalcBounds(D3DXVECTOR3& omin, D3DXVECTOR3& omax);
     virtual int  GetSide() const { return m_Side; };
-    virtual bool NeedRepair() const { return m_Hitpoints < m_MaxHitpoints; }
+    virtual float NeedRepair() const { return m_MaxHitpoints - m_Hitpoints; }
+    virtual float GetHitpointsPercent() const { return m_Hitpoints / m_MaxHitpoints * 100.0f; }
     virtual bool InRect(const CRect& rect)const;
 
     void OnOutScreen() {};

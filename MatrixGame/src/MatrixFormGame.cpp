@@ -522,7 +522,7 @@ void CFormMatrixGame::MouseMove(int x, int y)
         cbs.calls = 0;
 
         dword mask = 0;
-        if(g_BetterTurrets) mask = TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET | TRACE_BUILDING;
+        if(g_SelectableTurrets) mask = TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET | TRACE_BUILDING;
         else mask = TRACE_ROBOT | TRACE_FLYER | TRACE_BUILDING;
         CMultiSelection::m_GameSelection->Update(g_MatrixMap->m_Cursor.GetPos(), mask, selcallback, (dword)&cbs);
     }
@@ -788,7 +788,7 @@ void CFormMatrixGame::MouseKey(ButtonStatus status, int key, int x, int y)
                     cbs.calls = 0;
 
                     dword mask = 0;
-                    if(g_BetterTurrets) mask = TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET | TRACE_BUILDING;
+                    if(g_SelectableTurrets) mask = TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET | TRACE_BUILDING;
                     else mask = TRACE_ROBOT | TRACE_FLYER | TRACE_BUILDING;
                     CMultiSelection::m_GameSelection->Update(g_MatrixMap->m_Cursor.GetPos(), mask, selcallback, (dword)&cbs);
                 }

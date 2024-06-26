@@ -297,7 +297,7 @@ class CMatrixRobotAI : public CMatrixRobot
     //CMatrixMapStatic*     m_FireTarget = nullptr;
     //int                   m_GatherPeriod = 0;
     CInfo                   m_Environment;
-    EBombStatus             m_BombStatus = BS_NO_BOMB;      //BS_NO_BOMB - у робота бомб нет, BS_HAVE_BOMB - бомбы есть, BS_TIME_TO_EXPLODE - пришло время эти самые бомбы подзорвать, BS_EXPLODING - метод подрыва бомб уже был вызван
+    EBombStatus             m_BombStatus = BS_NO_BOMB;   //BS_NO_BOMB - у робота бомб нет, BS_HAVE_BOMB - бомбы есть, BS_TIME_TO_EXPLODE - пришло время эти самые бомбы подзорвать, BS_EXPLODING - метод подрыва бомб уже был вызван
     float                   m_BombRange = 0.0f;          //Радиус поражения самой дальнобойной бомбы, используется в проверке на необходимость активации автоподрыва при смерти робота
     byte                    m_HaveRepair = NOT_REPAIRER; //NOT_REPAIRER - нет, PARTIAL_REPAIRER - есть хотя бы один ремонтник, FULL_REPAIRER - все оружия это ремонтник (не считая бомб)
 
@@ -492,7 +492,7 @@ public:
     byte const GetBombStatus() { return m_BombStatus; }
     void const SetBombStatus(EBombStatus set) { m_BombStatus = set; }
     bool const HaveBomb()   { return (m_BombStatus >= 1); }
-    byte const HaveRepair() { return m_HaveRepair; } //0 - нет, 1 - есть хотя бы один ремонтник, 2 - все оружия это ремонтник (не считая бомб)
+    byte const HaveRepair() { return m_HaveRepair; } //NOT_REPAIRER - нет, PARTIAL_REPAIRER - есть хотя бы один ремонтник, FULL_REPAIRER - все оружия это ремонтник (не считая бомб)
 
     //High orders
     void MoveToHigh(int mx, int my);

@@ -581,8 +581,8 @@ public:
 
     // Theam logic
     void TactTL();
-    void WarTL(int group);
-    void RepairTL(int group);
+    void WarTL(int group);    //Отработка логики раздачи приказов ведения боевых действий роботам ИИ
+    void RepairTL(int group); //Отработка логики раздачи приказов ремонта роботам ИИ
     void AssignPlace(CMatrixRobotAI* robot, int region, CPoint* target = nullptr, std::vector<SMatrixRegion*>* all_regions = nullptr);
     void AssignPlace(int group, int region);
     void SortRobotList(CMatrixRobotAI** rl, int rl_cnt);
@@ -600,8 +600,8 @@ public:
 
     void TactPL(int only_group = -1);
     bool FirePL(int group);
-    void RepairPL(int group);
-    void WarPL(int group);
+    void WarPL(int group);    //Отработка логики раздачи приказов ведения боевых действий роботам игрока
+    void RepairPL(int group); //Отработка логики раздачи приказов ремонта роботам игрока
     int SelGroupToLogicGroup();
     int RobotToLogicGroup(CMatrixRobotAI* robot);
     void PGOrderStop(int no);

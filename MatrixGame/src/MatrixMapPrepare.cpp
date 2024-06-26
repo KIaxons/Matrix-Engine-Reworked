@@ -1939,7 +1939,7 @@ void CMatrixMap::Restart()
     CMatrixMapStatic* ms = CMatrixMapStatic::GetFirstLogic();
     while(ms != nullptr)
     {
-        if(ms->GetObjectType() == OBJECT_TYPE_BUILDING)
+        if(ms->IsBuildingAlive())
         {
             CMatrixBuilding* building = ms->AsBuilding();
 
@@ -1950,6 +1950,10 @@ void CMatrixMap::Restart()
                 ms->GetResources(MR_Matrix | MR_Graph | MR_MiniMap);
                 if(!building->IsBase()) building->CreateCaptureCirclesEffect();
             }
+        }
+        else if(ms->IsTurretAlive() && ms->GetSide() == PLAYER_SIDE)
+        {
+            ms->AsTurret()->CreateTextures();
         }
 
         ms = ms->GetNextLogic();
@@ -2062,6 +2066,10 @@ void CMatrixMap::CreatePoolDefaultResources(bool loading)
                 building->LogicTact(100000);
                 ms->GetResources(MR_Matrix | MR_Graph | MR_MiniMap);
                 if(!building->IsBase()) building->CreateCaptureCirclesEffect();
+            }
+            else if(ms->IsTurretAlive() && ms->GetSide() == PLAYER_SIDE)
+            {
+                ms->AsTurret()->CreateTextures();
             }
 
             ms = ms->GetNextLogic();

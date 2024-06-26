@@ -341,6 +341,7 @@ public:
     } m_CarryData;
 
     dword m_Flags = MF_TARGETFIRE | FLYER_IN_SPAWN;
+    int   m_Place = -1; //Место нахождения вертолёта на карте
 
     friend struct SMatrixFlyerUnit;
 
@@ -489,7 +490,8 @@ public:
 
     virtual bool CalcBounds(D3DXVECTOR3& omin, D3DXVECTOR3& omax);
     virtual int GetSide() const { return m_Side; };
-    virtual bool NeedRepair() const { return m_Hitpoints < m_MaxHitpoints; }
+    virtual float NeedRepair() const { return m_MaxHitpoints - m_Hitpoints; }
+    virtual float GetHitpointsPercent() const { return m_Hitpoints / m_MaxHitpoints * 100.0f; }
 
     virtual bool InRect(const CRect& rect)const;
 

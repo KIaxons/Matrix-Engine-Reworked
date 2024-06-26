@@ -4926,16 +4926,18 @@ DTRACE();
 void CIFaceList::CreatePersonal()
 {
     CMatrixSideUnit* player_side = g_MatrixMap->GetPlayerSide();
-    if(!player_side->GetCurGroup()) return;
-    
-    int selected = player_side->GetCurSelNum();
+    CMatrixMapStatic* obj;
+    if(player_side->GetCurGroup())
+    {
+        int selected = player_side->GetCurSelNum();
 
-    CMatrixGroup* group = player_side->GetCurGroup();
-    
-    CMatrixGroupObject* go = group->m_FirstObject;
-    for(int i = 0; i < selected && go; ++i) go = go->m_NextObject;
-    
-    if(!go) return;
+        CMatrixGroupObject* go = player_side->GetCurGroup()->m_FirstObject;
+        for(int i = 0; i < selected && go; ++i) go = go->m_NextObject;
+        if(!go) return;
+        obj = go->ReturnObject();
+    }
+    else if(player_side->m_ActiveObject && player_side->m_ActiveObject->GetObjectType() == OBJECT_TYPE_TURRET) obj = player_side->m_ActiveObject;
+    else return;
 
     CInterface* interfaces = g_IFaceList->m_First;
     while(interfaces)
@@ -4944,20 +4946,21 @@ void CIFaceList::CreatePersonal()
         {
             CTextureManaged* tex = nullptr;
             float xbig = 0, ybig = 0;
-            bool flyer = false;
             bool robot = false;
+            bool flyer = false;
 
             CIFaceImage* image = HNew(Base::g_MatrixHeap) CIFaceImage;
             
-            if(go->ReturnObject()->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
+            EObjectType type = obj->GetObjectType();
+            if(type == OBJECT_TYPE_ROBOT_AI)
             {
-                tex = ((CMatrixRobotAI*)go->ReturnObject())->GetBigTexture();
+                tex = obj->AsRobot()->GetBigTexture();
                 robot = true;
             }
-            else if(go->ReturnObject()->GetObjectType() == OBJECT_TYPE_FLYER)
+            else if(type == OBJECT_TYPE_FLYER)
             {
                 CIFaceImage* img;
-                switch(go->ReturnObject()->AsFlyer()->m_FlyerKind)
+                switch(obj->AsFlyer()->m_FlyerKind)
                 {
                     case FLYER_SPEED: img = interfaces->FindImageByName(CWStr(IF_FLYER_1_IMG)); break;
                     case FLYER_ATTACK: img = interfaces->FindImageByName(CWStr(IF_FLYER_2_IMG)); break;
@@ -4970,6 +4973,11 @@ void CIFaceList::CreatePersonal()
                 ybig = img->m_yTexPos;
 
                 flyer = true;
+            }
+            else if(type == OBJECT_TYPE_TURRET)
+            {
+                tex = obj->AsTurret()->GetBigTexture();
+                robot = true;
             }
             
             if(tex)

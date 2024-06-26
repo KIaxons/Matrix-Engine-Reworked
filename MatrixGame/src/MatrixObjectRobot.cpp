@@ -33,7 +33,7 @@ void CMatrixRobot::ModuleInsert(int before_module, ERobotModuleType type, ERobot
 	m_Module[before_module].m_Kind = kind;
 	D3DXMatrixIdentity(&m_Module[before_module].m_Matrix);
 
-    m_Module[before_module].m_NextAnimTime = g_MatrixMap->GetTime();
+    m_Module[before_module].m_NextAnimTime = (float)g_MatrixMap->GetTime();
 	
 	RChange(MR_ShadowStencil | MR_ShadowProjGeom | MR_ShadowProjTex);
 
@@ -70,6 +70,7 @@ void CMatrixRobot::ModuleInsert(int before_module, ERobotModuleType type, ERobot
         }
         m_ChassisData.m_MovingAnimSpeed = g_Config.m_RobotChassisConsts[kind].anim_move_speed;
     }
+    else if(type == MRT_HULL) m_HullModule = &m_Module[before_module];
 }
 
 //Непосредственное подключение модели указанного оружия к общей модели робота
@@ -98,7 +99,7 @@ void CMatrixRobot::WeaponInsert(
 
     D3DXMatrixIdentity(&m_Module[before_module].m_Matrix);
 
-    m_Module[before_module].m_NextAnimTime = g_MatrixMap->GetTime();
+    m_Module[before_module].m_NextAnimTime = (float)g_MatrixMap->GetTime();
 
 	RChange(MR_ShadowStencil | MR_ShadowProjTex);
 }
@@ -220,7 +221,7 @@ void CMatrixRobot::BoundGet(D3DXVECTOR3& bmin, D3DXVECTOR3& bmax)
 	}
 }
 
-float CMatrixRobot::GetChassisHeight(void) const
+float CMatrixRobot::GetChassisHeight() const
 {
     // 1st matrix, ConnectUp, chassis connector
     const D3DXMATRIX* tm = m_Module[0].m_Graph->GetMatrixById(1);
@@ -228,45 +229,28 @@ float CMatrixRobot::GetChassisHeight(void) const
     return tm->_43;
 }
 
-float CMatrixRobot::GetEyeLevel(void) const
+float CMatrixRobot::GetEyeHeight(bool from_the_floor) const
 {
     // initialize with chassis height, worst case :)
-    float eye_level = GetChassisHeight();
-    
-    // try to get armor unit, starts from 1 because 0 is chassis
-    for(int i = 1; i < m_ModulesCount; ++i)
-    {
-        if(m_Module[i].m_Type == MRT_HULL)
-        {
-            // 1st matrix, ConnectUp, head connector
-            const D3DXMATRIX* tm = m_Module[i].m_Graph->GetMatrixById(1);
-            // get z coord from matrix, add to chassis height
-            eye_level += tm->_43;
-            break;
-        }
-    }
+    float eye_level = 0.0f;
+    if(from_the_floor) eye_level += GetChassisHeight();
 
-    return eye_level;
+    // 1st matrix, ConnectUp, head connector
+    const D3DXMATRIX* tm = m_HullModule->m_Graph->GetMatrixById(1);
+    // get z coord from matrix, add to chassis height
+    return eye_level += tm->_43;
 }
 
-float CMatrixRobot::GetHullHeight(void) const
+float CMatrixRobot::GetHullHeight() const
 {
-    // try to get armor unit, starts from 1 because 0 is chassis
-    for(int i = 1; i < m_ModulesCount; ++i)
+    //Ищем наиболее высоко расположенную матрицу на корпусе
+    float max_height = 0;
+    for(int j = 0; j < m_HullModule->m_Graph->GetMatrixCount(); ++j)
     {
-        if(m_Module[i].m_Type == MRT_HULL)
-        {
-            //Ищем наиболее высоко расположенную матрицу на корпусе
-            float max_height = 0;
-            for(int j = 0; j < m_Module[i].m_Graph->GetMatrixCount(); ++j)
-            {
-                const D3DXMATRIX* tm = m_Module[i].m_Graph->GetMatrix(j);
-                if(tm->_43 > max_height) max_height = tm->_43;
-            }
-            return max_height;
-            break;
-        }
+        const D3DXMATRIX* tm = m_HullModule->m_Graph->GetMatrix(j);
+        if(tm->_43 > max_height) max_height = tm->_43;
     }
+    return max_height;
 }
 
 float CMatrixRobot::Z_From_Pos()
@@ -894,7 +878,7 @@ void CMatrixRobot::Tact(int cms)
     {
         for(int i = 0; i < cnt; ++i)
         {
-            m_ChassisData.LinkedSpriteAnim[i]->Tact(cms);
+            m_ChassisData.LinkedSpriteAnim[i]->Tact((float)cms);
         }
     }
 

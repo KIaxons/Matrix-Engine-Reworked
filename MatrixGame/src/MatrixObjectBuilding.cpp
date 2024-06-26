@@ -1930,6 +1930,7 @@ void CBuildingQueue::TickTimer(int ms)
                 }
 
                 g_MatrixMap->m_Minimap.AddEvent(m_Top->GetGeoCenter().x, m_Top->GetGeoCenter().y, 0xffffff00, 0xffffff00);
+                turret->SetHitpoints(10.0f * turret->GetMaxHitpoints()); //При выставлении быстрой постройки итоговое количество HP иногда может слегка превысить максимум
                 turret->m_CurrentState = TURRET_IDLE;
                 if(side_id != NEUTRAL_SIDE) g_MatrixMap->GetSideById(side_id)->IncStatValue(STAT_TURRET_BUILD);
 
@@ -1938,6 +1939,8 @@ void CBuildingQueue::TickTimer(int ms)
                 //Обновляем интерфейс базы
                 if(m_ParentBase->GetSide() == PLAYER_SIDE)
                 {
+                    turret->CreateTextures();
+
                     g_IFaceList->DeleteQueueIcon(1, m_ParentBase);
                     if(g_MatrixMap->GetPlayerSide()->m_ActiveObject == m_ParentBase)
                     {

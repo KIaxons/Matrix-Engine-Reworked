@@ -8,6 +8,7 @@
 #include "MatrixMapStatic.hpp"
 #include "MatrixObject.hpp"
 #include "MatrixRobot.hpp"
+#include "MatrixObjectCannon.hpp"
 #include "MatrixObjectBuilding.hpp"
 #include "MatrixRenderPipeline.hpp"
 #include "MatrixSkinManager.hpp"
@@ -414,14 +415,61 @@ bool CMatrixMapStatic::RenderToTexture(
         ASSERT_DX(g_D3DD->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0, 1.0f, 0));
     }
 
-    ASSERT(IsRobot()); //Далее делаем рендер только для роботов
-    CMatrixRobotAI* robot = AsRobot();
+    //ASSERT(IsRobot()); //Далее делаем рендер только для роботов
 
     GetResources(MR_Graph | MR_Matrix);
 
-    float height = (0.75f * robot->GetChassisHeight()) + (0.60f * robot->GetHullHeight());
-    float distance = height + PortionInDiapason(height, 10.0f, 50.0f, 12.0f, -22.0f); //Чем больше, тем дальше
-    float cdist = float(distance * 0.8 / tan(fov / 2.0));
+    float height;
+    float distance;
+    float cdist;
+    if(IsRobot())
+    {
+        CMatrixRobotAI* robot = AsRobot();
+        height = (0.75f * robot->GetChassisHeight()) + (0.60f * robot->GetHullHeight());
+        distance = height + PortionInDiapason(height, 10.0f, 50.0f, 12.0f, -22.0f); //Чем больше, тем дальше
+        cdist = float(distance * 0.8 / tan(fov / 2.0));
+    }
+    else if(IsTurret())
+    {
+        CMatrixTurret* turret = AsTurret();
+
+        switch(turret->m_TurretKind)
+        {
+            case 1: //Говнострел
+            {
+                height = 16.0f;
+                distance = 32.0f;
+                break;
+            }
+            case 2: //Тяжёлая
+            {
+                height = 10.0f;
+                distance = 47.0f;
+                break;
+            }
+            case 3: //Лазерка
+            {
+                height = 17.0f;
+                distance = 35.0f;
+                break;
+            }
+            case 4: //Ракетница
+            {
+                height = 14.0f;
+                distance = 30.0f;
+                break;
+            }
+
+            default:
+            {
+                height = 16.0f;
+                distance = 32.0f;
+                break;
+            }
+        }
+
+        cdist = float(distance * 0.8 / tan(fov / 2.0));
+    }
 
     D3DXVECTOR3 fc(cdist * TableSin(anglez), cdist * TableCos(anglez), TableSin(anglex) * cdist + height);
     //D3DXVECTOR3 fc(80, -30, height + 5);
@@ -447,20 +495,42 @@ bool CMatrixMapStatic::RenderToTexture(
 
     ASSERT_DX(g_D3DD->BeginScene());
 
-    robot->SetInterfaceDraw(true);
-    //g_MatrixMap->m_Camera.SetFrustumCenter(*D3DXVec3TransformCoord(&fc, &fc, &m_Core->m_Matrix));
+    if(IsRobot())
+    {
+        CMatrixRobotAI* robot = AsRobot();
 
-    D3DXMATRIX imatView;
-    D3DXMatrixInverse(&imatView, nullptr, &matView);
+        robot->SetInterfaceDraw(true);
+        //g_MatrixMap->m_Camera.SetFrustumCenter(*D3DXVec3TransformCoord(&fc, &fc, &m_Core->m_Matrix));
 
-    g_MatrixMap->m_Camera.SetDrawNowParams(imatView, *D3DXVec3TransformCoord(&fc, &fc, &m_Core->m_Matrix));
-    CVectorObject::DrawBegin();
-    robot->m_Module[0].m_Graph->SetAnimByName(ANIMATION_NAME_STAY);
-    robot->m_Module[0].m_Graph->SetFirstFrame();
-    robot->Draw(); //Имеет в себе отдельный тип интерфейсного рендера, активируемый по robot->SetInterfaceDraw(true);
-	CVectorObject::DrawEnd();
+        D3DXMATRIX imatView;
+        D3DXMatrixInverse(&imatView, nullptr, &matView);
 
-    AsRobot()->SetInterfaceDraw(false); //Если забыть это выключить, то можно пронаблюдать весьма любопытный трип )
+        g_MatrixMap->m_Camera.SetDrawNowParams(imatView, *D3DXVec3TransformCoord(&fc, &fc, &m_Core->m_Matrix));
+        CVectorObject::DrawBegin();
+        robot->m_Module[0].m_Graph->SetAnimByName(ANIMATION_NAME_STAY);
+        robot->m_Module[0].m_Graph->SetFirstFrame();
+        robot->Draw(); //Имеет в себе отдельный тип интерфейсного рендера, активируемый по robot->SetInterfaceDraw(true);
+        CVectorObject::DrawEnd();
+
+        robot->SetInterfaceDraw(false); //Если забыть это выключить, то можно пронаблюдать весьма любопытный трип )
+    }
+    else if(IsTurret())
+    {
+        CMatrixTurret* turret = AsTurret();
+
+        turret->SetInterfaceDraw(true);
+        //g_MatrixMap->m_Camera.SetFrustumCenter(*D3DXVec3TransformCoord(&fc, &fc, &m_Core->m_Matrix));
+
+        D3DXMATRIX imatView;
+        D3DXMatrixInverse(&imatView, nullptr, &matView);
+
+        g_MatrixMap->m_Camera.SetDrawNowParams(imatView, *D3DXVec3TransformCoord(&fc, &fc, &m_Core->m_Matrix));
+        CVectorObject::DrawBegin();
+        turret->Draw(); //Имеет в себе отдельный тип интерфейсного рендера, активируемый по turret->SetInterfaceDraw(true);
+        CVectorObject::DrawEnd();
+
+        turret->SetInterfaceDraw(false); //Если забыть это выключить, то можно пронаблюдать весьма любопытный трип )
+    }
 
 //Return old
     g_MatrixMap->m_Camera.RestoreCameraParams();

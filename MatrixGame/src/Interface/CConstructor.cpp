@@ -28,8 +28,6 @@ CConstructor::~CConstructor()
 //Данная функция не используется (вероятно, подразумевала моментальную постройку робота без ожидания)
 SNewBorn* CConstructor::ProduceRobot(void*)
 {
-DTRACE();
-
 	if(!m_Base || m_Base->m_State != BASE_CLOSED) return nullptr;
 
 	if(m_nModuleCnt)
@@ -231,11 +229,6 @@ void CConstructor::AddRobotToBuildingQueue(
         m_Build->SetTeam(team);
 
         //robot sozdan
-
-//#ifdef _DEBUG
-//        RESETFLAG(g_Flags, SETBIT(22));
-//#endif
-
         m_Build->GetResources(MR_Graph);
 
         //if(!FLAG(g_Flags, SETBIT(22))) while(true);
@@ -250,8 +243,6 @@ void CConstructor::AddRobotToBuildingQueue(
 //Функция запуска постройки робота для стороны игрока
 void __stdcall CConstructor::RemoteBuild(void* pObj)
 {
-DTRACE();
-
     if(m_Base->m_Side != PLAYER_SIDE) return;
 
     CMatrixSideUnit* player_side = g_MatrixMap->GetPlayerSide();

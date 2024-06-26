@@ -5496,7 +5496,6 @@ void CMatrixRobotAI::CreateTextures()
 
     if(RenderToTexture(rt, 3))
     {
-
         m_BigTexture = rt[0].tex;
         m_MedTexture = rt[1].tex;
         m_SmallTexture = rt[2].tex;

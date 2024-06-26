@@ -826,16 +826,16 @@ void CMatrixCamera::CalcLinkPoint(D3DXVECTOR3& lp, float& ang_z)
 
             lp.x = bot->m_PosX;
             lp.y = bot->m_PosY;
-            lp.z = bot->Z_From_Pos() + bot->GetEyeLevel();
+            lp.z = bot->Z_From_Pos() + bot->GetEyeHeight();
             lp.z += g_Config.m_CamParams[CAMERA_ARCADE].m_CamHeight;
 
             //Здесь задаётся корректный угол поворота камеры в сторону направления шасси робота
             float bot_speed = (bot->m_Speed / bot->GetMaxSpeed());
             lp += bot->m_ChassisForward * LERPFLOAT(bot_speed, g_Config.m_CamInRobotForward0, g_Config.m_CamInRobotForward1);
-            if(!bot->IsRearView()) ang_z = (float)(atan2(-bot->m_ChassisCamForward.x, bot->m_ChassisCamForward.y) + M_PI_MUL(1)); //Для линка камеры к направлению условному шасси робота, которое используется для осуществления стрейфов
-            else ang_z = (float)(atan2(bot->m_ChassisCamForward.x, -bot->m_ChassisCamForward.y) + M_PI_MUL(1));
-            //ang_z = (float)(atan2(-bot->m_ChassisForward.x, bot->m_ChassisForward.y) + M_PI_MUL(1)); //Для линка камеры к направлению шасси робота
-            //ang_z = (float)(atan2(-bot->m_HullForward.x, bot->m_HullForward.y) + M_PI_MUL(1)); //Для линка камеры к направлению корпуса робота (дюже неудобно)
+            if(!bot->IsRearView()) ang_z = atan2(-bot->m_ChassisCamForward.x, bot->m_ChassisCamForward.y) + M_PI_MUL(1); //Для линка камеры к направлению условному шасси робота, которое используется для осуществления стрейфов
+            else ang_z = atan2(bot->m_ChassisCamForward.x, -bot->m_ChassisCamForward.y) + M_PI_MUL(1);
+            //ang_z = atan2(-bot->m_ChassisForward.x, bot->m_ChassisForward.y) + M_PI_MUL(1); //Для линка камеры к направлению шасси робота
+            //ang_z = atan2(-bot->m_HullForward.x, bot->m_HullForward.y) + M_PI_MUL(1); //Для линка камеры к направлению корпуса робота (дюже неудобно)
         }
         else if(arcade_object->IsFlyer())
         {

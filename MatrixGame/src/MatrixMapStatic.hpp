@@ -63,65 +63,64 @@ enum ECannonState
 
 #define UNDER_ATTACK_IDLE_TIME            120000
 
-#define OBJECT_STATE_INVISIBLE           SETBIT(0)   // невидимый
-#define OBJECT_STATE_INTERFACE           SETBIT(1)   // рисуется в интерфейсе
+#define OBJECT_STATE_INVISIBLE            SETBIT(0)   // невидимый
+#define OBJECT_STATE_INTERFACE            SETBIT(1)   // рисуется в интерфейсе
 
-#define OBJECT_STATE_INVULNERABLE        SETBIT(2)
-#define OBJECT_STATE_SHADOW_SPECIAL      SETBIT(3)   // параметры для расчета тени загружаются
-#define OBJECT_STATE_TRACE_INVISIBLE     SETBIT(4)   // объект невидим для TRACE_SKIP_INVISIBLE объектов
-#define OBJECT_STATE_DIP                 SETBIT(5)   // используется в StaticDelete
+#define OBJECT_STATE_INVULNERABLE         SETBIT(2)
+#define OBJECT_STATE_SHADOW_SPECIAL       SETBIT(3)   // параметры для расчета тени загружаются
+#define OBJECT_STATE_TRACE_INVISIBLE      SETBIT(4)   // объект невидим для TRACE_SKIP_INVISIBLE объектов
+#define OBJECT_STATE_DIP                  SETBIT(5)   // используется в StaticDelete
 
 // common flags
 
 // only mesh flags
-#define OBJECT_STATE_BURNED              SETBIT(10)   // сгоревший (для мешей)
-#define OBJECT_STATE_EXPLOSIVE           SETBIT(11)   // ломается со взрывом (для мешей)
-#define OBJECT_STATE_NORMALIZENORMALS    SETBIT(12)   // нормализовывать нормали (для мешей)
-#define OBJECT_STATE_SPECIAL             SETBIT(13)   // специальный объект: смерть требуется для победы
-#define OBJECT_STATE_TERRON_EXPL         SETBIT(14)   // террон взрывается
-#define OBJECT_STATE_TERRON_EXPL1        SETBIT(15)   // террон взрывается 1
-#define OBJECT_STATE_TERRON_EXPL2        SETBIT(16)   // террон взрывается 2
+#define OBJECT_STATE_BURNED               SETBIT(10)   // сгоревший (для мешей)
+#define OBJECT_STATE_EXPLOSIVE            SETBIT(11)   // ломается со взрывом (для мешей)
+#define OBJECT_STATE_NORMALIZENORMALS     SETBIT(12)   // нормализовывать нормали (для мешей)
+#define OBJECT_STATE_SPECIAL              SETBIT(13)   // специальный объект: смерть требуется для победы
+#define OBJECT_STATE_TERRON_EXPL          SETBIT(14)   // террон взрывается
+#define OBJECT_STATE_TERRON_EXPL1         SETBIT(15)   // террон взрывается 1
+#define OBJECT_STATE_TERRON_EXPL2         SETBIT(16)   // террон взрывается 2
 
 //Флаги только для роботов
-#define ROBOT_FLAG_MOVING_BACK           SETBIT(10)
-#define ROBOT_FLAG_COLLISION             SETBIT(11) //if collision, pneumatic chassis does not steps well (я не особо понял, что значит эта хуйня, но явно оно не имеет отношения к общей коллизии)
-#define ROBOT_FLAG_SGROUP                SETBIT(12)
-#define ROBOT_FLAG_SARCADE               SETBIT(13)
-#define ROBOT_FLAG_ON_WATER              SETBIT(14)
-#define ROBOT_FLAG_LINKED                SETBIT(15)
-#define ROBOT_FLAG_ROT_LEFT              SETBIT(16)
-#define ROBOT_FLAG_ROT_RIGHT             SETBIT(17)
-#define ROBOT_CRAZY                      SETBIT(18)  // easter egg :) crazy bot
-#define ROBOT_FLAG_IN_POSITION           SETBIT(19)  // easter egg (скрытая комната с фото разработчиков на карте с названием terron)
-#define ROBOT_MUST_DIE_FLAG              SETBIT(20)
-#define ROBOT_CAPTURE_INFORMED           SETBIT(21)
-#define ROBOT_FLAG_ROTATING              SETBIT(22)
-#define ROBOT_FLAG_STRAFING              SETBIT(23)
+#define ROBOT_FLAG_MOVING_BACK            SETBIT(10)
+#define ROBOT_FLAG_COLLISION              SETBIT(11) //if collision, pneumatic chassis does not steps well (я не особо понял, что значит эта хуйня, но явно оно не имеет отношения к общей коллизии)
+#define ROBOT_FLAG_SGROUP                 SETBIT(12)
+#define ROBOT_FLAG_SARCADE                SETBIT(13)
+#define ROBOT_FLAG_ON_WATER               SETBIT(14)
+#define ROBOT_FLAG_LINKED                 SETBIT(15)
+#define ROBOT_FLAG_ROT_LEFT               SETBIT(16)
+#define ROBOT_FLAG_ROT_RIGHT              SETBIT(17)
+#define ROBOT_CRAZY                       SETBIT(18)  // easter egg :) crazy bot
+#define ROBOT_FLAG_IN_POSITION            SETBIT(19)  // easter egg (скрытая комната с фото разработчиков на карте с названием terron)
+#define ROBOT_MUST_DIE_FLAG               SETBIT(20)
+#define ROBOT_CAPTURE_INFORMED            SETBIT(21)
+#define ROBOT_FLAG_ROTATING               SETBIT(22)
+#define ROBOT_FLAG_STRAFING               SETBIT(23)
 
 //Флаги только для вертолётов
-#define FLYER_FLAG_DELIVERY_COPTER       SETBIT(10) //Данный вертолёт состоит в группе доставки роботов и потому игрок им управлять не может
+#define FLYER_FLAG_DELIVERY_COPTER        SETBIT(10) //Данный вертолёт состоит в группе доставки роботов и потому игрок им управлять не может
 
 //Общие флаги для роботов и вертолётов
-#define UNIT_FLAG_DISABLE_MANUAL         SETBIT(24) //Актуально как для робота, так и для вертолёта
-#define UNIT_FLAG_NO_OBJECTS_COLLISION   SETBIT(25) //Отключает коллизию с интерактивным объектами (роботы, вертолёты, турели)
-#define UNIT_FLAG_NO_OBSTACLES_COLLISION SETBIT(26) //Отключает коллизию со статичными препятствиями (здания, декорации)
-#define UNIT_FLAG_REAR_VIEW              SETBIT(27) //Инвертирует направление камеры в аркадном режиме управления
+#define UNIT_FLAG_DISABLE_MANUAL          SETBIT(24) //Актуально как для робота, так и для вертолёта
+#define UNIT_FLAG_NO_OBJECTS_COLLISION    SETBIT(25) //Отключает коллизию с интерактивным объектами (роботы, вертолёты, турели)
+#define UNIT_FLAG_NO_OBSTACLES_COLLISION  SETBIT(26) //Отключает коллизию со статичными препятствиями (здания, декорации)
+#define UNIT_FLAG_REAR_VIEW               SETBIT(27) //Инвертирует направление камеры в аркадном режиме управления
 
 //Флаги только для турелей
-#define OBJECT_CANNON_REF_PROTECTION     SETBIT(10)
-#define OBJECT_CANNON_REF_PROTECTION_HIT SETBIT(11)
+#define OBJECT_CANNON_REF_PROTECTION      SETBIT(10)
+#define OBJECT_CANNON_REF_PROTECTION_HIT  SETBIT(11)
 
 //Флаги только для зданий
-#define BUILDING_NEW_INCOME              SETBIT(10)
-#define BUILDING_SPAWNING_UNIT           SETBIT(11) // opening for bot spawn
-#define BUILDING_CAPTURE_IN_PROGRESS     SETBIT(12)
+#define BUILDING_NEW_INCOME               SETBIT(10)
+#define BUILDING_SPAWNING_UNIT            SETBIT(11) // opening for bot spawn
+#define BUILDING_CAPTURE_IN_PROGRESS      SETBIT(12)
 
 
+#define ABLAZE_LOGIC_PERIOD               90 //Частота срабатывания логики горения
+#define SHORTED_OUT_LOGIC_PERIOD          50 //Частота срабатывания логики стана
 
-#define ABLAZE_LOGIC_PERIOD             90 //Частота срабатывания логики горения
-#define SHORTED_OUT_LOGIC_PERIOD        50 //Частота срабатывания логики стана
-
-#define HITPOINT_SHOW_TIME 1000
+#define HITPOINT_SHOW_TIME                1000
 
 enum EShadowType
 {
@@ -451,7 +450,8 @@ public:
     virtual bool CalcBounds(D3DXVECTOR3& omin, D3DXVECTOR3& omax) = 0;
         
     virtual int GetSide() const = 0;
-    virtual bool NeedRepair() const = 0;
+    virtual float NeedRepair() const = 0;
+    virtual float GetHitpointsPercent() const = 0;
 
     static bool  EnumVertsHandler(const SVOVertex& v, dword data);
     virtual bool InRect(const CRect& rect) const = 0;
@@ -467,14 +467,14 @@ public:
 #endif
 };
 
-inline  CMatrixMapStatic* CMatrixEffectRepair::GetTarget()
+inline CMatrixMapStatic* CMatrixEffectRepair::GetTarget()
 {
     if(m_Target) return m_Target->m_Object;
     return nullptr;
 }
 
-inline void   CMatrixEffectWeapon::SetOwner(CMatrixMapStatic* ms) { m_Owner = ms->GetCore(DEBUG_CALL_INFO); m_SideStorage = ms->GetSide(); }
-inline       CMatrixMapStatic* CMatrixEffectWeapon::GetOwner()
+inline void CMatrixEffectWeapon::SetOwner(CMatrixMapStatic* ms) { m_Owner = ms->GetCore(DEBUG_CALL_INFO); m_SideStorage = ms->GetSide(); }
+inline      CMatrixMapStatic* CMatrixEffectWeapon::GetOwner()
 {
     if(m_Owner) return m_Owner->m_Object;
     return nullptr;

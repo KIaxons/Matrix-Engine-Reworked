@@ -159,8 +159,9 @@ public:
         return false;
     }
 
-    virtual int GetSide() const { return 0; };
-    virtual bool NeedRepair() const { return false; }
+    virtual int GetSide() const { return NEUTRAL_SIDE; };
+    virtual float NeedRepair() const { return 0.0f; }
+    virtual float GetHitpointsPercent() const { return 100.0f; }
 
     virtual bool InRect(const CRect& rect) const;
 

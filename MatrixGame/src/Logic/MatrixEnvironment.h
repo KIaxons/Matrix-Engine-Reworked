@@ -32,6 +32,10 @@ public:
     void ClassifyEnemy(CMatrixMapStatic* relTo);
 };
 
+#define NO_TARGET        0
+#define TARGET_IS_ENEMY  1
+#define TARGET_IS_FRIEND 2
+
 class CInfo : public CMain {
 public:
     int                 m_EnemyCnt = 0;
@@ -72,7 +76,7 @@ public:
     
     void Clear();
 
-    int TargetType() { if(m_Target == nullptr) return 0; if(SearchEnemy(m_Target)) return 1; return 2; }
+    int TargetType() { if(m_Target == nullptr) return NO_TARGET; if(SearchEnemy(m_Target)) return TARGET_IS_ENEMY; return TARGET_IS_FRIEND; }
 
     void RemoveAllBuilding(CMatrixMapStatic* skip = nullptr);
     void RemoveAllSlowely();

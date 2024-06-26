@@ -352,8 +352,8 @@ void CMatrixConfig::SetDefaults()
     g_ThinFogDrawDistance = 0.5f;
     g_DenseFogDrawDistance = 0.7f;
     g_PlayerRobotsAutoBoom = 0;
+    g_SelectableTurrets = false;
     g_EnableFlyers = false;
-    g_BetterTurrets = true;
 
 
     //Camera properties
@@ -516,6 +516,12 @@ void CMatrixConfig::ReadParams()
     {
         //Проверяем, включена ли опция автоматического подрыва бомбы на роботах игрока в случаях, когда их HP падает до нуля
         g_PlayerRobotsAutoBoom = cfg_par->Par(CFG_PLAYER_ROBOTS_AUTO_BOOM).GetBool();
+    }
+
+    if(cfg_par->ParCount(CFG_SELECTABLE_TURRETS))
+    {
+        //Проверяем, включена ли опция, разрешающая выделять турели и через это частично управлять ими
+        g_SelectableTurrets = cfg_par->Par(CFG_SELECTABLE_TURRETS).GetBool();
     }
 
     if(cfg_par->ParCount(CFG_ENABLE_FLYERS))

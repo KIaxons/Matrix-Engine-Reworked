@@ -531,7 +531,7 @@ void CMatrixTurret::Draw()
         CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
         for(int i = 0; i < m_ModulesCount; ++i)
         {
-            SMatrixCannonUnit* cur_part = &m_Module[i];
+            SMatrixTurretUnit* cur_part = &m_Module[i];
 
             ASSERT(cur_part->m_Graph);
             ASSERT_DX(g_D3DD->SetTransform(D3DTS_WORLD, &(cur_part->m_Matrix)));
@@ -547,7 +547,7 @@ void CMatrixTurret::Draw()
     	g_D3DD->SetRenderState(D3DRS_TEXTUREFACTOR, 0xFF808080);
         for(int i = 0; i < m_ModulesCount; ++i)
         {
-            SMatrixCannonUnit* cur_part = &m_Module[i];
+            SMatrixTurretUnit* cur_part = &m_Module[i];
 
             if(cur_part->m_TTL <= 0) continue;
 		    ASSERT_DX(g_D3DD->SetTransform(D3DTS_WORLD, &(cur_part->m_Matrix)));
@@ -990,11 +990,11 @@ void CMatrixTurret::LogicTact(int tact)
         // seek side target
 
         CMatrixMapStatic* target = nullptr;
-        if(m_TargetOverride && m_TargetOverride->IsUnitAlive()) target = m_TargetOverride;
+        if(m_TargetCoreOverride && m_TargetCoreOverride->IsUnitAlive()) target = m_TargetCoreOverride;
 
         FTData data;
         //data.dist = props->seek_target_range * props->seek_target_range;
-        data.coss = -1;
+        data.coss = -1.0f;
         data.target = &target;
         data.side = m_Side;
         data.skip = this;
@@ -1002,8 +1002,7 @@ void CMatrixTurret::LogicTact(int tact)
         data.dist_fire = POW2(GetFireRadius());
         data.dist_cur = POW2(props->seek_target_range);
 
-        // seek robots and flyers
-
+        //Ищем роботов и вертолёты в зоне поражения
         data.cdir = &m_TurretWeapon[0].m_FireDir;
 
         m_TargetDisp = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -1020,7 +1019,7 @@ void CMatrixTurret::LogicTact(int tact)
             // цель не найдена (уехала далеко наверное)
             if(m_TargetCore) m_TargetCore->Release();
             m_TargetCore = nullptr;
-            m_TargetOverride = nullptr; //На случай, если выставленная принудительно цель покинула зону поражения
+            m_TargetCoreOverride = nullptr; //На случай, если выставленная принудительно цель покинула зону поражения
         }
     }
 
@@ -1040,7 +1039,7 @@ no_target:
             m_NullTargetTime -= tact;
             if(m_NullTargetTime <= 0)
             {
-                for(int i = 0; i < m_TurretWeapon.size(); ++i) m_TurretWeapon[i].m_Weapon->FireEnd();
+                for(int i = 0; i < (int)m_TurretWeapon.size(); ++i) m_TurretWeapon[i].m_Weapon->FireEnd();
                 EndFireAnimation();
                 m_NullTargetTime = 0;
                 return;
@@ -1050,7 +1049,7 @@ no_target:
         {
             // все, стрельба окончена. обновим тайминг косой стрельбы
             m_TimeFromFire = CANNON_TIME_FROM_FIRE;
-            m_TargetDisp = D3DXVECTOR3(0, 0, 0);
+            m_TargetDisp = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
         }
 
         //Отрабатываем логику выстрела
@@ -1085,7 +1084,7 @@ no_target:
 
         D3DXVECTOR3 target_pos;
         target_pos = m_TargetCore->m_GeoCenter + m_TargetDisp;
-        //target_pos.z += FSRND(5);
+        //target_pos.z += FSRND(5.0f);
 
         RChange(MR_Matrix);
         GetResources(MR_Matrix);
@@ -1093,17 +1092,17 @@ no_target:
         //Направление пушки по горизонтали
         D3DXVECTOR2 dir(-(target_pos.x - m_FireCenter.x), (target_pos.y - m_FireCenter.y));
         float turret_ang = m_Module[1].m_DirectionAngle + m_Angle;
-        float target_ang = (float)atan2(dir.x, dir.y);
+        float target_ang = atan2(dir.x, dir.y);
 
         float ang_dist_to_target = (float)AngleDist(turret_ang, target_ang);
 
         //Вращаем турель (модель)
-        if(fabs(ang_dist_to_target) < props->rotation_speed + 0.001)
+        if(fabs(ang_dist_to_target) < props->rotation_speed + 0.001f)
         {
             m_Module[1].m_DirectionAngle += ang_dist_to_target;
             ang_match_horizontal = true;
         }
-	    else if(ang_dist_to_target < 0) m_Module[1].m_DirectionAngle -= props->rotation_speed;
+	    else if(ang_dist_to_target < 0.0f) m_Module[1].m_DirectionAngle -= props->rotation_speed;
 	    else m_Module[1].m_DirectionAngle += props->rotation_speed;
 
         m_Module[2].m_DirectionAngle = m_Module[1].m_DirectionAngle;
@@ -1113,30 +1112,32 @@ no_target:
 
         //Направление пушки по вертикали
         dir = D3DXVECTOR2(-(target_pos.x - m_FireCenter.x), (target_pos.y - m_FireCenter.y));
-
         turret_ang = m_VerticalGuidanceAngle;
-        target_ang = (float)atan2((target_pos.z - m_FireCenter.z), D3DXVec2Length(&dir));
+        float vertical_correction = 0.0f;
+        if(m_TargetCore->m_Type == OBJECT_TYPE_ROBOT_AI) vertical_correction = 0.12f * m_TargetCore->m_Object->AsRobot()->GetEyeHeight(false); //Приподнимаем точку прицеливания от места сочленения шасси с корпусом в сам корпус
+        target_ang = atan2((target_pos.z - m_FireCenter.z) + vertical_correction, D3DXVec2Length(&dir));
+
         if(target_ang > props->highest_vertical_angle) target_ang = props->highest_vertical_angle;
         else if(target_ang < props->lowest_vertical_angle) target_ang = props->lowest_vertical_angle;
 
         ang_dist_to_target = (float)AngleDist(turret_ang, target_ang);
 
         //Поднимаем/опускаем орудие турели (модель)
-        if(fabs(ang_dist_to_target) < props->vertical_speed + 0.001)
+        if(fabs(ang_dist_to_target) < props->vertical_speed + 0.001f)
         {
             m_VerticalGuidanceAngle += ang_dist_to_target;
             ang_match_vertical = true;
         }
-	    else if(ang_dist_to_target < 0) m_VerticalGuidanceAngle -= props->vertical_speed;
+	    else if(ang_dist_to_target < 0.0f) m_VerticalGuidanceAngle -= props->vertical_speed;
 	    else m_VerticalGuidanceAngle += props->vertical_speed;
 
         RChange(MR_Matrix | MR_ShadowStencil | MR_ShadowProjTex);
         GetResources(MR_Matrix);
 
         //Доворачиваем оружие
-        for(int i = 0; i < m_TurretWeapon.size(); ++i)
+        for(int i = 0; i < (int)m_TurretWeapon.size(); ++i)
         {
-            m_TurretWeapon[i].m_Weapon->Modify(m_TurretWeapon[i].m_FireFrom, m_TurretWeapon[i].m_FireDir, D3DXVECTOR3(0, 0, 0));
+            m_TurretWeapon[i].m_Weapon->Modify(m_TurretWeapon[i].m_FireFrom, m_TurretWeapon[i].m_FireDir, D3DXVECTOR3(0.0f, 0.0f, 0.0f));
         }
 
         // а проверм-ка, надо ли стрелять...
@@ -1420,6 +1421,44 @@ inst_death:;
     return false;
 }
 
+void CMatrixTurret::CreateTextures()
+{
+#ifdef USE_SMALL_TEXTURE_IN_ROBOT_ICON
+    SRenderTexture rt[3];
+    rt[0].ts = TEXSIZE_256;
+    //rt[1].ts = TEXSIZE_64;
+    //rt[2].ts = TEXSIZE_32;
+
+    if(RenderToTexture(rt, 3))
+    {
+        m_BigTexture = rt[0].tex;
+        //m_MedTexture = rt[1].tex;
+        //m_SmallTexture = rt[2].tex;
+    }
+    else
+    {
+        m_BigTexture = nullptr;
+        //m_MedTexture = nullptr;
+        //m_SmallTexture = nullptr;
+    }
+#else
+    SRenderTexture rt[2];
+    rt[0].ts = TEXSIZE_256;
+    //rt[1].ts = TEXSIZE_64;
+
+    if(RenderToTexture(rt, 2))
+    {
+        m_BigTexture = rt[0].tex;
+        //m_MedTexture = rt[1].tex;
+    }
+    else
+    {
+        m_BigTexture = nullptr;
+        //m_MedTexture = nullptr;
+    }
+#endif
+}
+
 bool CMatrixTurret::Select()
 {
     D3DXVECTOR3 pos = { m_Pos.x, m_Pos.y, m_Core->m_Matrix._43 + 4.0f };
@@ -1503,6 +1542,26 @@ void CMatrixTurret::ReleaseMe()
         }
         objects = objects->GetNextLogic();
     }
+
+    if(m_BigTexture)
+    {
+        g_Cache->Destroy(m_BigTexture);
+        m_BigTexture = nullptr;
+    }
+    /*
+    if(m_MedTexture)
+    {
+        g_Cache->Destroy(m_MedTexture);
+        m_MedTexture = nullptr;
+    }
+#ifdef USE_SMALL_TEXTURE_IN_ROBOT_ICON
+    if(m_SmallTexture)
+    {
+        g_Cache->Destroy(m_SmallTexture);
+        m_SmallTexture = nullptr;
+    }
+#endif
+    */
 }
 
 bool CMatrixTurret::InRect(const CRect& rect) const
