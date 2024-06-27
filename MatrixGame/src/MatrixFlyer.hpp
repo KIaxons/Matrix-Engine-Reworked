@@ -303,7 +303,9 @@ class CMatrixFlyer : public CMatrixMapStatic
 
     CTextureManaged* m_BigTexture = nullptr;
     CTextureManaged* m_MedTexture = nullptr;
+#ifdef USE_SMALL_TEXTURE_IN_ROBOT_ICON
     CTextureManaged* m_SmallTexture = nullptr;
+#endif
 
     EShadowType m_ShadowType = SHADOW_OFF;
 
@@ -350,7 +352,7 @@ public:
 
     EFlyerState m_CurrentState = STATE_FLYER_IN_SPAWN;
 
-    CMatrixFlyer(EFlyerKind kind = FLYER_SPEED);
+    CMatrixFlyer(EFlyerKind kind = FLYER_SPEED, int side = NEUTRAL_SIDE);
     ~CMatrixFlyer();
 
     virtual bool IsUnitAlive()
@@ -367,6 +369,7 @@ public:
     bool        IsSelected();
     CMatrixEffectSelection* GetSelection()  { return m_Selection; }
     bool        CreateSelection();
+    void        ClearSelection();
     void        KillSelection();
     void        MoveSelection();
     CWStr*      GetName()                   { return &m_Name; }
@@ -466,7 +469,9 @@ public:
     
     CTextureManaged* GetBigTexture()   { return m_BigTexture; }
     CTextureManaged* GetMedTexture()   { return m_MedTexture; }
+#ifdef USE_SMALL_TEXTURE_IN_ROBOT_ICON
     CTextureManaged* GetSmallTexture() { return m_SmallTexture; }
+#endif
 
     void CreateHealthBarClone(float x, float y, float width, EPBCoord clone_type);
     void DeleteHealthBarClone(EPBCoord clone_type);

@@ -195,7 +195,7 @@ void CFormMatrixGame::Tact(int step)
     CPoint mp = g_MatrixMap->m_Cursor.GetPos();
 
     //Перемещение камеры движением мыши в стратегическом режиме
-    if(!g_MatrixMap->GetPlayerSide()->IsArcadeMode())
+    if(!g_MatrixMap->GetPlayerSide()->IsManualControlMode())
     {
         if(mp.x >= 0 && mp.x < g_ScreenX && mp.y >= 0 && mp.y < g_ScreenY)
         {
@@ -208,7 +208,7 @@ void CFormMatrixGame::Tact(int step)
 
     if(g_MatrixMap->m_Console.IsActive()) return;
 
-    if(!g_MatrixMap->GetPlayerSide()->IsArcadeMode())
+    if(!g_MatrixMap->GetPlayerSide()->IsManualControlMode())
     {
         //Перед движением камеры по клавишам делаем проверку на то, что игрок не находится в режиме конструктора
         //В режиме конструктора стандартные кнопки движения камеры используются под другие бинды
@@ -769,7 +769,7 @@ void CFormMatrixGame::MouseKey(ButtonStatus status, int key, int x, int y)
         {
             //Если игрок зажал левую кнопку мыши и расширяет область выделения
             //(если ещё не была создана область выделения, игрок не в режиме прямого управления, игрок не выбрал приказ из панели на интерфейсе и не находится в процессе выбора места для постройки турели)
-            if(CMultiSelection::m_GameSelection == nullptr && !g_MatrixMap->GetPlayerSide()->IsArcadeMode() && !IS_PREORDERING_NOSELECT && !(g_MatrixMap->GetPlayerSide()->m_CurrentAction == BUILDING_TURRET))
+            if(CMultiSelection::m_GameSelection == nullptr && !g_MatrixMap->GetPlayerSide()->IsManualControlMode() && !IS_PREORDERING_NOSELECT && !(g_MatrixMap->GetPlayerSide()->m_CurrentAction == BUILDING_TURRET))
             {
                 int dx = 0;
                 int dy = 0;
@@ -1274,7 +1274,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
 
         if(g_MatrixMap->GetPlayerSide()->GetUnitUnderManualControl())
         {
-            g_IFaceList->ExitArcadeMode();
+            g_IFaceList->ExitManualControlMode();
             return;
         }
 
@@ -1369,7 +1369,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
         }
 
         CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
-        if(ps->IsUnitUnderManualControlARobot())
+        if(ps->IsUnitUnderManualControlRobot())
         {
             CMatrixRobotAI* robot = ps->GetUnitUnderManualControl()->AsRobot();
 
@@ -1468,18 +1468,18 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
             if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_ENTER]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_ENTER_ALT]) & 0x8000) == 0x8000)
             {
                 //"Esc", "Пробел", "Enter" - выйти из режима ручного управления роботом
-                if(!robot->IsManualControlLocked()) g_IFaceList->ExitArcadeMode();
+                if(!robot->IsManualControlLocked()) g_IFaceList->ExitManualControlMode();
                 return;
             }
         }
-        else if(ps->IsFlyerArcadeMode())
+        else if(ps->IsUnitUnderManualControlFlyer())
         {
             CMatrixFlyer* flyer = ps->GetUnitUnderManualControl()->AsFlyer();
 
             if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_ENTER]) & 0x8000) == 0x8000 || (GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_ENTER_ALT]) & 0x8000) == 0x8000)
             {
                 //"Esc", "Пробел", "Enter" - выйти из режима ручного управления вертолётом
-                if(!flyer->IsManualControlLocked()) g_IFaceList->ExitArcadeMode();
+                if(!flyer->IsManualControlLocked()) g_IFaceList->ExitManualControlMode();
                 return;
             }
         }
@@ -1531,7 +1531,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                         {
                             ps->GetCurSelGroup()->RemoveAll();
                             ps->CreateGroupFromCurrent(obj);
-                            g_IFaceList->EnterArcadeMode(false);
+                            g_IFaceList->EnterManualControlMode(false);
                         }
                     }
                     else if((GetAsyncKeyState(g_Config.m_KeyActions[KA_AUTOORDER_ATTACK]) & 0x8000) == 0x8000)
@@ -1625,7 +1625,14 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                 else if(ps->m_CurrSel == TURRET_SELECTED)
                 {
                     CMatrixTurret* turret = ps->m_ActiveObject->AsTurret();
-                    if((GetAsyncKeyState(g_Config.m_KeyActions[KA_DISMANTLE_TURRET]) & 0x8000) == 0x8000)
+
+                    if((GetAsyncKeyState(g_Config.m_KeyActions[KA_ORDER_ATTACK]) & 0x8000) == 0x8000)
+                    {
+                        //"A"ttack
+                        SETFLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE);
+                        SETFLAG(g_IFaceList->m_IfListFlags, ORDERING_MODE);
+                    }
+                    else if((GetAsyncKeyState(g_Config.m_KeyActions[KA_DISMANTLE_TURRET]) & 0x8000) == 0x8000)
                     {
                         if(turret->m_CurrentState != TURRET_DIP && turret->m_CurrentState != TURRET_UNDER_DECONSTRUCTION)
                         {
@@ -2049,7 +2056,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
         }
 
         //Если были нажаты клавиши цифр от 1 до 9 (в номенклатуре номеров это 2-10)
-        if(scan > 1 && scan < 11 && !ps->IsArcadeMode() && !ps->m_ConstructPanel->IsActive())
+        if(scan > 1 && scan < 11 && !ps->IsManualControlMode() && !ps->m_ConstructPanel->IsActive())
         {
             if(CMultiSelection::m_GameSelection)
             {

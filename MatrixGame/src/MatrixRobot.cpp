@@ -149,7 +149,7 @@ void CMatrixRobotAI::DIPTact(float ms)
         }
         else if(o == TRACE_STOP_LANDSCAPE)
         {
-            m_Module[i].m_Velocity = D3DXVECTOR3(0, 0, 0);
+            m_Module[i].m_Velocity = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
             m_Module[i].m_Pos = hitpos;
 
             SMatrixMapUnit* mu = g_MatrixMap->UnitGetTest(Float2Int(hitpos.x * INVERT(GLOBAL_SCALE)), Float2Int(hitpos.y * INVERT(GLOBAL_SCALE)));
@@ -2007,12 +2007,12 @@ bool CMatrixRobotAI::TakingDamage(
     }
     else m_LastDelayDamageSide = 0;
 
-    if(m_Hitpoints > 50)
+    if(m_Hitpoints > 50.0f)
     {
         if(g_Config.m_WeaponsConsts[weap].explosive_hit) CMatrixEffect::CreateExplosion(pos, ExplosionRobotHit);
     }
-    //else if(m_Hitpoints > 0) {}
-    else if(m_Hitpoints <= 0)
+    //else if(m_Hitpoints > 0.0f) {}
+    else if(m_Hitpoints <= 0.0f)
     {
         if(attacker_side != NEUTRAL_SIDE && !friendly_fire)
         {
@@ -5238,7 +5238,7 @@ void CMatrixRobotAI::ReleaseMe()
         int pos = 0;
 
         //Если данным роботом управлял игрок, то обновляем интерфейс, выводим его из аркадного режима
-        if(ps->IsArcadeMode() && this == ps->GetUnitUnderManualControl() && g_IFaceList)
+        if(ps->IsManualControlMode() && this == ps->GetUnitUnderManualControl() && g_IFaceList)
         {
             CInterface* ifs = g_IFaceList->m_First;
             while(ifs)
@@ -5333,7 +5333,7 @@ void CMatrixRobotAI::ReleaseMe()
 
     if(IsInManualControl())
     {
-        g_MatrixMap->GetPlayerSide()->SetArcadedObject(nullptr);
+        g_MatrixMap->GetPlayerSide()->SetManualControledUnit(nullptr);
     }
 }
 
@@ -5438,7 +5438,7 @@ void CMatrixRobotAI::UnSelect()
 
 bool CMatrixRobotAI::CreateSelection()
 {
-    m_Selection = (CMatrixEffectSelection*)CMatrixEffect::CreateSelection(D3DXVECTOR3(m_PosX, m_PosY, m_Core->m_Matrix._43 + 3 /*ROBOT_SELECTION_HEIGHT*/), ROBOT_SELECTION_SIZE);
+    m_Selection = (CMatrixEffectSelection*)CMatrixEffect::CreateSelection(D3DXVECTOR3(m_PosX, m_PosY, m_Core->m_Matrix._43 + ROBOT_SELECTION_HEIGHT), ROBOT_SELECTION_SIZE);
     if(!g_MatrixMap->AddEffect(m_Selection))
     {
         m_Selection = nullptr;

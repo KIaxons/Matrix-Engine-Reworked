@@ -122,7 +122,6 @@ public:
     int m_NextTimeAblaze = 0;
     int m_NextTimeShorted = 0;
 
-    CMatrixMapStatic* m_TargetCoreOverride = nullptr; //Цель, которая была задана турели принудительно извне (вероятнее всего, игроком)
     D3DXVECTOR3 m_TargetDisp = { 0.0f, 0.0f, 0.0f };
     D3DXVECTOR3 m_FireCenter = { 0.0f, 0.0f, 0.0f };
 
@@ -145,6 +144,7 @@ public:
     int  m_EndFireAfterAsync = 0;   //Задержка после полного завершения стрельбы спустя которую m_NextGunToShot сбросится обратно на 0, то есть на первое в списке орудие
 
     SObjectCore* m_TargetCore = nullptr;
+    CMatrixMapStatic* m_TargetOverride = nullptr; //Цель, которая была задана турели принудительно извне (вероятнее всего, игроком)
 
     int m_LastDelayDamageSide = 0;
     int m_MiniMapFlashTime = 0;
@@ -190,7 +190,7 @@ public:
 #endif
 
     void CreateTextures();
-    bool Select();
+    bool CreateSelection();
     void UnSelect();
 
     void CreateHealthBarClone(float x, float y, float width, EPBCoord clone_type);

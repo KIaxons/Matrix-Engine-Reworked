@@ -1027,7 +1027,7 @@ void CMatrixMap::BeforeDraw()
     //flyer
     CMatrixSideUnit* player_side = GetPlayerSide();
     //CDText::T("sel", CStr(player_side->m_CurrSel));
-    if(player_side->IsArcadeMode() && player_side->GetUnitUnderManualControl()->GetObjectType() == OBJECT_TYPE_FLYER && (GetAsyncKeyState(g_Config.m_KeyActions[KA_AUTO]) & 0x8000) == 0x8000 && g_IFaceList->m_InFocus != INTERFACE)
+    if(player_side->IsManualControlMode() && player_side->GetUnitUnderManualControl()->GetObjectType() == OBJECT_TYPE_FLYER && (GetAsyncKeyState(g_Config.m_KeyActions[KA_AUTO]) & 0x8000) == 0x8000 && g_IFaceList->m_InFocus != INTERFACE)
     {
         CMatrixFlyer* fl = (CMatrixFlyer*)player_side->GetUnitUnderManualControl();
 

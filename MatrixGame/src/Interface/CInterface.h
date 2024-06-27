@@ -336,8 +336,8 @@ public:
 
      void DeleteProgressBars(CMatrixMapStatic* from);
 
-     void CreatePersonal();
-     void DeletePersonal();
+     void CreatePersonalImage(CMatrixMapStatic* object = nullptr);
+     void DeletePersonalImage();
 
      void ResetOrderingMode();
 
@@ -374,8 +374,8 @@ public:
      bool CorrectCoordinates(int screen_width, int screen_height, int& posx, int& posy, int width, int height, const CWStr& name);
      void AddHintReplacements(const CWStr& element_name);
      bool CheckShowHintLogic(const CWStr& element_name);
-     void ExitArcadeMode();
-     void EnterArcadeMode(bool pos = false);
+     void ExitManualControlMode();
+     void EnterManualControlMode(bool pos = false);
      void CreatePhantomCannonForBuild(int turret_type);
 
      void CreateDynamicTurrets(CMatrixBuilding* building);

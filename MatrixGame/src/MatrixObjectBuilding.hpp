@@ -294,7 +294,7 @@ public:
     void Reinforcements();
 
     //Постройка вертолёта
-    bool BuildFlyer(EFlyerKind kind);
+    bool BuildFlyer(EFlyerKind kind, int side = NEUTRAL_SIDE);
     
     //Открывается сборочная камера и поднимается подъёмник с готовым роботом/вертолётом
     void OpenAssemblyChamber()
@@ -349,7 +349,7 @@ public:
     void CreateHealthBarClone(float x, float y, float width, EPBCoord clone_type);
     void DeleteHealthBarClone(EPBCoord clone_type);
 
-    bool Select();
+    bool CreateSelection();
     void UnSelect();
 
     virtual bool Pick(const D3DXVECTOR3& orig, const D3DXVECTOR3& dir, float* outt) const;

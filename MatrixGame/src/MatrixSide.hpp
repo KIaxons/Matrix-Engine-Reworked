@@ -547,11 +547,11 @@ public:
     // Groups
     //CMatrixGroup* GetGroup(int id, int t);
 
-    bool IsArcadeMode() const { return m_UnitUnderManualControl != nullptr; }
-    bool IsUnitUnderManualControlARobot();
-    bool IsFlyerArcadeMode();
+    bool IsManualControlMode() const { return m_UnitUnderManualControl != nullptr; }
+    bool IsUnitUnderManualControlRobot();
+    bool IsUnitUnderManualControlFlyer();
     CMatrixMapStatic* GetUnitUnderManualControl() { return m_UnitUnderManualControl; }
-    void SetArcadedObject(CMatrixMapStatic* o);
+    void SetManualControledUnit(CMatrixMapStatic* o);
 
     D3DXVECTOR3 CorrectWalkingManualControlledRobotHullPos(D3DXVECTOR3& p, CMatrixRobot* robot);
     //void SetArcadedRobotArmorP(const D3DXVECTOR3 &p);

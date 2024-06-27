@@ -349,10 +349,11 @@ public:
 
     CMatrixMapStatic* m_NextLogicObject = nullptr;
 
-    CWStr           m_WaterName = (CWStr)L"";
+    CWStr             m_WaterName = (CWStr)L"";
 
-    float m_BiasCannons = 0.0f;
+    float m_BiasTurrets = 0.0f;
     float m_BiasRobots = 0.0f;
+    float m_BiasFlyers = 0.0f;
     float m_BiasBuildings = 0.0f;
     float m_BiasTer = 0.0f;
     float m_BiasWater = 0.0f;

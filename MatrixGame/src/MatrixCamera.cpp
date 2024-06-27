@@ -648,7 +648,7 @@ void CMatrixCamera::ResetAngles()
 
     m_AngleX = LerpAng();
     m_Dist = LerpDist();
-    if(!g_MatrixMap->GetPlayerSide()->IsArcadeMode()) m_AngleZ = g_Config.m_CamBaseAngleZ + g_MatrixMap->m_CameraAngle;
+    if(!g_MatrixMap->GetPlayerSide()->IsManualControlMode()) m_AngleZ = g_Config.m_CamBaseAngleZ + g_MatrixMap->m_CameraAngle;
 }
 
 void CMatrixCamera::CalcSkyMatrix(D3DXMATRIX& m)
@@ -817,7 +817,7 @@ void CMatrixCamera::CalcLinkPoint(D3DXVECTOR3& lp, float& ang_z)
 {
     //RESETFLAG(m_Flags, CAM_LAST_TGTFROM_PRESENT);
 
-    if(g_MatrixMap->GetPlayerSide()->IsArcadeMode())
+    if(g_MatrixMap->GetPlayerSide()->IsManualControlMode())
     {
         CMatrixMapStatic* arcade_object = g_MatrixMap->GetPlayerSide()->GetUnitUnderManualControl();
         if(arcade_object->IsRobot())
@@ -898,7 +898,7 @@ void CMatrixCamera::Tact(float ms)
     }
 
     int index;
-    if(g_MatrixMap->GetPlayerSide()->IsArcadeMode())
+    if(g_MatrixMap->GetPlayerSide()->IsManualControlMode())
     {
         index = CAMERA_ARCADE;
     }

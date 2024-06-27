@@ -601,7 +601,7 @@ void CMatrixSideUnit::LogicTact(int ms)
 
     //Нахуй надо? Там же отдельная полоска в интерфейсе есть.
     /*
-    if(IsUnitUnderManualControlARobot())
+    if(IsUnitUnderManualControlRobot())
     {
         m_UnitUnderManualControl->AsRobot()->ShowHitpoints();
     }
@@ -613,7 +613,7 @@ void CMatrixSideUnit::OnMouseMove()
 {
     //Если включён режим ручного управления и игрок не навёлся на интерфейс, передаём команду роботу
     /*
-    if(m_Id == PLAYER_SIDE && IsUnitUnderManualControlARobot() && g_IFaceList->m_InFocus != INTERFACE)
+    if(m_Id == PLAYER_SIDE && IsUnitUnderManualControlRobot() && g_IFaceList->m_InFocus != INTERFACE)
     {
         CMatrixRobotAI* robot = GetUnitUnderManualControl()->AsRobot();
     }
@@ -623,7 +623,7 @@ void CMatrixSideUnit::OnMouseMove()
 //Игрок кликнул левой кнопкой мыши не по интерфейсу
 void CMatrixSideUnit::OnLButtonDown(const CPoint& mouse_pos)
 {
-    if(IsArcadeMode()) return;
+    if(IsManualControlMode()) return;
 
     CMatrixMapStatic* pObject = MouseToLand();
 
@@ -720,18 +720,32 @@ void CMatrixSideUnit::OnLButtonDown(const CPoint& mouse_pos)
         }
         else if(FLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE))
         {
-            //Fire
+            //Игрок указал курсором с прицелом на какой-то объект
             if(IS_TRACE_STOP_OBJECT(pObject) && (pObject->IsAlive() || pObject->IsSpecial()))
             {
-                RESETFLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE | ORDERING_MODE);
-
-                PGOrderAttack(SelGroupToLogicGroup(), GetMapPos(pObject), pObject);
+                if(m_ActiveObject && m_ActiveObject->GetObjectType() == OBJECT_TYPE_TURRET)
+                {
+                    RESETFLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE | ORDERING_MODE);
+                    m_ActiveObject->AsTurret()->m_TargetOverride = pObject;
+                }
+                else //Для роботов и вертолётов
+                {
+                    RESETFLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE | ORDERING_MODE);
+                    PGOrderAttack(SelGroupToLogicGroup(), GetMapPos(pObject), pObject);
+                }
             }
+            //Игрок указал курсором с прицелом на пустую точку
             else
             {
-                RESETFLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE | ORDERING_MODE);
-
-                PGOrderAttack(SelGroupToLogicGroup(), CPoint(mx - ROBOT_MOVECELLS_PER_SIZE / 2, my - ROBOT_MOVECELLS_PER_SIZE / 2), nullptr);
+                if(m_ActiveObject && m_ActiveObject->GetObjectType() == OBJECT_TYPE_TURRET)
+                {
+                    RESETFLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE | ORDERING_MODE);
+                }
+                else //Для роботов и вертолётов
+                {
+                    RESETFLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE | ORDERING_MODE);
+                    PGOrderAttack(SelGroupToLogicGroup(), CPoint(mx - ROBOT_MOVECELLS_PER_SIZE / 2, my - ROBOT_MOVECELLS_PER_SIZE / 2), nullptr);
+                }
             }
         }
         else if(FLAG(g_IFaceList->m_IfListFlags, PREORDER_CAPTURE))
@@ -782,7 +796,7 @@ void CMatrixSideUnit::OnLButtonDown(const CPoint& mouse_pos)
 //Игрок кликнул (отпустил) левую кнопку мыши после клика не по интерфейсу
 void CMatrixSideUnit::OnLButtonUp(const CPoint& mouse_pos)
 {
-    if(IsArcadeMode()) return;
+    if(IsManualControlMode()) return;
 
     CMatrixMapStatic* pObject = MouseToLand();
 
@@ -794,7 +808,7 @@ void CMatrixSideUnit::OnLButtonUp(const CPoint& mouse_pos)
 //Двойной клик левой кнопкой мыши не по интерфейсу
 void CMatrixSideUnit::OnLButtonDouble(const CPoint& mouse_pos)
 {
-    if(IsArcadeMode()) return;
+    if(IsManualControlMode()) return;
 
     CMatrixMapStatic* pObject = MouseToLand();
 
@@ -845,7 +859,7 @@ void CMatrixSideUnit::OnLButtonDouble(const CPoint& mouse_pos)
 //Игрок кликнул (нажал) правой кнопкой мыши не по интерфейсу
 void CMatrixSideUnit::OnRButtonDown(const CPoint& mouse_pos)
 {
-    if(IsArcadeMode()) return;
+    if(IsManualControlMode()) return;
 
     //Если ранее игрок выбрал для строительства определённую турель, правый клик сбросит её установку
     if(IS_PREORDERING && m_CurrentAction == BUILDING_TURRET)
@@ -920,6 +934,17 @@ void CMatrixSideUnit::OnRButtonDown(const CPoint& mouse_pos)
                 }
             }
         }
+        //Если в данный момент выделена турель
+        if(m_CurrSel == TURRET_SELECTED)
+        {
+            if(!IS_PREORDERING)
+            {
+                if(IS_TRACE_STOP_OBJECT(pObject) && ((pObject->IsUnitAlive() && pObject->GetSide() != m_Id) || pObject->IsSpecial()))
+                {
+                    m_ActiveObject->AsTurret()->m_TargetOverride = pObject;
+                }
+            }
+        }
         //Если в данный момент выбрана база, то устанавливаем точку сбора
         else if(m_CurrSel == BASE_SELECTED && !g_MatrixMap->IsPaused())
         {
@@ -934,7 +959,7 @@ void CMatrixSideUnit::OnRButtonDown(const CPoint& mouse_pos)
 void CMatrixSideUnit::OnRButtonUp(const CPoint& mouse_pos)
 {
     //В режиме ручного управления роботом используем этот обработчик, чтобы ловить нажатия ПКМ для активации/деактивации режима ручного наведения ракет
-    if(IsArcadeMode())
+    if(IsManualControlMode())
     {
         if(GetUnitUnderManualControl()->IsRobotAlive())
         {
@@ -955,7 +980,7 @@ void CMatrixSideUnit::OnRButtonDouble(const CPoint& mouse_pos)
     //В данный момент функционала не имеет
     return;
 
-    if(IsArcadeMode()) return;
+    if(IsManualControlMode()) return;
 
     /*
     if(m_CurrentAction == BUILDING_TURRET) return;
@@ -990,7 +1015,7 @@ void CMatrixSideUnit::OnRButtonDouble(const CPoint& mouse_pos)
 
 void CMatrixSideUnit::OnForward(bool is_down)
 {
-    if(!IsUnitUnderManualControlARobot() || !m_UnitUnderManualControl) return;
+    if(!IsUnitUnderManualControlRobot() || !m_UnitUnderManualControl) return;
 
     CMatrixRobotAI* robot = m_UnitUnderManualControl->AsRobot();
     bool is_ord = robot->FindOrderLikeThat(ROT_MOVE_TO);
@@ -1006,7 +1031,7 @@ void CMatrixSideUnit::OnForward(bool is_down)
 
 void CMatrixSideUnit::OnBackward(bool is_down)
 {
-    if(!IsUnitUnderManualControlARobot() || !m_UnitUnderManualControl) return;
+    if(!IsUnitUnderManualControlRobot() || !m_UnitUnderManualControl) return;
 
     CMatrixRobotAI* robot = m_UnitUnderManualControl->AsRobot();
     bool is_ord = robot->FindOrderLikeThat(ROT_MOVE_TO_BACK);
@@ -1023,12 +1048,12 @@ void CMatrixSideUnit::OnBackward(bool is_down)
 /*
 void CMatrixSideUnit::OnLeft(bool is_down)
 {
-    if(!IsUnitUnderManualControlARobot() || !m_UnitUnderManualControl) return;
+    if(!IsUnitUnderManualControlRobot() || !m_UnitUnderManualControl) return;
 }
 
 void CMatrixSideUnit::OnRight(bool is_down)
 {
-    if(!IsUnitUnderManualControlARobot() || !m_UnitUnderManualControl) return;
+    if(!IsUnitUnderManualControlRobot() || !m_UnitUnderManualControl) return;
 }
 */
 
@@ -1036,14 +1061,14 @@ void CMatrixSideUnit::Select(ESelType type, CMatrixMapStatic* pObject)
 {
     if(m_CurrSel == TURRET_SELECTED)
     {
-        g_IFaceList->DeletePersonal();
+        g_IFaceList->DeletePersonalImage();
         g_IFaceList->ResetOrderingMode();
 
         m_ActiveObject->AsTurret()->UnSelect();
     }
     else if(m_CurrSel == BUILDING_SELECTED || m_CurrSel == BASE_SELECTED)
     {
-        g_IFaceList->DeletePersonal();
+        g_IFaceList->DeletePersonalImage();
         g_IFaceList->DeleteDynamicTurrets();
         //RESETFLAG(g_IFaceList->m_IfListFlags, TURRET_BUILD_MODE | FLYER_BUILD_MODE);
         g_IFaceList->ResetOrderingMode();
@@ -1054,11 +1079,11 @@ void CMatrixSideUnit::Select(ESelType type, CMatrixMapStatic* pObject)
     //m_CurrentAction = NOTHING_SPECIAL;
     m_ActiveObject = pObject;
 
-    if((m_CurrSel == FLYER_SELECTED || m_CurrSel == ROBOT_SELECTED || m_CurrSel == ARCADE_SELECTED) && type != ARCADE)
+    if((m_CurrSel == ROBOT_SELECTED || m_CurrSel == FLYER_SELECTED || m_CurrSel == ARCADE_SELECTED) && type != ARCADE)
     {
         RESETFLAG(g_IFaceList->m_IfListFlags, SINGLE_MODE);
         g_IFaceList->DeleteWeaponDynamicStatics();
-        g_IFaceList->DeletePersonal();
+        g_IFaceList->DeletePersonalImage();
         g_IFaceList->ResetOrderingMode();
     }
 
@@ -1066,7 +1091,7 @@ void CMatrixSideUnit::Select(ESelType type, CMatrixMapStatic* pObject)
     {
         g_IFaceList->DeleteProgressBars(nullptr);
         g_IFaceList->DeleteGroupIcons();
-        g_IFaceList->DeletePersonal();
+        g_IFaceList->DeletePersonalImage();
         g_IFaceList->ResetOrderingMode();
     }
 
@@ -1104,8 +1129,8 @@ void CMatrixSideUnit::Select(ESelType type, CMatrixMapStatic* pObject)
     {
         m_nCurrRobotPos = -1;
         m_CurrSel = TURRET_SELECTED;
-        pObject->AsTurret()->Select();
-        SetCurSelNum(0);
+        pObject->AsTurret()->CreateSelection();
+        g_IFaceList->CreatePersonalImage(pObject);
 
         CSound::Play(S_TURRET_SEL, SL_SELECTION);
     }
@@ -1116,7 +1141,7 @@ void CMatrixSideUnit::Select(ESelType type, CMatrixMapStatic* pObject)
         m_nCurrRobotPos = -1;
         m_CurrSel = BUILDING_SELECTED;
 
-        building->Select();
+        building->CreateSelection();
         g_IFaceList->CreateDynamicTurrets(building);
 
         if(pObject->IsBase())
@@ -1125,7 +1150,6 @@ void CMatrixSideUnit::Select(ESelType type, CMatrixMapStatic* pObject)
             m_Constructor->SetBase(building);
 
             if(FLAG(g_MatrixMap->m_Flags, MMFLAG_SOUND_BASE_SEL_ENABLED)) CSound::Play(S_BASE_SEL, SL_SELECTION);
-
             SETFLAG(g_MatrixMap->m_Flags, MMFLAG_SOUND_BASE_SEL_ENABLED);
         }
         else CSound::Play(S_BUILDING_SEL, SL_SELECTION);
@@ -1167,25 +1191,13 @@ void CMatrixSideUnit::Reselect()
     {
         if(objs->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
         {
-            if(!GetCurGroup()->FindObject(objs))
-            {
-                ((CMatrixRobotAI*)objs)->UnSelect();
-            }
-            else
-            {
-                ((CMatrixRobotAI*)objs)->SelectByGroup();
-            }
+            if(!GetCurGroup()->FindObject(objs)) objs->AsRobot()->UnSelect();
+            else objs->AsRobot()->SelectByGroup();
         }
         else if(objs->GetObjectType() == OBJECT_TYPE_FLYER)
         {
-            if(!GetCurGroup()->FindObject(objs))
-            {
-                ((CMatrixFlyer*)objs)->UnSelect();
-            }
-            else
-            {
-                ((CMatrixFlyer*)objs)->SelectByGroup();
-            }
+            if(!GetCurGroup()->FindObject(objs)) objs->AsFlyer()->UnSelect();
+            else objs->AsFlyer()->SelectByGroup();
         }
 
         objs = objs->GetNextLogic();
@@ -1312,7 +1324,7 @@ CMatrixMapStatic* CMatrixSideUnit::MouseToLand()
 
 void CMatrixSideUnit::RobotStop(void*)
 {
-    if(IsUnitUnderManualControlARobot())
+    if(IsUnitUnderManualControlRobot())
     {
         m_UnitUnderManualControl->AsRobot()->BreakAllOrders();
     }
@@ -1459,18 +1471,18 @@ void SCannonForBuild::Delete()
     }
 }
 
-bool CMatrixSideUnit::IsUnitUnderManualControlARobot()
+bool CMatrixSideUnit::IsUnitUnderManualControlRobot()
 {
     return (m_UnitUnderManualControl && m_UnitUnderManualControl->GetObjectType() == OBJECT_TYPE_ROBOT_AI);
 }
 
-bool CMatrixSideUnit::IsFlyerArcadeMode()
+bool CMatrixSideUnit::IsUnitUnderManualControlFlyer()
 {
     return (m_UnitUnderManualControl && m_UnitUnderManualControl->GetObjectType() == OBJECT_TYPE_FLYER);
 }
 
 //Функция перевода и вывода юнита в режим ручного управления
-void CMatrixSideUnit::SetArcadedObject(CMatrixMapStatic* cur_unit)
+void CMatrixSideUnit::SetManualControledUnit(CMatrixMapStatic* cur_unit)
 {
     if(cur_unit == nullptr)
     {
@@ -1482,7 +1494,7 @@ void CMatrixSideUnit::SetArcadedObject(CMatrixMapStatic* cur_unit)
         return;
     }
 
-    if(IsUnitUnderManualControlARobot())
+    if(IsUnitUnderManualControlRobot())
     {
         CMatrixRobotAI* robot = m_UnitUnderManualControl->AsRobot();
         if(robot->m_SoundChassis)
@@ -1493,7 +1505,7 @@ void CMatrixSideUnit::SetArcadedObject(CMatrixMapStatic* cur_unit)
     }
 
     //Выдаём роботу приказ "Stop" при выходе из аркадного режима
-    if(IsUnitUnderManualControlARobot() && !m_UnitUnderManualControl->IsDIP())
+    if(IsUnitUnderManualControlRobot() && !m_UnitUnderManualControl->IsDIP())
     {
         CMatrixRobotAI* robot = m_UnitUnderManualControl->AsRobot();
         //SETFLAG(g_MatrixMap->m_Flags, MMFLAG_SOUND_ORDER_ATTACK_DISABLE);
@@ -1502,10 +1514,10 @@ void CMatrixSideUnit::SetArcadedObject(CMatrixMapStatic* cur_unit)
         g_MatrixMap->GetSideById(robot->GetSide())->PGOrderStop(g_MatrixMap->GetSideById(robot->GetSide())->RobotToLogicGroup(robot));
         //RESETFLAG(g_MatrixMap->m_Flags, MMFLAG_SOUND_ORDER_ATTACK_DISABLE);
     }
-    //else if(IsFlyerArcadeMode() && !m_UnitUnderManualControl->IsDIP()) {}
+    //else if(IsUnitUnderManualControlFlyer() && !m_UnitUnderManualControl->IsDIP()) {}
 
     //Отключение аркадного режима, очистка аркадной переменной и снятие аркадных бонусов с юнита
-    if(IsUnitUnderManualControlARobot() && (cur_unit == nullptr || cur_unit == m_UnitUnderManualControl))
+    if(IsUnitUnderManualControlRobot() && (cur_unit == nullptr || cur_unit == m_UnitUnderManualControl))
     {
         CMatrixRobotAI* robot = m_UnitUnderManualControl->AsRobot();
         robot->SetMaxSpeed(robot->GetMaxSpeed() / g_UnitSpeedArcadeCoef);
@@ -1515,7 +1527,7 @@ void CMatrixSideUnit::SetArcadedObject(CMatrixMapStatic* cur_unit)
         if(g_IFaceList) g_IFaceList->DeleteWeaponDynamicStatics();
         Select(NOTHING, nullptr);
     }
-    else if(IsUnitUnderManualControlARobot() && cur_unit->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
+    else if(IsUnitUnderManualControlRobot() && cur_unit->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
     {
         CMatrixRobotAI* robot = m_UnitUnderManualControl->AsRobot();
         if(g_IFaceList) g_IFaceList->DeleteWeaponDynamicStatics();
@@ -1524,7 +1536,7 @@ void CMatrixSideUnit::SetArcadedObject(CMatrixMapStatic* cur_unit)
         robot->SetMaxStrafeSpeed(robot->GetMaxStrafeSpeed() / g_UnitSpeedArcadeCoef);
         robot->SetWeaponToDefaultCoeff();
     }
-    else if(IsUnitUnderManualControlARobot() && cur_unit->GetObjectType() == OBJECT_TYPE_FLYER)
+    else if(IsUnitUnderManualControlRobot() && cur_unit->GetObjectType() == OBJECT_TYPE_FLYER)
     {
         CMatrixRobotAI* robot = m_UnitUnderManualControl->AsRobot();
         if(g_IFaceList) g_IFaceList->DeleteWeaponDynamicStatics();
@@ -1534,7 +1546,7 @@ void CMatrixSideUnit::SetArcadedObject(CMatrixMapStatic* cur_unit)
     }
 
     m_UnitUnderManualControl = cur_unit;
-    if(IsUnitUnderManualControlARobot())
+    if(IsUnitUnderManualControlRobot())
     {
         CMatrixRobotAI* robot = cur_unit->AsRobot();
         robot->m_SoundChassis = CSound::Play(robot->m_SoundChassis, g_Config.m_RobotChassisConsts[robot->m_Module[0].m_Kind].arcade_enter_sound_num, robot->GetGeoCenter(), SL_CHASSIS);
@@ -1643,7 +1655,7 @@ void CMatrixSideUnit::SelectedGroupBreakMoveOrders()
 
 void CMatrixSideUnit::SetCurSelNum(int i)
 {
-    g_IFaceList->DeletePersonal();
+    g_IFaceList->DeletePersonalImage();
 
     if(i >= 0) m_CurSelNum = i;
     else
@@ -1654,7 +1666,7 @@ void CMatrixSideUnit::SetCurSelNum(int i)
         }
     }
 
-    g_IFaceList->CreatePersonal();
+    g_IFaceList->CreatePersonalImage();
 }
 
 CMatrixMapStatic* CMatrixSideUnit::GetCurSelObject()
@@ -1915,7 +1927,7 @@ int CMatrixSideUnit::GetRobotsInQueue()
 
 void CMatrixSideUnit::PLDropAllActions()
 {
-    g_IFaceList->ExitArcadeMode();
+    g_IFaceList->ExitManualControlMode();
     m_CurrentAction = NOTHING_SPECIAL;
     m_CannonForBuild.Delete();
     g_IFaceList->ResetOrderingMode();

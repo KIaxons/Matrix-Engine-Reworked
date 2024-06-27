@@ -512,9 +512,9 @@ void CMatrixTurret::Draw()
 	//g_D3DD->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
     dword coltex = (dword)g_MatrixMap->GetSideColorTexture(m_Side)->Tex();
 
-    for(int i = 0; i < 4; ++i)
+    for(int i = 0; i <= 3; ++i)
     {
-        ASSERT_DX(g_D3DD->SetSamplerState(i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) (&g_MatrixMap->m_BiasCannons))));
+        ASSERT_DX(g_D3DD->SetSamplerState(i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) (&g_MatrixMap->m_BiasTurrets))));
     }
 
     if(m_CurrentState != TURRET_DIP)
@@ -564,7 +564,7 @@ void CMatrixTurret::Draw()
     /*
     for(int k = 0; k < 100; ++k)
     {
-        D3DXVECTOR3 d(FSRND(1), FSRND(1), FSRND(1));
+        D3DXVECTOR3 d(FSRND(1.0f), FSRND(1.0f), FSRND(1.0f));
         D3DXVec3Normalize(&d, &d);
         CHelper::Create(1, 0)->Line(m_GeoCenter, m_GeoCenter + d * m_Radius);
     }
@@ -970,6 +970,7 @@ void CMatrixTurret::LogicTact(int tact)
 
             if(TakingDamage(shorted_effect_num, pos, dir, m_LastDelayDamageSide, nullptr)) return;
         }
+
         return;
     }
 
@@ -990,7 +991,7 @@ void CMatrixTurret::LogicTact(int tact)
         // seek side target
 
         CMatrixMapStatic* target = nullptr;
-        if(m_TargetCoreOverride && m_TargetCoreOverride->IsUnitAlive()) target = m_TargetCoreOverride;
+        if(m_TargetOverride && m_TargetOverride->IsUnitAlive()) target = m_TargetOverride;
 
         FTData data;
         //data.dist = props->seek_target_range * props->seek_target_range;
@@ -1007,7 +1008,9 @@ void CMatrixTurret::LogicTact(int tact)
 
         m_TargetDisp = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
-        g_MatrixMap->FindObjects(GetGeoCenter(), props->seek_target_range, 1, TRACE_ROBOT | TRACE_FLYER, nullptr, FindTarget, (dword)&data);
+        dword mask = TRACE_ROBOT | TRACE_FLYER;
+        if(m_TargetOverride) mask = TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET;
+        g_MatrixMap->FindObjects(GetGeoCenter(), props->seek_target_range, 1, mask, nullptr, FindTarget, (dword)&data);
 
         if(target)
         {
@@ -1019,7 +1022,7 @@ void CMatrixTurret::LogicTact(int tact)
             // цель не найдена (уехала далеко наверное)
             if(m_TargetCore) m_TargetCore->Release();
             m_TargetCore = nullptr;
-            m_TargetCoreOverride = nullptr; //На случай, если выставленная принудительно цель покинула зону поражения
+            m_TargetOverride = nullptr; //На случай, если выставленная принудительно цель покинула зону поражения
         }
     }
 
@@ -1459,9 +1462,9 @@ void CMatrixTurret::CreateTextures()
 #endif
 }
 
-bool CMatrixTurret::Select()
+bool CMatrixTurret::CreateSelection()
 {
-    D3DXVECTOR3 pos = { m_Pos.x, m_Pos.y, m_Core->m_Matrix._43 + 4.0f };
+    D3DXVECTOR3 pos = { m_Pos.x, m_Pos.y, m_Core->m_Matrix._43 + 5.0f };
     m_Selection = (CMatrixEffectSelection*)CMatrixEffect::CreateSelection(pos, TURRET_SELECTION_SIZE);
 
     if(!g_MatrixMap->AddEffect(m_Selection))

@@ -289,7 +289,7 @@ void MO_Homing_Missile_Tact(D3DXMATRIX& m, SMOProps& props, float tact)
         if(g_Config.IsManualMissileControl())
         {
             //Если эту ракету выпустил робот, в данный момент находящийся под управлением игрока
-            if(g_MatrixMap->GetPlayerSide()->IsArcadeMode() && g_MatrixMap->GetPlayerSide()->GetUnitUnderManualControl() == props.hm.missile_owner)
+            if(g_MatrixMap->GetPlayerSide()->IsManualControlMode() && g_MatrixMap->GetPlayerSide()->GetUnitUnderManualControl() == props.hm.missile_owner)
             {
                 props.target = g_MatrixMap->m_TraceStopPos;
                 D3DXVECTOR3 temp = props.target - props.curpos;

@@ -1354,7 +1354,7 @@ void CInterface::Init(void)
         {
             while(pElement)
             {
-                if(player_side->IsArcadeMode())
+                if(player_side->IsManualControlMode())
                 {
                     pElement->SetVisibility(false);
                 }
@@ -1410,7 +1410,7 @@ void CInterface::Init(void)
             bool gsel = false;
 
             bool ordering = FLAG(g_IFaceList->m_IfListFlags, ORDERING_MODE);
-            bool singlem = FLAG(g_IFaceList->m_IfListFlags, SINGLE_MODE) || player_side->IsUnitUnderManualControlARobot();
+            bool singlem = FLAG(g_IFaceList->m_IfListFlags, SINGLE_MODE) || player_side->IsUnitUnderManualControlRobot();
             bool bld_tu = ordering && FLAG(g_IFaceList->m_IfListFlags, PREORDER_BUILD_TURRET);
             bool bld_he = ordering && FLAG(g_IFaceList->m_IfListFlags, PREORDER_BUILD_FLYER);
             bool bld_re = ordering && FLAG(g_IFaceList->m_IfListFlags, PREORDER_BUILD_REPAIR);
@@ -1464,7 +1464,7 @@ void CInterface::Init(void)
             CMatrixRobotAI* cur_robot = nullptr;
             CMatrixFlyer* cur_heli = nullptr;
 
-            if(player_side->IsUnitUnderManualControlARobot())
+            if(player_side->IsUnitUnderManualControlRobot())
             {
                 cur_robot = (CMatrixRobotAI*)player_side->GetUnitUnderManualControl();
                 robot_sel = true;
@@ -1567,7 +1567,7 @@ void CInterface::Init(void)
 //Always visible elements////////////////////////////////////////////////////////////////////////////////////
                 if(pElement->m_strName == IF_NAME_LABEL)
                 {
-                    if(gsel || player_side->IsArcadeMode())
+                    if(gsel || player_side->IsManualControlMode())
                     {
                         if((rsel || robot_sel) && cur_robot)
                         {
@@ -1614,7 +1614,7 @@ void CInterface::Init(void)
                 //Выставление значения HP для выделенного объекта
                 else if(pElement->m_strName == IF_LIVES_LABEL)
                 {
-                    if(gsel || player_side->IsArcadeMode())
+                    if(gsel || player_side->IsManualControlMode())
                     {
                         if((rsel || robot_sel) && cur_robot)
                         {
@@ -1790,7 +1790,7 @@ void CInterface::Init(void)
                     }
                     else if(pElement->m_strName == IF_ENTER_ARCADE_MODE)
                     {
-                        if(!player_side->IsArcadeMode() && !sel_bot->IsManualControlLocked())
+                        if(!player_side->IsManualControlMode() && !sel_bot->IsManualControlLocked())
                         {
                             pElement->SetVisibility(true);
                         }
@@ -1801,7 +1801,7 @@ void CInterface::Init(void)
                     }
                     else if(pElement->m_strName == IF_EXIT_ARCADE_MODE)
                     {
-                        if(player_side->IsArcadeMode())
+                        if(player_side->IsManualControlMode())
                         {
                             pElement->SetVisibility(true);
                         }
@@ -1825,7 +1825,7 @@ void CInterface::Init(void)
                     }
                 }
 
-                if(player_side->IsArcadeMode())
+                if(player_side->IsManualControlMode())
                 {
                     if(bombers)
                     {
@@ -1887,19 +1887,26 @@ void CInterface::Init(void)
                 else if(player_side->m_CurrSel == TURRET_SELECTED)
                 {
                     CMatrixTurret* turret = player_side->m_ActiveObject->AsTurret();
-                    turret->CreateHealthBarClone(m_xPos + 68, m_yPos + 179, 68, PBC_CLONE2);
+                    turret->CreateHealthBarClone(m_xPos + 68.0f, m_yPos + 179.0f, 68.0f, PBC_CLONE2);
 
-                    if(pElement->m_strName == IF_DISMANTLE_TURRET)
+                    if(!FLAG(g_IFaceList->m_IfListFlags, ORDERING_MODE))
                     {
-                        pElement->SetVisibility(true);
-                        if(turret->m_ParentBuilding->m_BuildingQueue.IsMaxItems()) pElement->SetState(IFACE_DISABLED);
-                        else if(pElement->GetState() == IFACE_DISABLED) pElement->SetState(IFACE_NORMAL);
+                        if(pElement->m_strName == IF_ORDER_FIRE)
+                        {
+                            pElement->SetVisibility(true);
+                        }
+                        else if(pElement->m_strName == IF_DISMANTLE_TURRET)
+                        {
+                            pElement->SetVisibility(true);
+                            if(turret->m_ParentBuilding->m_BuildingQueue.IsMaxItems()) pElement->SetState(IFACE_DISABLED);
+                            else if(pElement->GetState() == IFACE_DISABLED) pElement->SetState(IFACE_NORMAL);
+                        }
                     }
                 }
                 else if(player_side->m_CurrSel == BUILDING_SELECTED || player_side->m_CurrSel == BASE_SELECTED)
                 {
                     CMatrixBuilding* bld = player_side->m_ActiveObject->AsBuilding();
-                    bld->CreateHealthBarClone(m_xPos + 68, m_yPos + 179, 68, PBC_CLONE2);
+                    bld->CreateHealthBarClone(m_xPos + 68.0f, m_yPos + 179.0f, 68.0f, PBC_CLONE2);
                     
                     if(bld->m_Kind == BUILDING_TITAN && pElement->m_strName == IF_TITAN_PLANT)
                     {
@@ -2267,7 +2274,7 @@ void CInterface::Init(void)
         {
             while(pElement)
             {
-                if(player_side->IsArcadeMode())
+                if(player_side->IsManualControlMode())
                 {
                     pElement->SetVisibility(true);
                 }
@@ -3360,22 +3367,22 @@ void CInterface::LogicTact(int ms)
         {
             SlideStep();
         }
-        //if(!ps->IsArcadeMode() && (GetAsyncKeyState(g_MatrixMap->m_Config.m_KeyActions[KA_ROBOT_ROTATE_LEFT]) & 0x8000) == 0x8000)
+        //if(!ps->IsManualControlMode() && (GetAsyncKeyState(g_MatrixMap->m_Config.m_KeyActions[KA_ROBOT_ROTATE_LEFT]) & 0x8000) == 0x8000)
         //{
         //    MoveLeft();
         //    ReCalcElementsPos();
         //}
-        //if(!ps->IsArcadeMode() && (GetAsyncKeyState(g_MatrixMap->m_Config.m_KeyActions[KA_ROBOT_ROTATE_RIGHT]) & 0x8000) == 0x8000)
+        //if(!ps->IsManualControlMode() && (GetAsyncKeyState(g_MatrixMap->m_Config.m_KeyActions[KA_ROBOT_ROTATE_RIGHT]) & 0x8000) == 0x8000)
         //{
         //    MoveRight();
         //    ReCalcElementsPos();
         //}
-        //if(!ps->IsArcadeMode() && (GetAsyncKeyState(g_MatrixMap->m_Config.m_KeyActions[KA_UNIT_FORWARD]) & 0x8000) == 0x8000)
+        //if(!ps->IsManualControlMode() && (GetAsyncKeyState(g_MatrixMap->m_Config.m_KeyActions[KA_UNIT_FORWARD]) & 0x8000) == 0x8000)
         //{
         //    MoveUp();
         //    ReCalcElementsPos();
         //}
-        //if(!ps->IsArcadeMode() && (GetAsyncKeyState(g_MatrixMap->m_Config.m_KeyActions[KA_UNIT_BACKWARD]) & 0x8000) == 0x8000)
+        //if(!ps->IsManualControlMode() && (GetAsyncKeyState(g_MatrixMap->m_Config.m_KeyActions[KA_UNIT_BACKWARD]) & 0x8000) == 0x8000)
         //{
         //    MoveDown();
         //    ReCalcElementsPos();
@@ -3813,7 +3820,7 @@ void CIFaceList::LogicTact(int ms)
 
     //Cursor logic
     //Стратегический режим
-    if(!ps->IsArcadeMode())
+    if(!ps->IsManualControlMode())
     {
         CPoint mp = g_MatrixMap->m_Cursor.GetPos();
 
@@ -3844,7 +3851,7 @@ void CIFaceList::LogicTact(int ms)
             //Приказ захватывать
             else if(FLAG(g_IFaceList->m_IfListFlags, PREORDER_CAPTURE))
             {
-                //Под прицелом находится не игроковское здание
+                //Под прицелом курсора находится не игроковское здание
                 if(
                      IS_TRACE_STOP_OBJECT(g_MatrixMap->m_TraceStopObj) &&
                      g_MatrixMap->m_TraceStopObj->GetObjectType() == OBJECT_TYPE_BUILDING &&
@@ -3871,6 +3878,18 @@ void CIFaceList::LogicTact(int ms)
                 //Устанавливаем курсор ARROW, либо стрелку для миникарты
                 if(m_FocusedInterface->m_strName != IF_MINI_MAP) g_MatrixMap->m_Cursor.Select(CURSOR_ARROW);
                 else g_MatrixMap->m_Cursor.Select(CURSOR_ARROW_MINI_MAP);
+            }
+            //Если выбрана турель
+            else if(ps->m_ActiveObject && ps->m_ActiveObject->GetObjectType() == OBJECT_TYPE_TURRET)
+            {
+                //Под прицелом курсора находится вражеский объект
+                if(g_MatrixMap->IsTraceNonPlayerObj() && g_MatrixMap->m_TraceStopObj->GetObjectType() != OBJECT_TYPE_BUILDING)
+                {
+                    //Устанавливаем курсор CROSS_RED
+                    g_MatrixMap->m_Cursor.Select(CURSOR_CROSS_RED);
+                }
+                //Обычный курсор
+                else g_MatrixMap->m_Cursor.Select(CURSOR_ARROW);
             }
             else
             {
@@ -3920,12 +3939,12 @@ void CIFaceList::CreateWeaponDynamicStatics()
     DeleteWeaponDynamicStatics();
     CMatrixSideUnit* player_side = g_MatrixMap->GetPlayerSide();
 
-    if(!FLAG(m_IfListFlags, SINGLE_MODE) && !player_side->IsArcadeMode()) return;
+    if(!FLAG(m_IfListFlags, SINGLE_MODE) && !player_side->IsManualControlMode()) return;
     if((player_side->GetCurGroup()->m_FirstObject && player_side->GetCurGroup()->m_FirstObject->ReturnObject()->GetObjectType() != OBJECT_TYPE_ROBOT_AI)) return;
 
     CMatrixRobotAI* bot = nullptr;
     
-    if(player_side->IsArcadeMode())
+    if(player_side->IsManualControlMode())
     {
         CMatrixMapStatic* s = player_side->GetUnitUnderManualControl();
         if(s && s->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
@@ -4300,7 +4319,7 @@ void CIFaceList::SlideFocusedInterfaceLeft()
 }
 
 //Функция входа в режим ручного контроля (работает как для роботов, так и для вертолётов)
-void CIFaceList::EnterArcadeMode(bool pos)
+void CIFaceList::EnterManualControlMode(bool pos)
 {
     CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
     if(ps->GetCurGroup() && ps->GetCurGroup()->m_FirstObject)
@@ -4312,7 +4331,7 @@ void CIFaceList::EnterArcadeMode(bool pos)
             o = ps->GetCurGroup()->GetObjectByN(ps->GetCurSelNum());
         }
 
-        ps->SetArcadedObject(o);
+        ps->SetManualControledUnit(o);
         if(o->IsRobot()) o->AsRobot()->SetNoMoreEverMovingOverride(false); //На случай, если на момент входа в ручной режим робот стоял в круге захвата завода
 
         //Переставляем все элементы интерфейса под аркадный режим
@@ -4331,11 +4350,11 @@ void CIFaceList::EnterArcadeMode(bool pos)
 }
 
 //Функция выхода из режима ручного контроля (работает как для роботов, так и для вертолётов)
-void CIFaceList::ExitArcadeMode()
+void CIFaceList::ExitManualControlMode()
 {
     CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
 
-    if(ps->IsArcadeMode())
+    if(ps->IsManualControlMode())
     {
         CMatrixMapStatic* obj = ps->GetUnitUnderManualControl();
         ESelType type = NOTHING;
@@ -4370,7 +4389,7 @@ void CIFaceList::ExitArcadeMode()
         //Если игрок включил управление наведением ракет курсором мыши, пока находился в ручном режиме, выключаем его
         if(g_Config.IsManualMissileControl()) g_Config.m_IsManualMissileControl = false;
 
-        ps->SetArcadedObject(nullptr);
+        ps->SetManualControledUnit(nullptr);
 
         CMatrixGroup* grp = ps->GetCurSelGroup();
 
@@ -4471,7 +4490,7 @@ void __stdcall CIFaceList::PlayerAction(void* object)
     //Моментальный подрыв робота с бомбой из режима ручного управления
     if(element->m_strName == IF_MAIN_SELF_BOMB || element->m_strName == IF_MAIN_SELF_BOMB_AUTO)
     {
-        if(ps->IsArcadeMode() && ps->GetUnitUnderManualControl()->IsRobotAlive())
+        if(ps->IsManualControlMode() && ps->GetUnitUnderManualControl()->IsRobotAlive())
         {
             ps->GetUnitUnderManualControl()->AsRobot()->BeginBombCountdown();
         }
@@ -4538,11 +4557,11 @@ void __stdcall CIFaceList::PlayerAction(void* object)
 
     if(element->m_strName == IF_ENTER_ARCADE_MODE)
     {
-        EnterArcadeMode();
+        EnterManualControlMode();
     }
     else if(element->m_strName == IF_EXIT_ARCADE_MODE)
     {
-        ExitArcadeMode();
+        ExitManualControlMode();
     }
 
     if(element->m_strName == IF_BASE_CONST_CANCEL)
@@ -4615,7 +4634,7 @@ void __stdcall CIFaceList::PlayerAction(void* object)
                 //fl->m_FlyerKind = FLYER_SPEED;
                 //fl->SetDeliveryCopter(false);
                 //base->m_BS.AddItem(fl);
-                base->BuildFlyer(FLYER_SPEED);
+                base->BuildFlyer(FLYER_SPEED, PLAYER_SIDE);
             }
             else if(element->m_strName == IF_BUILD_FLYER_2)
             {
@@ -4623,7 +4642,7 @@ void __stdcall CIFaceList::PlayerAction(void* object)
                 //fl->m_FlyerKind = FLYER_ATTACK;
                 //fl->SetDeliveryCopter(false);
                 //base->m_BS.AddItem(fl);
-                base->BuildFlyer(FLYER_ATTACK);
+                base->BuildFlyer(FLYER_ATTACK, PLAYER_SIDE);
             }
             else if(element->m_strName == IF_BUILD_FLYER_3)
             {
@@ -4631,7 +4650,7 @@ void __stdcall CIFaceList::PlayerAction(void* object)
                 //fl->m_FlyerKind = FLYER_BOMB;
                 //fl->SetDeliveryCopter(false);
                 //base->m_BS.AddItem(fl);
-                base->BuildFlyer(FLYER_BOMB);
+                base->BuildFlyer(FLYER_BOMB, PLAYER_SIDE);
             }
             else if(element->m_strName == IF_BUILD_FLYER_4)
             {
@@ -4639,7 +4658,7 @@ void __stdcall CIFaceList::PlayerAction(void* object)
                 //fl->m_FlyerKind = FLYER_TRANSPORT;
                 //fl->SetDeliveryCopter(false);
                 //base->m_BS.AddItem(fl);
-                base->BuildFlyer(FLYER_TRANSPORT);
+                base->BuildFlyer(FLYER_TRANSPORT, PLAYER_SIDE);
             }
         }
     }
@@ -4923,21 +4942,23 @@ DTRACE();
 }
 
 //Создаёт иконки юнитов в выбранной группе для группового списка
-void CIFaceList::CreatePersonal()
+void CIFaceList::CreatePersonalImage(CMatrixMapStatic* object)
 {
     CMatrixSideUnit* player_side = g_MatrixMap->GetPlayerSide();
-    CMatrixMapStatic* obj;
-    if(player_side->GetCurGroup())
+    if(!object)
     {
-        int selected = player_side->GetCurSelNum();
+        if(player_side->GetCurGroup())
+        {
+            int selected = player_side->GetCurSelNum();
 
-        CMatrixGroupObject* go = player_side->GetCurGroup()->m_FirstObject;
-        for(int i = 0; i < selected && go; ++i) go = go->m_NextObject;
-        if(!go) return;
-        obj = go->ReturnObject();
+            CMatrixGroupObject* go = player_side->GetCurGroup()->m_FirstObject;
+            for(int i = 0; i < selected && go; ++i) go = go->m_NextObject;
+            if(!go) return;
+            object = go->ReturnObject();
+        }
+        else return;
     }
-    else if(player_side->m_ActiveObject && player_side->m_ActiveObject->GetObjectType() == OBJECT_TYPE_TURRET) obj = player_side->m_ActiveObject;
-    else return;
+    else if(object->GetObjectType() != OBJECT_TYPE_TURRET) return;
 
     CInterface* interfaces = g_IFaceList->m_First;
     while(interfaces)
@@ -4946,21 +4967,29 @@ void CIFaceList::CreatePersonal()
         {
             CTextureManaged* tex = nullptr;
             float xbig = 0, ybig = 0;
-            bool robot = false;
-            bool flyer = false;
+            bool rendered_pics = false;
+            bool flyer_old_pics = false;
 
             CIFaceImage* image = HNew(Base::g_MatrixHeap) CIFaceImage;
             
-            EObjectType type = obj->GetObjectType();
+            EObjectType type = object->GetObjectType();
             if(type == OBJECT_TYPE_ROBOT_AI)
             {
-                tex = obj->AsRobot()->GetBigTexture();
-                robot = true;
+                tex = object->AsRobot()->GetBigTexture();
+                rendered_pics = true;
             }
             else if(type == OBJECT_TYPE_FLYER)
             {
+                //Это место крашит при смерти вертолёта под ручным контролем, исправить
+                //Тупые вертушки не хотят корректно рендерить себе пикчи из другого места ;C
+                object->AsFlyer()->CreateTextures();
+
+                tex = object->AsFlyer()->GetBigTexture();
+                rendered_pics = true;
+
+                /*
                 CIFaceImage* img;
-                switch(obj->AsFlyer()->m_FlyerKind)
+                switch(object->AsFlyer()->m_FlyerKind)
                 {
                     case FLYER_SPEED: img = interfaces->FindImageByName(CWStr(IF_FLYER_1_IMG)); break;
                     case FLYER_ATTACK: img = interfaces->FindImageByName(CWStr(IF_FLYER_2_IMG)); break;
@@ -4972,12 +5001,13 @@ void CIFaceList::CreatePersonal()
                 xbig = img->m_xTexPos;
                 ybig = img->m_yTexPos;
 
-                flyer = true;
+                flyer_old_pics = true;
+                */
             }
             else if(type == OBJECT_TYPE_TURRET)
             {
-                tex = obj->AsTurret()->GetBigTexture();
-                robot = true;
+                tex = object->AsTurret()->GetBigTexture();
+                rendered_pics = true;
             }
             
             if(tex)
@@ -4991,7 +5021,7 @@ void CIFaceList::CreatePersonal()
                 image->m_Type = IFACE_IMAGE;
                 
                 CIFaceStatic* s = nullptr;
-                if(robot)
+                if(rendered_pics)
                 {
                     image->m_TexHeight = 256;
                     image->m_TexWidth = 256;
@@ -4999,7 +5029,7 @@ void CIFaceList::CreatePersonal()
                     image->m_yTexPos = 0;
                     s = interfaces->CreateStaticFromImage(81, 61, 0.0000001f, *image, true);
                 }
-                else if(flyer)
+                else if(flyer_old_pics)
                 {
                     image->m_TexHeight = 512;
                     image->m_TexWidth = 512;
@@ -5026,7 +5056,7 @@ void CIFaceList::CreatePersonal()
 }
 
 //Удаляет иконки юнитов в выбранной группе из группового списка
-void CIFaceList::DeletePersonal()
+void CIFaceList::DeletePersonalImage()
 {
     CMatrixSideUnit* player_side = g_MatrixMap->GetPlayerSide();
 

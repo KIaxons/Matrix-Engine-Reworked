@@ -18,7 +18,7 @@
 D3D_VB CMatrixFlyer::m_VB;
 int    CMatrixFlyer::m_VB_ref;
 
-CMatrixFlyer::CMatrixFlyer(EFlyerKind kind) : m_FlyerKind(kind)
+CMatrixFlyer::CMatrixFlyer(EFlyerKind kind, int side) : m_FlyerKind(kind), m_Side(side)
 {
     m_Core->m_Type = OBJECT_TYPE_FLYER;
 
@@ -610,10 +610,8 @@ off_weapon:;
     m_Core->m_TerrainColor = 0xFFFFFFFF;
 }
 
-void CMatrixFlyer::BeforeDraw(void)
+void CMatrixFlyer::BeforeDraw()
 {
-DTRACE();
-
     //SetTarget(D3DXVECTOR2(0, 3000));
     InitBuffers();
 
@@ -641,13 +639,13 @@ DTRACE();
     if(m_ShowHitpointsTime > 0 && m_Hitpoints > 0)
     {
         D3DXVECTOR2 p = g_MatrixMap->m_Camera.Project(GetPos(), g_MatrixMap->GetIdentityMatrix());
-        m_HealthBar.Modify(p.x-(PB_FLYER_WIDTH*0.5f), p.y-FLYER_RADIUS*2, m_Hitpoints * m_MaxHitpointsInversed);
+        m_HealthBar.Modify(p.x - (PB_FLYER_WIDTH * 0.5f), p.y - FLYER_RADIUS * 2, m_Hitpoints * m_MaxHitpointsInversed);
     }
 }
 
 void CMatrixFlyer::SetTarget(const D3DXVECTOR2& tgt)
 {
-    if(g_MatrixMap->GetPlayerSide()->IsArcadeMode())
+    if(g_MatrixMap->GetPlayerSide()->IsManualControlMode())
     {
         m_TgtUpdateCount = 10;
         m_Target = tgt;
@@ -678,22 +676,22 @@ void CMatrixFlyer::Tact(int ms)
 
 struct SFlyerTactData
 {
-    D3DXVECTOR2 hdir;
-    D3DXVECTOR2 tdir;
+    D3DXVECTOR2 hdir = { 0.0f, 0.0f };
+    D3DXVECTOR2 tdir = { 0.0f, 0.0f };
 
-    D3DXVECTOR3 reaction;
+    D3DXVECTOR3 reaction = { 0.0f, 0.0f, 0.0f };
 
-    float ms;
+    float ms = 0.0f;
 
-    float pow998;
-    float pow999;
+    float pow998 = 0.0f;
+    float pow999 = 0.0f;
 
-    float mul;
+    float mul = 0.0f;
 
-    float tlen;
+    float tlen = 0.0f;
 
-    float speedn;
-    float speedf;
+    float speedn = 0.0f;
+    float speedf = 0.0f;
 };
 
 void CMatrixFlyer::LogicTactArcade(SFlyerTactData& td)
@@ -1186,8 +1184,6 @@ bool CMatrixFlyer::LogicTactOrder(SFlyerTactData& td)
 
 void CMatrixFlyer::LogicTact(int tact)
 {
-DTRACE();
-
     if(!g_MatrixMap->GetPlayerSide()->FindObjectInSelection(this)) UnSelect();
 
     SFlyerTactData td;
@@ -1679,8 +1675,6 @@ bool CMatrixFlyer::TakingDamage(
     CMatrixMapStatic* attaker
 )
 {
-DTRACE();
-
     if(g_Config.m_WeaponsConsts[weap].is_repairer) return false;
 
     CMatrixEffectWeapon::SoundHit(weap, pos);
@@ -1725,7 +1719,7 @@ DTRACE();
     else m_LastDelayDamageSide = 0;
 
     //Если вертолёт ещё жив, рисуем проходящий по нему урон
-    if(m_Hitpoints > 0)
+    if(m_Hitpoints > 0.0f)
     {
         if(g_Config.m_WeaponsConsts[weap].explosive_hit)
         {
@@ -1738,7 +1732,7 @@ DTRACE();
     {
         // dead!!!
         ReleaseMe();
-        
+
         CMatrixEffect::CreateExplosion(*(D3DXVECTOR3*)&m_Core->m_Matrix._41, ExplosionRobotBoom);
 
         if(FLAG(m_Flags, FLYER_IN_SPAWN))
@@ -1747,15 +1741,15 @@ DTRACE();
         }
 
         g_MatrixMap->StaticDelete(this);
+
         return true;
     }
+
     return false;
 }
 
 bool CMatrixFlyer::Pick(const D3DXVECTOR3& start, const D3DXVECTOR3& dir, float* t) const
 {
-DTRACE();
-
     for(int i = 0; i < m_ModulesCount; ++i)
     {
         if(m_Modules[i].m_Graph)
@@ -1763,13 +1757,24 @@ DTRACE();
             if(m_Modules[i].m_Graph->Pick(m_Modules[i].m_Matrix, m_Modules[i].m_IMatrix, start, dir, t)) return true;
         }
     }
+
     return false;
 }
 
-void CMatrixFlyer::Draw(void)
+void CMatrixFlyer::Draw()
 {
-    DTRACE();
-    dword coltex = (dword)g_MatrixMap->GetSideColorTexture(m_Side)->Tex();
+    dword col_tex = (dword)g_MatrixMap->GetSideColorTexture(m_Side)->Tex();
+
+    //Флаг вызова рендера картинки для интерфейса
+    if(FLAG(m_ObjectFlags, OBJECT_STATE_INTERFACE))
+    {
+
+    }
+
+    for(int i = 0; i <= 3; ++i)
+    {
+        ASSERT_DX(g_D3DD->SetSamplerState(i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD)(&g_MatrixMap->m_BiasFlyers))));
+    }
 
     for(int i = 0; i < m_ModulesCount; ++i)
     {
@@ -1785,12 +1790,12 @@ void CMatrixFlyer::Draw(void)
         if(invert)
         {
             g_D3DD->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
-            m_Modules[i].m_Graph->Draw(coltex);
+            m_Modules[i].m_Graph->Draw(col_tex);
             g_D3DD->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
         }
         else
         {
-            m_Modules[i].m_Graph->Draw(coltex);
+            m_Modules[i].m_Graph->Draw(col_tex);
         }
     }
 
@@ -1919,10 +1924,11 @@ void CMatrixFlyer::Begin(CMatrixBuilding* b)
     m_Target = b->m_Pos;
     SETFLAG(m_Flags, MF_TARGETMOVE);
 
-    b->OpenAssemblyChamber(); //Активируем подъёмник базы
-    SetDirectionAngle((float)atan2(-b->GetMatrix()._21, b->GetMatrix()._22)); //Задаём начальное направление носа вертолёта
-
     GetResources(MR_Graph | MR_Matrix);
+    if(m_Side == PLAYER_SIDE) CreateTextures();
+
+    b->OpenAssemblyChamber(); //Активируем подъёмник базы
+    SetDirectionAngle(atan2(-b->GetMatrix()._21, b->GetMatrix()._22)); //Задаём начальное направление носа вертолёта
 
     JoinToGroup();
 }
@@ -1967,13 +1973,18 @@ void CMatrixFlyer::UnSelect()
 
 bool CMatrixFlyer::CreateSelection()
 {
-	m_Selection = (CMatrixEffectSelection*)CMatrixEffect::CreateSelection(D3DXVECTOR3(m_Pos.x, m_Pos.y, GetGeoCenter().z /*FLYER_SELECTION_HEIGHT*/), FLYER_SELECTION_SIZE);
+	m_Selection = (CMatrixEffectSelection*)CMatrixEffect::CreateSelection(D3DXVECTOR3(m_Pos.x, m_Pos.y, GetGeoCenter().z + FLYER_SELECTION_HEIGHT), FLYER_SELECTION_SIZE);
     if(!g_MatrixMap->AddEffect(m_Selection))
     {
         m_Selection = nullptr;
         return false;
     }
     return true;
+}
+
+void CMatrixFlyer::ClearSelection()
+{
+    if(g_MatrixMap->GetPlayerSide()->m_ActiveObject == this) g_MatrixMap->GetPlayerSide()->Select(NOTHING, nullptr);
 }
 
 void CMatrixFlyer::KillSelection()
@@ -2004,15 +2015,36 @@ bool CMatrixFlyer::IsSelected()
 
 void CMatrixFlyer::ReleaseMe()
 {
+    if(m_BigTexture)
+    {
+        g_Cache->Destroy(m_BigTexture);
+        m_BigTexture = nullptr;
+    }
+    if(m_MedTexture)
+    {
+        g_Cache->Destroy(m_MedTexture);
+        m_MedTexture = nullptr;
+    }
+#ifdef USE_SMALL_TEXTURE_IN_ROBOT_ICON
+    if(m_SmallTexture)
+    {
+        g_Cache->Destroy(m_SmallTexture);
+        m_SmallTexture = nullptr;
+    }
+#endif
+
     if(CMatrixFlyer::GetSide() == PLAYER_SIDE)
     {
         CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
         ps->RemoveFromSelection(this);
+        ClearSelection();
         int pos = 0;
 
         //Если данным вертолётом управлял игрок, то обновляем интерфейс, выводим его из аркадного режима
-        if(ps->IsArcadeMode() && this == ps->GetUnitUnderManualControl() && g_IFaceList)
+        if(ps->IsManualControlMode() && this == ps->GetUnitUnderManualControl() && g_IFaceList)
         {
+            g_IFaceList->ExitManualControlMode();
+
             CInterface* ifs = g_IFaceList->m_First;
             while(ifs)
             {
@@ -2022,6 +2054,7 @@ void CMatrixFlyer::ReleaseMe()
                     ifs->ReCalcElementsPos();
                     break;
                 }
+
                 ifs = ifs->m_NextInterface;
             }
         }
@@ -2065,7 +2098,7 @@ void CMatrixFlyer::ReleaseMe()
     {
         if(objects->IsRobot())
         {
-            ((CMatrixRobotAI*)objects)->GetEnv()->RemoveFromList(this);
+            objects->AsRobot()->GetEnv()->RemoveFromList(this);
         }
         objects = objects->GetNextLogic();
     }
@@ -2106,6 +2139,7 @@ void CMatrixFlyer::DeleteHealthBarClone(EPBCoord clone_type)
 
 void CMatrixFlyer::CreateTextures()
 {
+#ifdef USE_SMALL_TEXTURE_IN_ROBOT_ICON
     SRenderTexture rt[3];
     rt[0].ts = TEXSIZE_256;
     rt[1].ts = TEXSIZE_64;
@@ -2117,12 +2151,18 @@ void CMatrixFlyer::CreateTextures()
         m_MedTexture = rt[1].tex;
         m_SmallTexture = rt[2].tex;
     }
-    else
+#else
+
+    SRenderTexture rt[2];
+    rt[0].ts = TEXSIZE_256;
+    rt[1].ts = TEXSIZE_64;
+
+    if(RenderToTexture(rt, 2))
     {
-        m_BigTexture = nullptr;
-        m_MedTexture = nullptr;
-        m_SmallTexture = nullptr;
+        m_BigTexture = rt[0].tex;
+        m_MedTexture = rt[1].tex;
     }
+#endif
 }
 
 bool CMatrixFlyer::InRect(const CRect &rect) const

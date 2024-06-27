@@ -984,10 +984,10 @@ void CMatrixRobot::Draw()
 {
     //Маркер IsInterfaceDraw() используется для отрисовки картинок превью роботов и прочей фигни, не связанной с отрисовкой роботов реал-тайм
 
-    dword coltex = (dword)g_MatrixMap->GetSideColorTexture(m_Side)->Tex();
+    dword col_tex = (dword)g_MatrixMap->GetSideColorTexture(m_Side)->Tex();
 	//g_D3DD->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 
-    for(int i = 0; i < 4; ++i)
+    for(int i = 0; i <= 3; ++i)
     {
         ASSERT_DX(g_D3DD->SetSamplerState(i, D3DSAMP_MIPMAPLODBIAS, *((LPDWORD) (&g_MatrixMap->m_BiasRobots))));
     }
@@ -1004,10 +1004,10 @@ void CMatrixRobot::Draw()
 		    if(cur_module->m_Invert)
             {
                 g_D3DD->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
-                cur_module->m_Graph->Draw(coltex);
+                cur_module->m_Graph->Draw(col_tex);
 		        g_D3DD->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
             }
-            else cur_module->m_Graph->Draw(coltex);
+            else cur_module->m_Graph->Draw(col_tex);
 	    }
     }
     else
@@ -1023,10 +1023,10 @@ void CMatrixRobot::Draw()
 		    if(cur_module->m_Invert)
             {
                 g_D3DD->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
-                cur_module->m_Graph->Draw(coltex);
+                cur_module->m_Graph->Draw(col_tex);
 		        g_D3DD->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
             }
-            else cur_module->m_Graph->Draw(coltex);
+            else cur_module->m_Graph->Draw(col_tex);
 	    }
 
         //Вызов DrawNow для световых спрайтов ПОСЛЕ рендера модели, создаёт наложение одного поверх другого,
@@ -1291,7 +1291,7 @@ bool CMatrixRobot::Carry(CMatrixFlyer* cargo, bool quick_connect)
 
 void CMatrixRobot::ClearSelection()
 {
-    if(g_MatrixMap->GetPlayerSide()->m_CurrSel == ROBOT_SELECTED && g_MatrixMap->GetPlayerSide()->m_ActiveObject == this) g_MatrixMap->GetPlayerSide()->Select(NOTHING, nullptr);
+    if(g_MatrixMap->GetPlayerSide()->m_ActiveObject == this) g_MatrixMap->GetPlayerSide()->Select(NOTHING, nullptr);
 }
 
 //Получает общую команду на выставление той или иной анимации для шасси робота,

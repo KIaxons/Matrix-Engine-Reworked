@@ -1427,19 +1427,19 @@ void CMatrixBuilding::Reinforcements()
     }
 }
 
-bool CMatrixBuilding::BuildFlyer(EFlyerKind kind)
+bool CMatrixBuilding::BuildFlyer(EFlyerKind kind, int side)
 {
     //CMatrixFlyer* fl = g_MatrixMap->StaticAdd<CMatrixFlyer>(true);
     //fl->m_FlyerKind = kind;
 
-    CMatrixFlyer* fl = HNew(Base::g_MatrixHeap) CMatrixFlyer(kind);
-    g_MatrixMap->AddObject(fl, true);
+    CMatrixFlyer* flyer = HNew(Base::g_MatrixHeap) CMatrixFlyer(kind, side);
+    g_MatrixMap->AddObject(flyer, true);
+    flyer->SetDeliveryCopter(false);
 
     SetSpawningUnit(true);
-    fl->SetDeliveryCopter(false);
 
     //Готовый вертолёт выезжает с базы
-    fl->Begin(this);
+    flyer->Begin(this);
     return true;
 }
 
@@ -1553,7 +1553,7 @@ bool CMatrixBuilding::InRect(const CRect& rect) const
     return false;
 }
 
-bool CMatrixBuilding::Select()
+bool CMatrixBuilding::CreateSelection()
 {
     D3DXVECTOR3 pos;
 

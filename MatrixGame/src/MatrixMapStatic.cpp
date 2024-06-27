@@ -69,7 +69,7 @@ CMatrixMapStatic::~CMatrixMapStatic()
     }
     if(g_MatrixMap->GetPlayerSide()->GetUnitUnderManualControl() == this)
     {
-        g_MatrixMap->GetPlayerSide()->SetArcadedObject(nullptr);
+        g_MatrixMap->GetPlayerSide()->SetManualControledUnit(nullptr);
     }
 
     g_MatrixMap->RemoveFromAD(this);
@@ -327,7 +327,6 @@ inline dword ARGB2ABGR(dword c)
 bool CMatrixMapStatic::RenderToTexture(
     SRenderTexture* rt,
     int n,
-    /*float* fff,*/
     float anglez,
     float anglex,
     float fov
@@ -373,8 +372,8 @@ bool CMatrixMapStatic::RenderToTexture(
     light.Specular.r = 1.0f;
     light.Specular.g = 1.0f;
     light.Specular.b = 1.0f;
-    //light.Direction = D3DXVECTOR3(1, -1, 0);
-    light.Direction = D3DXVECTOR3(-0.82242596f, 0.56887215f, 0);
+    //light.Direction = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
+    light.Direction = D3DXVECTOR3(-0.82242596f, 0.56887215f, 0.0f);
 
     ASSERT_DX(g_D3DD->SetLight(0, &light));
     ASSERT_DX(g_D3DD->SetRenderState(D3DRS_AMBIENT, 0xFFD0D0D0));
@@ -424,16 +423,52 @@ bool CMatrixMapStatic::RenderToTexture(
     float cdist;
     if(IsRobot())
     {
-        CMatrixRobotAI* robot = AsRobot();
-        height = (0.75f * robot->GetChassisHeight()) + (0.60f * robot->GetHullHeight());
+        height = (0.75f * AsRobot()->GetChassisHeight()) + (0.60f * AsRobot()->GetHullHeight());
         distance = height + PortionInDiapason(height, 10.0f, 50.0f, 12.0f, -22.0f); //Чем больше, тем дальше
+        cdist = float(distance * 0.8 / tan(fov / 2.0));
+    }
+    else if(IsFlyer())
+    {
+        switch(AsFlyer()->m_FlyerKind)
+        {
+            case FLYER_SPEED: //Скаут
+            {
+                height = 0.0f;
+                distance = 20.0f;
+                break;
+            }
+            case FLYER_ATTACK: //Штурмовик
+            {
+                height = 2.0f;
+                distance = 21.0f;
+                break;
+            }
+            case FLYER_BOMB: //Бомбардировщик
+            {
+                height = 6.5f;
+                distance = 30.0f;
+                break;
+            }
+            case FLYER_TRANSPORT: //Транспорт
+            {
+                height = 9.5f;
+                distance = 30.0f;
+                break;
+            }
+
+            default:
+            {
+                height = 8.0f;
+                distance = 22.0f;
+                break;
+            }
+        }
+
         cdist = float(distance * 0.8 / tan(fov / 2.0));
     }
     else if(IsTurret())
     {
-        CMatrixTurret* turret = AsTurret();
-
-        switch(turret->m_TurretKind)
+        switch(AsTurret()->m_TurretKind)
         {
             case 1: //Говнострел
             {
@@ -500,7 +535,6 @@ bool CMatrixMapStatic::RenderToTexture(
         CMatrixRobotAI* robot = AsRobot();
 
         robot->SetInterfaceDraw(true);
-        //g_MatrixMap->m_Camera.SetFrustumCenter(*D3DXVec3TransformCoord(&fc, &fc, &m_Core->m_Matrix));
 
         D3DXMATRIX imatView;
         D3DXMatrixInverse(&imatView, nullptr, &matView);
@@ -509,24 +543,39 @@ bool CMatrixMapStatic::RenderToTexture(
         CVectorObject::DrawBegin();
         robot->m_Module[0].m_Graph->SetAnimByName(ANIMATION_NAME_STAY);
         robot->m_Module[0].m_Graph->SetFirstFrame();
-        robot->Draw(); //Имеет в себе отдельный тип интерфейсного рендера, активируемый по robot->SetInterfaceDraw(true);
+        robot->Draw(); //Имеет в себе отдельный тип интерфейсного рендера, активируемый выше через robot->SetInterfaceDraw(true);
         CVectorObject::DrawEnd();
 
         robot->SetInterfaceDraw(false); //Если забыть это выключить, то можно пронаблюдать весьма любопытный трип )
     }
-    else if(IsTurret())
+    else if(IsFlyer())
     {
-        CMatrixTurret* turret = AsTurret();
+        CMatrixFlyer* flyer = AsFlyer();
 
-        turret->SetInterfaceDraw(true);
-        //g_MatrixMap->m_Camera.SetFrustumCenter(*D3DXVec3TransformCoord(&fc, &fc, &m_Core->m_Matrix));
+        flyer->SetInterfaceDraw(true);
 
         D3DXMATRIX imatView;
         D3DXMatrixInverse(&imatView, nullptr, &matView);
 
         g_MatrixMap->m_Camera.SetDrawNowParams(imatView, *D3DXVec3TransformCoord(&fc, &fc, &m_Core->m_Matrix));
         CVectorObject::DrawBegin();
-        turret->Draw(); //Имеет в себе отдельный тип интерфейсного рендера, активируемый по turret->SetInterfaceDraw(true);
+        flyer->Draw(); //Имеет в себе отдельный тип интерфейсного рендера, активируемый выше через flyer->SetInterfaceDraw(true);
+        CVectorObject::DrawEnd();
+
+        flyer->SetInterfaceDraw(false); //Если забыть это выключить, то можно пронаблюдать весьма любопытный трип )
+    }
+    else if(IsTurret())
+    {
+        CMatrixTurret* turret = AsTurret();
+
+        turret->SetInterfaceDraw(true);
+
+        D3DXMATRIX imatView;
+        D3DXMatrixInverse(&imatView, nullptr, &matView);
+
+        g_MatrixMap->m_Camera.SetDrawNowParams(imatView, *D3DXVec3TransformCoord(&fc, &fc, &m_Core->m_Matrix));
+        CVectorObject::DrawBegin();
+        turret->Draw();
         CVectorObject::DrawEnd();
 
         turret->SetInterfaceDraw(false); //Если забыть это выключить, то можно пронаблюдать весьма любопытный трип )

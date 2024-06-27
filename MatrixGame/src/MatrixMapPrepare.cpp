@@ -1050,11 +1050,11 @@ int CMatrixMap::PrepareMap(CStorage& stor, const CWStr& map_name)
 
     int ic;
 
-    ic = prop_key->FindAsWStr(DATA_SIZEX);
+    ic = prop_key->FindAsWStr(DATA_SIZE_X);
     if(ic < 0) return -1;
     int sizex = prop_val->GetAsWStr(ic).GetInt();
 
-    ic = prop_key->FindAsWStr(DATA_SIZEY);
+    ic = prop_key->FindAsWStr(DATA_SIZE_Y);
     if(ic < 0) return -1;
     int sizey = prop_val->GetAsWStr(ic).GetInt();
 
@@ -1070,8 +1070,9 @@ int CMatrixMap::PrepareMap(CStorage& stor, const CWStr& map_name)
 
     g_LoadProgress->SetCurLPPos(100);
 
-    m_BiasCannons = -1.0f;
+    m_BiasTurrets = -1.0f;
     m_BiasRobots = -1.0f;
+    m_BiasFlyers = -1.0f;
     m_BiasBuildings = -1.0f;
     m_BiasTer = -1.0f;
     m_BiasWater = -1.0f;
@@ -1094,19 +1095,22 @@ int CMatrixMap::PrepareMap(CStorage& stor, const CWStr& map_name)
     ic = prop_key->FindAsWStr(DATA_WATERNORMLEN);
     if(ic >= 0) m_WaterNormalLen = prop_val->GetAsWStr(ic).GetFloat();
 
-    ic = prop_key->FindAsWStr(DATA_BIASTER);
+    ic = prop_key->FindAsWStr(DATA_BIAS_TER);
     if(ic >= 0) m_BiasTer = prop_val->GetAsWStr(ic).GetFloat();
 
-    ic = prop_key->FindAsWStr(DATA_BIASWATER);
+    ic = prop_key->FindAsWStr(DATA_BIAS_WATER);
     if(ic >= 0) m_BiasWater = prop_val->GetAsWStr(ic).GetFloat();
 
-    ic = prop_key->FindAsWStr(DATA_BIASCANNONS);
-    if(ic >= 0) m_BiasCannons = prop_val->GetAsWStr(ic).GetFloat();
+    ic = prop_key->FindAsWStr(DATA_BIAS_TURRETS);
+    if(ic >= 0) m_BiasTurrets = prop_val->GetAsWStr(ic).GetFloat();
 
-    ic = prop_key->FindAsWStr(DATA_BIASROBOTS);
+    ic = prop_key->FindAsWStr(DATA_BIAS_ROBOTS);
     if(ic >= 0) m_BiasRobots = prop_val->GetAsWStr(ic).GetFloat();
 
-    ic = prop_key->FindAsWStr(DATA_BIASBUILDINGS);
+    ic = prop_key->FindAsWStr(DATA_BIAS_FLYERS);
+    if(ic >= 0) m_BiasFlyers = prop_val->GetAsWStr(ic).GetFloat();
+
+    ic = prop_key->FindAsWStr(DATA_BIAS_BUILDINGS);
     if(ic >= 0) m_BiasBuildings = prop_val->GetAsWStr(ic).GetFloat();
 
     m_Terrain2ObjectInfluence = 0;
@@ -1129,11 +1133,11 @@ int CMatrixMap::PrepareMap(CStorage& stor, const CWStr& map_name)
         if(m_Terrain2ObjectInfluence > 1.0) m_Terrain2ObjectInfluence = 1.0f;
     }
 
-    ic = prop_key->FindAsWStr(DATA_WATERCOLOR);
+    ic = prop_key->FindAsWStr(DATA_WATER_COLOR);
     if(ic >= 0) m_WaterColor = prop_val->GetAsWStr(ic).GetDword();
 
     m_SkyColor = DEF_SKY_COLOR | 0xFF000000;
-    ic = prop_key->FindAsWStr(DATA_SKYCOLOR);
+    ic = prop_key->FindAsWStr(DATA_SKY_COLOR);
     if(ic >= 0) m_SkyColor = prop_val->GetAsWStr(ic).GetDword() | 0xFF000000;
 
     ic = prop_key->FindAsWStr(DATA_SKYNAME);
