@@ -723,9 +723,7 @@ void CMatrixSideUnit::OnLButtonDown(const CPoint& mouse_pos)
                 if(m_ActiveObject && m_ActiveObject->GetObjectType() == OBJECT_TYPE_TURRET)
                 {
                     RESETFLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE | ORDERING_MODE);
-                    m_ActiveObject->AsTurret()->m_TargetOverride = pObject;
-                    m_ActiveObject->AsTurret()->m_TargetCore = pObject->GetCore();
-                    m_ActiveObject->AsTurret()->m_FireNextThinkTime = 0; //Чтобы сразу обновить цель
+                    m_ActiveObject->AsTurret()->SetTargetOverride(pObject);
                 }
                 else //Для роботов и вертолётов
                 {
@@ -940,9 +938,7 @@ void CMatrixSideUnit::OnRButtonDown(const CPoint& mouse_pos)
             {
                 if(IS_TRACE_STOP_OBJECT(pObject) && ((pObject->IsUnitAlive() && pObject->GetSide() != m_Id) || pObject->IsSpecial()))
                 {
-                    m_ActiveObject->AsTurret()->m_TargetOverride = pObject;
-                    m_ActiveObject->AsTurret()->m_TargetCore = pObject->GetCore();
-                    m_ActiveObject->AsTurret()->m_FireNextThinkTime = 0; //Чтобы сразу обновить цель
+                    m_ActiveObject->AsTurret()->SetTargetOverride(pObject);
                 }
             }
         }

@@ -111,6 +111,7 @@ public:
     int m_FireNextThinkTime = g_MatrixMap->GetTime() + CANNON_FIRE_THINK_PERIOD;
     int m_NullTargetTime = 0;
     int m_TimeFromFire = CANNON_TIME_FROM_FIRE;
+    int m_LastTimeFireForOverridedTarget = 0;
 
 	int m_ModulesCount = 0;
 	SMatrixTurretUnit m_Module[MR_MAX_TURRET_UNIT];
@@ -182,6 +183,8 @@ public:
     float GetMaxHitpointsInversed()  { return 0.1f * m_MaxHitpointsInversed; }
     float GetSeekRadius();
     float GetFireRadius()            { return m_TurretWeaponsTopRange; }
+
+    void SetTargetOverride(CMatrixMapStatic* target) { m_TargetOverride = target; m_LastTimeFireForOverridedTarget = g_MatrixMap->GetTime(); }
 
     CTextureManaged* GetBigTexture() { return m_BigTexture; }
     //CTextureManaged* GetMedTexture() { return m_MedTexture; }

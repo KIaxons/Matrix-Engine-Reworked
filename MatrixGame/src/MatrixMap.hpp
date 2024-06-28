@@ -35,7 +35,7 @@
 #define TRACE_FLYER     SETBIT(6)
 #define TRACE_ANYOBJECT (TRACE_OBJECT | TRACE_BUILDING | TRACE_ROBOT | TRACE_TURRET | TRACE_FLYER)
 
-#define TRACE_OBJECT_SPHERE          SETBIT(10) //trace object as speres
+#define TRACE_OBJECT_SPHERE         SETBIT(10) //trace object as speres
 #define TRACE_SKIP_INVISIBLE        SETBIT(11) //skip objects with flag OBJECT_STATE_TRACE_INVISIBLE while tracing 
 
 #define TRACE_ALL       (((dword)(-1)) & (~TRACE_OBJECT_SPHERE))

@@ -740,6 +740,8 @@ struct FTData
 };
 
 //Функция проверки цели на пригодность для турели (всё говно с херовым определением целей идёт именно отсюда)
+//Возврат true в любой ситуации здесь вообще нахуй не нужен, просто все эти вызовы трассировки реализованы коряво
+//Смысл имеет только выставление цели в поле d->target
 static bool FindTarget(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dword user)
 {
     FTData* d = (FTData*)user;
@@ -747,17 +749,18 @@ static bool FindTarget(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dword us
     if(ms->GetSide() == d->side) return true;
 
     D3DXVECTOR3 dir(ms->GetGeoCenter() - center);
-
-    float distc = D3DXVec3LengthSq(&dir);
-    if(distc > d->dist_fire && d->dist_cur < d->dist_fire) return true;
-    bool match = distc < d->dist_fire && d->dist_cur > d->dist_fire;
+    float dist_to_target = D3DXVec3LengthSq(&dir);
+    //В dist_cur изначально записан seek_target_range, то есть дистанция обнаружения цели, которая по логике должна быть всегда больше, чем дистанция открытия огня dist_fire
+    if(dist_to_target > d->dist_fire && d->dist_cur < d->dist_fire) return true;
+    
     D3DXVec3Normalize(&dir, &dir);
 
+    bool match = dist_to_target < d->dist_fire && d->dist_cur > d->dist_fire;
     float dot = D3DXVec3Dot(&dir, d->cdir);
 
     if(match || dot > d->coss)
     {
-        CMatrixMapStatic* cel = g_MatrixMap->Trace(nullptr, center, ms->GetGeoCenter(), TRACE_OBJECT_SPHERE | TRACE_ROBOT | TRACE_FLYER | TRACE_LANDSCAPE, d->skip);
+        CMatrixMapStatic* cel = g_MatrixMap->Trace(nullptr, center, ms->GetGeoCenter(), /*TRACE_OBJECT_SPHERE | */ TRACE_ROBOT | TRACE_FLYER | TRACE_LANDSCAPE, d->skip);
 
         if(cel == ms)
         {
@@ -765,7 +768,7 @@ static bool FindTarget(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dword us
             cel = g_MatrixMap->Trace(nullptr, center, ms->GetGeoCenter(), TRACE_BUILDING | TRACE_TURRET | TRACE_OBJECT, d->skip);
             if(cel == nullptr)
             {
-                d->dist_cur = distc;
+                d->dist_cur = dist_to_target;
                 d->coss = dot;
                 *d->target = ms;
             }
@@ -974,6 +977,19 @@ void CMatrixTurret::LogicTact(int tact)
         m_FireNextThinkTime = g_MatrixMap->GetTime() + CANNON_FIRE_THINK_PERIOD;
     }
 
+    if(m_TargetOverride)
+    {
+        //Если вышло время ведения (без стрельбы) заданной вручную цели (7,5 секунд)
+        if(m_LastTimeFireForOverridedTarget - g_MatrixMap->GetTime() <= -7500)
+        {
+            m_TargetOverride = nullptr;
+
+            //И сразу же запускаем логику переопределения цели
+            its_time = true;
+            m_FireNextThinkTime = g_MatrixMap->GetTime() + CANNON_FIRE_THINK_PERIOD;
+        }
+    }
+
     if(m_TargetOverride && m_TargetOverride->IsUnitAlive()) m_TargetCore = m_TargetOverride->GetCore();
     else if(its_time)
     {
@@ -1062,7 +1078,14 @@ no_target:
             RESETFLAG(m_ObjectFlags, OBJECT_CANNON_REF_PROTECTION_HIT);
         }
 
-        if(fire_was) BeginFireAnimation();
+        if(fire_was)
+        {
+            BeginFireAnimation();
+            if(m_TargetOverride)
+            {
+                if(m_TargetCore->m_Object == m_TargetOverride) m_LastTimeFireForOverridedTarget = g_MatrixMap->GetTime();
+            }
+        }
 
         return;
     }
@@ -1165,7 +1188,7 @@ no_target:
             g_MatrixMap->Trace(&hp, m_TurretWeapon[i].m_FireFrom, hp, TRACE_ALL, this);
 
             float dist = DistOtrezokPoint(m_TurretWeapon[i].m_FireFrom, hp, m_TargetCore->m_GeoCenter);
-            if(dist > m_TargetCore->m_Radius * 2)
+            if(dist > m_TargetCore->m_Radius * 2.0f)
             {
                 // так. все равно промажем.
                 goto no_target;
@@ -1208,7 +1231,14 @@ no_target:
         RESETFLAG(m_ObjectFlags, OBJECT_CANNON_REF_PROTECTION_HIT);
     }
 
-    if(fire_was) BeginFireAnimation();
+    if(fire_was)
+    {
+        BeginFireAnimation();
+        if(m_TargetOverride)
+        {
+            if(m_TargetCore->m_Object == m_TargetOverride) m_LastTimeFireForOverridedTarget = g_MatrixMap->GetTime();
+        }
+    }
 
     m_TimeFromFire -= tact;
     if(m_TimeFromFire <= 0)
