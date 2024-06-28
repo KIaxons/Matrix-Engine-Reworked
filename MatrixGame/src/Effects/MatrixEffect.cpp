@@ -976,8 +976,6 @@ CMatrixEffect* CMatrixEffect::CreateWeapon(
     int cooldown
 )
 {
-DTRACE();
-
     CMatrixEffectWeapon* e = HNew(m_Heap) CMatrixEffectWeapon(start, dir, user, handler, type, cooldown);
     return e;
 }
@@ -991,17 +989,11 @@ void CMatrixEffect::CreateFlame(
     FIRE_END_HANDLER handler
 )
 {
-DTRACE();
-
     CMatrixEffectFlame* e = HNew(m_Heap) CMatrixEffectFlame(ttl, hitmask, skip, user, handler);
     if(!g_MatrixMap->AddEffect(e)) e = nullptr;
     if(eh && e)
     {
-#ifdef _DEBUG
-        eh->Release(DEBUG_CALL_INFO);
-#else
         eh->Release();
-#endif
         eh->effect = e;
         e->SetHandler(eh);
     }
@@ -1018,8 +1010,6 @@ void CMatrixEffect::CreateBigBoom(
     dword light
 )
 {
-DTRACE();
-
     CMatrixEffectBigBoom* e = HNew(m_Heap) CMatrixEffectBigBoom(pos, radius, ttl, hitmask, skip, user, handler, light);
     g_MatrixMap->AddEffect(e);
 }
@@ -1045,11 +1035,7 @@ void CMatrixEffect::CreateLightening(
     if(!g_MatrixMap->AddEffect(e)) e = nullptr;
     if(eh && e)
     {
-#ifdef _DEBUG
-        eh->Release(DEBUG_CALL_INFO);
-#else
         eh->Release();
-#endif
         eh->effect = e;
         e->SetHandler(eh);
     }
@@ -1074,11 +1060,7 @@ void CMatrixEffect::CreateBillboard(SEffectHandler* eh, const D3DXVECTOR3& pos, 
     if(!g_MatrixMap->AddEffect(e)) e = nullptr;
     if(eh && e)
     {
-#ifdef _DEBUG
-        eh->Release(DEBUG_CALL_INFO);
-#else
         eh->Release();
-#endif
         eh->effect = e;
         e->SetHandler(eh);
     }
@@ -1107,15 +1089,15 @@ void CMatrixEffect::CreateSpritesLine(SEffectHandler* eh, const D3DXVECTOR3& pos
     }
 }
 
-CMatrixEffect* CMatrixEffect::CreateCaptureCircles(const D3DXVECTOR3 &pos, float radius, float angle, int cnt)
+CMatrixEffect* CMatrixEffect::CreateCaptureCircles(const D3DXVECTOR3& pos, float radius, float angle, int cnt)
 {
     CMatrixEffectCaptureCircles* e = HNew(m_Heap) CMatrixEffectCaptureCircles(pos, radius, angle, cnt);
     return e;
 }
 
-CMatrixEffect* CMatrixEffect::CreateElevatorField(const D3DXVECTOR3 &pos0,const D3DXVECTOR3 &pos1, float radius, const D3DXVECTOR3 & fwd)
+CMatrixEffect* CMatrixEffect::CreateElevatorField(const D3DXVECTOR3& pos0,const D3DXVECTOR3& pos1, float radius, const D3DXVECTOR3& fwd)
 {
-    CMatrixEffectElevatorField *e = HNew(m_Heap) CMatrixEffectElevatorField(pos0, pos1, radius, fwd);
+    CMatrixEffectElevatorField* e = HNew(m_Heap) CMatrixEffectElevatorField(pos0, pos1, radius, fwd);
     return e;
 }
 

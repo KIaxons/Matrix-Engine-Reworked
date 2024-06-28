@@ -87,10 +87,10 @@ public:
 
 	void Clear();
 
-	int    Rnd();
-    double RndFloat(); // 0-1
-    int    Rnd(int zmin, int zmax);
-    double RndFloat(double zmin, double zmax);
+	int   Rnd();
+    float RndFloat(); // 0-1
+    int   Rnd(int zmin, int zmax);
+    float RndFloat(float zmin, float zmax);
 
     void GatherInfo(int type);
 

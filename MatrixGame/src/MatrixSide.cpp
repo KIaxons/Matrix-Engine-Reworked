@@ -707,8 +707,8 @@ void CMatrixSideUnit::OnLButtonDown(const CPoint& mouse_pos)
                 {
                     int param = (group->GetObjectsCnt() - group->GetRobotsCnt()) - 1;
                     if(param > 4) param = 4;
-                    float x = (float)g_MatrixMap->RndFloat((double)g_MatrixMap->m_TraceStopPos.x - (double)param * GLOBAL_SCALE_MOVE, (double)g_MatrixMap->m_TraceStopPos.x + (double)param * GLOBAL_SCALE_MOVE);
-                    float y = (float)g_MatrixMap->RndFloat((double)g_MatrixMap->m_TraceStopPos.y - (double)param * GLOBAL_SCALE_MOVE, (double)g_MatrixMap->m_TraceStopPos.y + (double)param * GLOBAL_SCALE_MOVE);
+                    float x = g_MatrixMap->RndFloat(g_MatrixMap->m_TraceStopPos.x - param * GLOBAL_SCALE_MOVE, g_MatrixMap->m_TraceStopPos.x + param * GLOBAL_SCALE_MOVE);
+                    float y = g_MatrixMap->RndFloat(g_MatrixMap->m_TraceStopPos.y - param * GLOBAL_SCALE_MOVE, g_MatrixMap->m_TraceStopPos.y + param * GLOBAL_SCALE_MOVE);
                     ((CMatrixFlyer*)objs->ReturnObject())->SetTarget(D3DXVECTOR2(x, y));
                 }
                 objs = objs->m_NextObject;
@@ -724,6 +724,8 @@ void CMatrixSideUnit::OnLButtonDown(const CPoint& mouse_pos)
                 {
                     RESETFLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE | ORDERING_MODE);
                     m_ActiveObject->AsTurret()->m_TargetOverride = pObject;
+                    m_ActiveObject->AsTurret()->m_TargetCore = pObject->GetCore();
+                    m_ActiveObject->AsTurret()->m_FireNextThinkTime = 0; //Чтобы сразу обновить цель
                 }
                 else //Для роботов и вертолётов
                 {
@@ -923,8 +925,8 @@ void CMatrixSideUnit::OnRButtonDown(const CPoint& mouse_pos)
                     {
                         int param = (GetCurGroup()->GetObjectsCnt() - GetCurGroup()->GetRobotsCnt()) - 1;
                         if(param > 4) param = 4;
-                        float x = (float)g_MatrixMap->RndFloat(g_MatrixMap->m_TraceStopPos.x - param * GLOBAL_SCALE_MOVE, g_MatrixMap->m_TraceStopPos.x + param * GLOBAL_SCALE_MOVE);
-                        float y = (float)g_MatrixMap->RndFloat(g_MatrixMap->m_TraceStopPos.y - param * GLOBAL_SCALE_MOVE, g_MatrixMap->m_TraceStopPos.y + param * GLOBAL_SCALE_MOVE);
+                        float x = g_MatrixMap->RndFloat(g_MatrixMap->m_TraceStopPos.x - param * GLOBAL_SCALE_MOVE, g_MatrixMap->m_TraceStopPos.x + param * GLOBAL_SCALE_MOVE);
+                        float y = g_MatrixMap->RndFloat(g_MatrixMap->m_TraceStopPos.y - param * GLOBAL_SCALE_MOVE, g_MatrixMap->m_TraceStopPos.y + param * GLOBAL_SCALE_MOVE);
                         ((CMatrixFlyer*)objs->ReturnObject())->SetTarget(D3DXVECTOR2(x, y));
                     }
                     objs = objs->m_NextObject;
@@ -939,6 +941,8 @@ void CMatrixSideUnit::OnRButtonDown(const CPoint& mouse_pos)
                 if(IS_TRACE_STOP_OBJECT(pObject) && ((pObject->IsUnitAlive() && pObject->GetSide() != m_Id) || pObject->IsSpecial()))
                 {
                     m_ActiveObject->AsTurret()->m_TargetOverride = pObject;
+                    m_ActiveObject->AsTurret()->m_TargetCore = pObject->GetCore();
+                    m_ActiveObject->AsTurret()->m_FireNextThinkTime = 0; //Чтобы сразу обновить цель
                 }
             }
         }
@@ -2123,15 +2127,15 @@ void CMatrixSideUnit::Regroup()
     int i, u, t, k;
     D3DXVECTOR2 v1, v2;
 
-    CMatrixRobotAI* rl[MAX_ROBOTS]; // Список роботов на карте
-    int subl[MAX_ROBOTS];           // В какую подгруппу входит робот
-    int rl_cnt = 0;                  // Кол-во роботов на карте
+    CMatrixRobotAI* rl[MAX_ROBOTS_ON_MAP]; // Список роботов на карте
+    int subl[MAX_ROBOTS_ON_MAP];           // В какую подгруппу входит робот
+    int ally_robots_cnt = 0;                  // Кол-во роботов на карте
     int subcnt = 0;                 // Кол-во подгрупп
 
-    int tl[MAX_ROBOTS];
+    int tl[MAX_ROBOTS_ON_MAP];
     int tlcnt = 0, tlsme = 0;
 
-    for(i = 0; i < MAX_ROBOTS; ++i) subl[i] = -1;
+    for(i = 0; i < MAX_ROBOTS_ON_MAP; ++i) subl[i] = -1;
     for(i = 0; i < MAX_LOGIC_GROUP; ++i) m_LogicGroup[i].RobotsCnt(0);
 
     // Запоминаем всех роботов
@@ -2140,21 +2144,21 @@ void CMatrixSideUnit::Regroup()
     {
         if(obj->GetObjectType() == OBJECT_TYPE_ROBOT_AI && obj->GetSide() == m_Id)
         {
-            rl[rl_cnt] = (CMatrixRobotAI*)obj;
-            if(rl[rl_cnt]->GetGroupLogic() >= 0 && rl[rl_cnt]->GetGroupLogic() < MAX_LOGIC_GROUP)
+            rl[ally_robots_cnt] = (CMatrixRobotAI*)obj;
+            if(rl[ally_robots_cnt]->GetGroupLogic() >= 0 && rl[ally_robots_cnt]->GetGroupLogic() < MAX_LOGIC_GROUP)
             {
-                m_LogicGroup[rl[rl_cnt]->GetGroupLogic()].IncRobotsCnt();
-                m_LogicGroup[rl[rl_cnt]->GetGroupLogic()].m_Team = rl[rl_cnt]->GetTeam();
+                m_LogicGroup[rl[ally_robots_cnt]->GetGroupLogic()].IncRobotsCnt();
+                m_LogicGroup[rl[ally_robots_cnt]->GetGroupLogic()].m_Team = rl[ally_robots_cnt]->GetTeam();
             }
 
-            if(rl[rl_cnt]->GetTeam() >= 0) ++rl_cnt;
-            ASSERT(rl_cnt <= MAX_ROBOTS);
+            if(rl[ally_robots_cnt]->GetTeam() >= 0) ++ally_robots_cnt;
+            ASSERT(ally_robots_cnt <= MAX_ROBOTS_ON_MAP);
         }
         obj = obj->GetNextLogic();
     }
 
     //Делим на подгруппы для разделения. Растояние между роботами должно быть не более 400
-    for(u = 0; u < rl_cnt; ++u)
+    for(u = 0; u < ally_robots_cnt; ++u)
     {
         if(subl[u] >= 0) continue;
 
@@ -2169,7 +2173,7 @@ void CMatrixSideUnit::Regroup()
             v1.x = rl[tl[tlsme]]->m_PosX;
             v1.y = rl[tl[tlsme]]->m_PosY;
 
-            for(i = u + 1; i < rl_cnt; ++i)
+            for(i = u + 1; i < ally_robots_cnt; ++i)
             {
                 if(subl[i] >= 0) continue;
                 if(tl[tlsme] == i) continue;
@@ -2192,7 +2196,7 @@ void CMatrixSideUnit::Regroup()
         if(m_LogicGroup[u].RobotsCnt() < 0) continue;
 
         tlcnt = 0;
-        for(i = 0; i < rl_cnt; ++i)
+        for(i = 0; i < ally_robots_cnt; ++i)
         {
             if(rl[i]->GetGroupLogic() != u) continue;
             for(t = 0; t < tlcnt; ++t)
@@ -2218,7 +2222,7 @@ void CMatrixSideUnit::Regroup()
             if(k >= MAX_LOGIC_GROUP) break;
 
             //Копируем группу
-            for(t = 0; t < rl_cnt; ++t)
+            for(t = 0; t < ally_robots_cnt; ++t)
             {
                 if(rl[t]->GetGroupLogic() != u) continue;
                 if(subl[t] == tl[0])
@@ -2229,10 +2233,10 @@ void CMatrixSideUnit::Regroup()
                 }
             }
 
-            if(t >= rl_cnt) break;
+            if(t >= ally_robots_cnt) break;
 
             //Переносим роботов в новую группу
-            for(t = 0; t < rl_cnt; ++t)
+            for(t = 0; t < ally_robots_cnt; ++t)
             {
                 if(rl[t]->GetGroupLogic() != u) continue;
                 if(subl[t] != tl[i]) continue;
@@ -2246,7 +2250,7 @@ void CMatrixSideUnit::Regroup()
     }
 
     //Если робот не в группе, то создаем для него новую группу
-    for(t = 0; t < rl_cnt; ++t)
+    for(t = 0; t < ally_robots_cnt; ++t)
     {
         if(rl[t]->GetGroupLogic() >= 0 && rl[t]->GetGroupLogic() < MAX_LOGIC_GROUP) continue;
 
@@ -2279,11 +2283,11 @@ void CMatrixSideUnit::Regroup()
             if(m_LogicGroup[u].m_Team != m_LogicGroup[t].m_Team) continue;
 
             //Проверяем
-            for(i = 0; i < rl_cnt; ++i)
+            for(i = 0; i < ally_robots_cnt; ++i)
             {
                 if(rl[i]->GetGroupLogic() != u) continue;
 
-                for(k = 0; k < rl_cnt; ++k)
+                for(k = 0; k < ally_robots_cnt; ++k)
                 {
                     if(rl[k]->GetGroupLogic() != t) continue;
 
@@ -2291,11 +2295,11 @@ void CMatrixSideUnit::Regroup()
                     if(d < POW2(300.0f)) break;
                 }
 
-                if(k < rl_cnt) break;
+                if(k < ally_robots_cnt) break;
             }
 
             //Объеденяем
-            if(i < rl_cnt)
+            if(i < ally_robots_cnt)
             {
                 if(m_LogicGroup[u].m_Action.m_Type == mlat_None) // Выбираем лучшую для которой приказ останется
                 {
@@ -2304,7 +2308,7 @@ void CMatrixSideUnit::Regroup()
 
                 m_LogicGroup[u].IncRobotsCnt(m_LogicGroup[t].RobotsCnt());
 
-                for(k = 0; k < rl_cnt; ++k)
+                for(k = 0; k < ally_robots_cnt; ++k)
                 {
                     if(rl[k]->GetGroupLogic() != t) continue;
                     rl[k]->SetGroupLogic(u);
@@ -2318,7 +2322,7 @@ void CMatrixSideUnit::Regroup()
     dword colors[10] = { 0xffff0000, 0xff00ff00, 0xff0000ff, 0xffffff00, 0xffff00ff, 0xff00ffff, 0xff800000, 0xff008000, 0xff000080, 0xff808000 };
     //    CHelper::DestroyByGroup(101);
     //if(m_Id==PLAYER_SIDE)
-    for(i = 0; i < rl_cnt; ++i)
+    for(i = 0; i < ally_robots_cnt; ++i)
     {
         float z = g_MatrixMap->GetZ(rl[i]->m_PosX, rl[i]->m_PosY);
         /*team*/        CHelper::Create(1)->Cone(D3DXVECTOR3(rl[i]->m_PosX, rl[i]->m_PosY, z + 10.0f), D3DXVECTOR3(rl[i]->m_PosX, rl[i]->m_PosY, z + 80.0f), 1.0f, 1.0f, colors[rl[i]->GetTeam() % 10], colors[rl[i]->GetTeam() % 10], 3);
@@ -2420,8 +2424,8 @@ DTRACE();
 //Вынуждает робота бежать от враждебного робота
 void CMatrixSideUnit::EscapeFromBomb()
 {
-    CMatrixRobotAI* rb[MAX_ROBOTS * 3];
-    float min_dist_enemy[MAX_ROBOTS * 3];
+    CMatrixRobotAI* rb[MAX_ROBOTS_ON_MAP * 3];
+    float min_dist_enemy[MAX_ROBOTS_ON_MAP * 3];
     int rbcnt = 0;
     float escape_radius = 250.0f * 1.2f; //С запасом
     int escape_dist = Float2Int(escape_radius / GLOBAL_SCALE_MOVE) + 4;
@@ -2437,7 +2441,7 @@ void CMatrixSideUnit::EscapeFromBomb()
 
         if(ms->AsRobot()->GetEnv()->GetEnemyCnt() <= 0) continue;
 
-        ASSERT(rbcnt < MAX_ROBOTS * 3);
+        ASSERT(rbcnt < MAX_ROBOTS_ON_MAP * 3);
         min_dist_enemy[rbcnt] = 1e20f;
 
         enemy = ms->AsRobot()->GetEnv()->m_FirstEnemy;
@@ -2625,9 +2629,9 @@ void CMatrixSideUnit::GroupNoTeamRobot()
 {
     if(m_Id == PLAYER_SIDE) return;
 
-    CMatrixRobotAI* rl[MAX_ROBOTS];
-    int il[MAX_ROBOTS];
-    int rl_cnt = 0;
+    CMatrixRobotAI* rl[MAX_ROBOTS_ON_MAP];
+    int il[MAX_ROBOTS_ON_MAP];
+    int ally_robots_cnt = 0;
     CMatrixMapStatic* ms;
     int g, i, u, cnt, sme;
     float cx, cy;
@@ -2658,12 +2662,12 @@ void CMatrixSideUnit::GroupNoTeamRobot()
 
         ms->AsRobot()->SetGroupLogic(-1);
 
-        ASSERT(rl_cnt < MAX_ROBOTS);
-        rl[rl_cnt] = (CMatrixRobotAI*)ms;
-        ++rl_cnt;
+        ASSERT(ally_robots_cnt < MAX_ROBOTS_ON_MAP);
+        rl[ally_robots_cnt] = (CMatrixRobotAI*)ms;
+        ++ally_robots_cnt;
     }
 
-    for(i = 0; i < rl_cnt; ++i)
+    for(i = 0; i < ally_robots_cnt; ++i)
     {
         if(rl[i]->GetGroupLogic() >= 0) continue;
 
@@ -2690,7 +2694,7 @@ void CMatrixSideUnit::GroupNoTeamRobot()
 
         while(sme < cnt)
         {
-            for(u = i + 1; u < rl_cnt; ++u)
+            for(u = i + 1; u < ally_robots_cnt; ++u)
             {
                 if(rl[i]->GetGroupLogic() >= 0) continue;
                 if((POW2(rl[il[sme]]->m_PosX - rl[u]->m_PosX) + POW2(rl[il[sme]]->m_PosY - rl[u]->m_PosY)) < POW2(200))
@@ -2718,9 +2722,9 @@ void CMatrixSideUnit::GroupNoTeamRobot()
 
 void CMatrixSideUnit::CalcMaxSpeed()
 {
-    CMatrixRobotAI* rl[MAX_ROBOTS];
-    float pr[MAX_ROBOTS];
-    int rl_cnt;
+    CMatrixRobotAI* rl[MAX_ROBOTS_ON_MAP];
+    float pr[MAX_ROBOTS_ON_MAP];
+    int ally_robots_cnt;
     int i, u;
     CPoint tp;
     CMatrixMapStatic* ms;
@@ -2745,7 +2749,7 @@ void CMatrixSideUnit::CalcMaxSpeed()
         float dx = 0.0f;
         float dy = 0.0f;
 
-        rl_cnt = 0;
+        ally_robots_cnt = 0;
 
         ms = CMatrixMapStatic::GetFirstLogic();
         for(; ms; ms = ms->GetNextLogic())
@@ -2754,32 +2758,32 @@ void CMatrixSideUnit::CalcMaxSpeed()
             if(ms->GetSide() != m_Id) continue;
             if(ms->AsRobot()->GetGroupLogic() != i) continue;
 
-            rl[rl_cnt] = ms->AsRobot();
-            cx += rl[rl_cnt]->m_PosX;
-            cy += rl[rl_cnt]->m_PosY;
+            rl[ally_robots_cnt] = ms->AsRobot();
+            cx += rl[ally_robots_cnt]->m_PosX;
+            cy += rl[ally_robots_cnt]->m_PosY;
 
-            if(rl[rl_cnt]->GetReturnCoords(tp))
+            if(rl[ally_robots_cnt]->GetReturnCoords(tp))
             {
                 dx += GLOBAL_SCALE_MOVE * tp.x + GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2;
                 dy += GLOBAL_SCALE_MOVE * tp.y + GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2;
             }
-            else if(rl[rl_cnt]->GetMoveToCoords(tp))
+            else if(rl[ally_robots_cnt]->GetMoveToCoords(tp))
             {
                 dx += GLOBAL_SCALE_MOVE * tp.x + GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2;
                 dy += GLOBAL_SCALE_MOVE * tp.y + GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2;
             }
             else
             {
-                dx += rl[rl_cnt]->m_PosX;
-                dy += rl[rl_cnt]->m_PosY;
+                dx += rl[ally_robots_cnt]->m_PosX;
+                dy += rl[ally_robots_cnt]->m_PosY;
             }
 
-            ++rl_cnt;
+            ++ally_robots_cnt;
         }
 
-        if(rl_cnt <= 1) continue;
+        if(ally_robots_cnt <= 1) continue;
 
-        d = 1.0f / rl_cnt;
+        d = 1.0f / ally_robots_cnt;
         cx *= d;
         cy *= d;
         dx = dx * d - cx;
@@ -2792,7 +2796,7 @@ void CMatrixSideUnit::CalcMaxSpeed()
         float minpr = 1e20f;
         float maxpr = -1e20f;
 
-        for(u = 0; u < rl_cnt; ++u)
+        for(u = 0; u < ally_robots_cnt; ++u)
         {
             float rx = rl[u]->m_PosX;
             float ry = rl[u]->m_PosY;
@@ -2802,9 +2806,9 @@ void CMatrixSideUnit::CalcMaxSpeed()
             maxpr = max(pr[u], maxpr);
         }
 
-        for(u = 0; u < rl_cnt - 1; ++u)
+        for(u = 0; u < ally_robots_cnt - 1; ++u)
         {
-            for(int t = u + 1; t < rl_cnt; ++t)
+            for(int t = u + 1; t < ally_robots_cnt; ++t)
             {
                 if(pr[t] < pr[u])
                 {
@@ -2818,7 +2822,7 @@ void CMatrixSideUnit::CalcMaxSpeed()
             }
         }
 
-        for(u = 0; u < rl_cnt - 1; ++u)
+        for(u = 0; u < ally_robots_cnt - 1; ++u)
         {
             if((pr[u + 1] - pr[u]) > COLLIDE_BOT_R * 7.0f) break;
         }
@@ -2826,7 +2830,7 @@ void CMatrixSideUnit::CalcMaxSpeed()
 
         maxpr -= minpr;
 
-        for(u = 0; u < rl_cnt; ++u)
+        for(u = 0; u < ally_robots_cnt; ++u)
         {
             if(rl[u]->GetReturnCoords(tp)) continue;
             if(!rl[u]->GetMoveToCoords(tp)) continue;
@@ -2865,15 +2869,15 @@ void CMatrixSideUnit::TactSideLogic()
     Regroup();
 
     int i, u, t, k, p, team, cnt, sme, level, next, dist;
-    //int skipregion[MAX_ROBOTS];
+    //int skipregion[MAX_ROBOTS_ON_MAP];
     //int skipregioncnt;
     SMatrixLogicAction* ac;
     CPoint tp;
     CMatrixMapStatic* ms;
     //SMatrixRegion *mr;
     SMatrixPlace* place;
-    CMatrixRobotAI* rl[MAX_ROBOTS];    //Список всех роботов на карте
-    int rl_cnt;                         //Количество всех роботов на карте
+    CMatrixRobotAI* rl[MAX_ROBOTS_ON_MAP];    //Список всех роботов на карте
+    int ally_robots_cnt;                         //Количество всех роботов на карте
 
     if(m_Region == nullptr) m_Region = (SMatrixLogicRegion*)HAllocClear(sizeof(SMatrixLogicRegion) * g_MatrixMap->m_RoadNetwork.m_RegionCnt, Base::g_MatrixHeap);
     if(m_RegionIndex == nullptr) m_RegionIndex = (int*)HAllocClear(sizeof(int) * g_MatrixMap->m_RoadNetwork.m_RegionCnt, Base::g_MatrixHeap);
@@ -3352,7 +3356,7 @@ void CMatrixSideUnit::TactSideLogic()
 
             //Находим роботов, текущей команды, места которые не в регионе назначения
             // + помечаем занятые места
-            rl_cnt = 0;
+            ally_robots_cnt = 0;
             ms = CMatrixMapStatic::GetFirstLogic();
             while(ms)
             {
@@ -3361,8 +3365,8 @@ void CMatrixSideUnit::TactSideLogic()
                     place = ObjPlacePtr(ms);
                     if(place == nullptr || place->m_Region != m_Team[i].m_Action.m_Region)
                     {
-                        rl[rl_cnt] = (CMatrixRobotAI*)ms;
-                        ++rl_cnt;
+                        rl[ally_robots_cnt] = (CMatrixRobotAI*)ms;
+                        ++ally_robots_cnt;
                     }
                 }
 
@@ -3371,9 +3375,9 @@ void CMatrixSideUnit::TactSideLogic()
             }
 
             //Проверяем, можем ли разместить хоть одного работа в регионе назначения
-            if(rl_cnt > 0)
+            if(ally_robots_cnt > 0)
             {
-                for(t = 0; t < rl_cnt; ++t)
+                for(t = 0; t < ally_robots_cnt; ++t)
                 {
                     for(u = 0; u < region->m_PlaceCnt; ++u)
                     {
@@ -3387,7 +3391,7 @@ void CMatrixSideUnit::TactSideLogic()
                     if(u < region->m_PlaceCnt) break;
                 }
 
-                if(t >= rl_cnt) cr = m_Team[i].m_Action.m_Region;
+                if(t >= ally_robots_cnt) cr = m_Team[i].m_Action.m_Region;
             }
         }
 
@@ -5154,8 +5158,8 @@ void CMatrixSideUnit::TactTL()
     CMatrixMapStatic* obj;
     CPoint tp;
 
-    CMatrixRobotAI* rl[MAX_ROBOTS];    //Список роботов на карте
-    int rl_cnt;                         //Кол-во роботов на карте
+    CMatrixRobotAI* rl[MAX_ROBOTS_ON_MAP];    //Список роботов на карте
+    int ally_robots_cnt;                         //Кол-во роботов на карте
     int team;
 
     if(m_LastTactTL != 0 && (g_MatrixMap->GetTime() - m_LastTactTL) < 10) return;
@@ -5262,24 +5266,24 @@ void CMatrixSideUnit::TactTL()
         if(m_LogicGroup[g].RobotsCnt() <= 0) continue;
 
         //Составляем список роботов в группе (для последующих быстрых переборов)
-        rl_cnt = 0;
+        ally_robots_cnt = 0;
         obj = CMatrixMapStatic::GetFirstLogic();
         while(obj)
         {
             if(obj->IsRobotAlive() && obj->GetSide() == m_Id && GetGroupLogic(obj) == g)
             {
-                rl[rl_cnt] = (CMatrixRobotAI*)obj;
-                //rl[rl_cnt]->CalcStrength();
-                ++rl_cnt;
+                rl[ally_robots_cnt] = (CMatrixRobotAI*)obj;
+                //rl[ally_robots_cnt]->CalcStrength();
+                ++ally_robots_cnt;
             }
             obj = obj->GetNextLogic();
         }
-        if(rl_cnt <= 0) continue;
+        if(ally_robots_cnt <= 0) continue;
 
         team = rl[0]->GetTeam();
         //if(team < 0 || team >= m_TeamCnt) __asm int 3;
         //ASSERT(team >= 0);
-        m_LogicGroup[g].RobotsCnt(rl_cnt);
+        m_LogicGroup[g].RobotsCnt(ally_robots_cnt);
 
         bool order_ok = true; //Приказ не изменился, данные корректны
         //bool up_change_order =! ((m_LogicGroup[g].m_Action.m_Type == m_Team[team].m_Action.m_Type) && (m_LogicGroup[g].m_Action.m_Region == m_Team[team].m_Action.m_Region));
@@ -5331,7 +5335,7 @@ void CMatrixSideUnit::TactTL()
                 order_ok = u > 0;
                 if(order_ok)
                 {
-                    for(i = 0; i < rl_cnt; ++i)
+                    for(i = 0; i < ally_robots_cnt; ++i)
                     {
                         if(rl[i]->FindOrderLikeThat(ROT_CAPTURE_BUILDING));
                         else if (!PlaceInRegion(rl[i], rl[i]->GetEnv()->m_Place, m_LogicGroup[g].m_Action.m_Region))
@@ -5347,20 +5351,20 @@ void CMatrixSideUnit::TactTL()
                 else
                 {
                     //Если все роботы группы заняты, то приказ захвата считается успешным
-                    for (i = 0; i < rl_cnt; ++i)
+                    for (i = 0; i < ally_robots_cnt; ++i)
                     {
                         if (rl[i]->CanBreakOrder()) break;
                     }
-                    if (i >= rl_cnt) order_ok = true;
+                    if (i >= ally_robots_cnt) order_ok = true;
 
                     //Если другая команда захватывает завод и группа в регионе, то приказ считаем успешным
                     if (!order_ok)
                     {
-                        for (i = 0; i < rl_cnt; ++i)
+                        for (i = 0; i < ally_robots_cnt; ++i)
                         {
                             if (!PlaceInRegion(rl[i], rl[i]->GetEnv()->m_Place, m_LogicGroup[g].m_Action.m_Region)) break;
                         }
-                        if (i >= rl_cnt)
+                        if (i >= ally_robots_cnt)
                         {
                             obj = CMatrixMapStatic::GetFirstLogic();
                             while (obj)
@@ -5384,11 +5388,11 @@ void CMatrixSideUnit::TactTL()
             {
                 if(!m_LogicGroup[g].IsWar()) //Если не в состоянии войны
                 {
-                    for(i = 0; i < rl_cnt; ++i)
+                    for(i = 0; i < ally_robots_cnt; ++i)
                     {
                         if(rl[i]->GetEnv()->GetEnemyCnt()) break;
                     }
-                    if(i < rl_cnt && !m_LogicGroup[g].IsWar()) order_ok = false;
+                    if(i < ally_robots_cnt && !m_LogicGroup[g].IsWar()) order_ok = false;
 
                     if(order_ok)
                     {
@@ -5399,7 +5403,7 @@ void CMatrixSideUnit::TactTL()
                             continue;
                         }
 
-                        for(i = 0; i < rl_cnt; ++i)
+                        for(i = 0; i < ally_robots_cnt; ++i)
                         {
                             if(CanChangePlace(rl[i]) && GetDesRegion(rl[i]) != m_LogicGroup[g].m_Action.m_Region)
                             {
@@ -5411,11 +5415,11 @@ void CMatrixSideUnit::TactTL()
                 }
                 else
                 {
-                    for(i = 0; i < rl_cnt; ++i)
+                    for(i = 0; i < ally_robots_cnt; ++i)
                     {
                         if(rl[i]->GetEnv()->GetEnemyCnt()) break;
                     }
-                    if(i >= rl_cnt && m_LogicGroup[g].IsWar()) order_ok = false;
+                    if(i >= ally_robots_cnt && m_LogicGroup[g].IsWar()) order_ok = false;
                 }
             }
             else if(m_LogicGroup[g].m_Action.m_Type == mlat_Attack)
@@ -5427,7 +5431,7 @@ void CMatrixSideUnit::TactTL()
                 }
                 else
                 {
-                    for(i = 0; i < rl_cnt && order_ok; ++i)
+                    for(i = 0; i < ally_robots_cnt && order_ok; ++i)
                     {
                         if(rl[i]->GetEnv()->GetEnemyCnt()) //Видит ли робот врага
                         {
@@ -5455,7 +5459,7 @@ void CMatrixSideUnit::TactTL()
                             if(GetEnv(obj)->m_Target != nullptr)
                             {
                                 m_LogicGroup[g].m_Action.m_Region = GetRegion(GetEnv(obj)->m_Target);
-                                u = rl_cnt;
+                                u = ally_robots_cnt;
                                 order_ok = false;
                                 break;
                             }
@@ -5481,7 +5485,7 @@ void CMatrixSideUnit::TactTL()
                 }
 
                 //u = 0;
-                for(i = 0; i < rl_cnt && order_ok; ++i)
+                for(i = 0; i < ally_robots_cnt && order_ok; ++i)
                 {
                     //Робот находится в регионе назночения или идет туда
                     if(CanChangePlace(rl[i]) && GetDesRegion(rl[i]) != m_LogicGroup[g].m_Action.m_Region)
@@ -5493,7 +5497,7 @@ void CMatrixSideUnit::TactTL()
                     //if(IsInPlace(rl[i])) ++u;
                 }
                 //Если все пришли
-                //if(order_ok && u == rl_cnt) {}
+                //if(order_ok && u == ally_robots_cnt) {}
             }
             else if(m_LogicGroup[g].m_Action.m_Type == mlat_Retreat)
             {
@@ -5504,7 +5508,7 @@ void CMatrixSideUnit::TactTL()
                     continue;
                 }
 
-                for (i = 0; i < rl_cnt && order_ok; ++i)
+                for (i = 0; i < ally_robots_cnt && order_ok; ++i)
                 {
                     if (CanChangePlace(rl[i]) && GetDesRegion(rl[i]) != m_LogicGroup[g].m_Action.m_Region)
                     {
@@ -5522,7 +5526,7 @@ void CMatrixSideUnit::TactTL()
         {
             if(!m_LogicGroup[g].IsWar()) //Если приказ только что установился, то старые места недействительны
             {
-                for(i = 0; i < rl_cnt; ++i) rl[i]->GetEnv()->m_Place = -1;
+                for(i = 0; i < ally_robots_cnt; ++i) rl[i]->GetEnv()->m_Place = -1;
             }
         }
 
@@ -5532,11 +5536,11 @@ void CMatrixSideUnit::TactTL()
         int group_ord = m_LogicGroup[g].m_Action.m_Type;
         if(group_ord == mlat_Defence)
         {
-            for(i = 0; i < rl_cnt; ++i)
+            for(i = 0; i < ally_robots_cnt; ++i)
             {
                 if(rl[i]->GetEnv()->GetEnemyCnt()) break;
             }
-            if(i < rl_cnt)
+            if(i < ally_robots_cnt)
             {
                 m_LogicGroup[g].SetWar(true);
             }
@@ -5544,7 +5548,7 @@ void CMatrixSideUnit::TactTL()
             {
                 AssignPlace(g, m_LogicGroup[g].m_Action.m_Region);
 
-                for(i = 0; i < rl_cnt; ++i)
+                for(i = 0; i < ally_robots_cnt; ++i)
                 {
                     if(PrepareBreakOrder(rl[i]))
                     {
@@ -5561,7 +5565,7 @@ void CMatrixSideUnit::TactTL()
             m_LogicGroup[g].SetWar(true);
 
             /*
-            for(i = 0; i < rl_cnt; ++i)
+            for(i = 0; i < ally_robots_cnt; ++i)
             {
                 if(rl[i]->GetEnv()->GetEnemyCnt() <= 0) //Если робот не видит врага идем в регион
                 {
@@ -5574,7 +5578,7 @@ void CMatrixSideUnit::TactTL()
         {
             AssignPlace(g, m_LogicGroup[g].m_Action.m_Region);
 
-            for(i = 0; i < rl_cnt; ++i)
+            for(i = 0; i < ally_robots_cnt; ++i)
             {
                 if(PrepareBreakOrder(rl[i]))
                 {
@@ -5588,7 +5592,7 @@ void CMatrixSideUnit::TactTL()
         {
             AssignPlace(g, m_LogicGroup[g].m_Action.m_Region);
 
-            for(i = 0; i < rl_cnt; ++i)
+            for(i = 0; i < ally_robots_cnt; ++i)
             {
                 if(PrepareBreakOrder(rl[i]))
                 {
@@ -5601,7 +5605,7 @@ void CMatrixSideUnit::TactTL()
         else if(group_ord == mlat_Capture)
         {
             AssignPlace(g, m_LogicGroup[g].m_Action.m_Region);
-            //for(i = 0; i < rl_cnt; ++i) rl[i]->BreakAllOrders();
+            //for(i = 0; i < ally_robots_cnt; ++i) rl[i]->BreakAllOrders();
 
             //Распределяем, кто какие здания захватывает
             obj = CMatrixMapStatic::GetFirstLogic();
@@ -5630,7 +5634,7 @@ void CMatrixSideUnit::TactTL()
                                     {
                                         float capturer_dist = Dist2(GetWorldPos(capturer), GetWorldPos(obj));
                                         u = -1;
-                                        for(i = 0; i < rl_cnt; ++i)
+                                        for(i = 0; i < ally_robots_cnt; ++i)
                                         {
                                             if(rl[i]->FindOrderLikeThat(ROT_CAPTURE_BUILDING)) continue;
                                             float d = Dist2(GetWorldPos(rl[i]), GetWorldPos(obj));
@@ -5652,8 +5656,8 @@ void CMatrixSideUnit::TactTL()
                                                 capturer->AsRobot()->StopCapture();
                                                 g_MatrixMap->StaticDelete(capturer);
                                                 //capturer->AsRobot()->SetGroupLogic(g);
-                                                //rl[rl_cnt] = capturer->AsRobot();
-                                                //++rl_cnt;
+                                                //rl[ally_robots_cnt] = capturer->AsRobot();
+                                                //++ally_robots_cnt;
 
                                                 /*
                                                 int g2 = capturer->AsRobot()->GetGroupLogic();
@@ -5664,9 +5668,9 @@ void CMatrixSideUnit::TactTL()
                                                     if(shit->IsRobotAlive() && shit->GetSide() == m_Id && GetGroupLogic(shit) == g2)
                                                     {
                                                         shit->AsRobot()->SetGroupLogic(g);
-                                                        rl[rl_cnt] = (CMatrixRobotAI*)shit;
+                                                        rl[ally_robots_cnt] = (CMatrixRobotAI*)shit;
                                                         mm |= 1 << (shit->AsRobot()->m_Module[0].m_Kind - 1);
-                                                        ++rl_cnt;
+                                                        ++ally_robots_cnt;
                                                     }
                                                     shit = shit->GetNextLogic();
                                                 }
@@ -5716,7 +5720,7 @@ void CMatrixSideUnit::TactTL()
                         {
                             u = -1;
                             float min_dist = 1e20f; //1.000.000.000
-                            for(i = 0; i < rl_cnt; ++i)
+                            for(i = 0; i < ally_robots_cnt; ++i)
                             {
                                 if(rl[i]->FindOrderLikeThat(ROT_CAPTURE_BUILDING)) continue;
                                 float d = Dist2(GetWorldPos(rl[i]), GetWorldPos(obj));
@@ -5754,7 +5758,7 @@ void CMatrixSideUnit::TactTL()
             }
 
             //Остальных роботов группы расставляем по местам
-            for(i = 0; i < rl_cnt; ++i)
+            for(i = 0; i < ally_robots_cnt; ++i)
             {
                 if(rl[i]->FindOrderLikeThat(ROT_CAPTURE_BUILDING)) continue;
 
@@ -5772,9 +5776,9 @@ void CMatrixSideUnit::WarTL(int group)
 {
     byte mm = 0;
     CMatrixMapStatic* obj;
-    CMatrixRobotAI* ally_robots[MAX_ROBOTS]; //Список роботов на карте
+    CMatrixRobotAI* ally_robots[MAX_ROBOTS_ON_MAP]; //Список роботов на карте
     int ally_robots_cnt = 0;                 //Кол-во роботов на карте
-    bool ally_robots_ok_move[MAX_ROBOTS];
+    bool ally_robots_ok_move[MAX_ROBOTS_ON_MAP];
 
     BufPrepare();
 
@@ -6112,7 +6116,7 @@ void CMatrixSideUnit::WarTL(int group)
                     int underfire = place->m_Underfire;
                     if(distplace2 <= POW2(enemy_fire_dist)) ++underfire;
 
-                    CMatrixMapStatic* trace_res = g_MatrixMap->Trace(nullptr, D3DXVECTOR3(pcx, pcy, g_MatrixMap->GetZ(pcx, pcy) + 20.0f) /*robot->GetGeoCenter()*/, SetPointOfAim(robot->GetEnv()->m_TargetAttack), TRACE_OBJECT | TRACE_NONOBJECT | TRACE_OBJECTSPHERE | TRACE_SKIP_INVISIBLE, robot);
+                    CMatrixMapStatic* trace_res = g_MatrixMap->Trace(nullptr, D3DXVECTOR3(pcx, pcy, g_MatrixMap->GetZ(pcx, pcy) + 20.0f) /*robot->GetGeoCenter()*/, SetPointOfAim(robot->GetEnv()->m_TargetAttack), TRACE_OBJECT | TRACE_NONOBJECT | TRACE_OBJECT_SPHERE | TRACE_SKIP_INVISIBLE, robot);
                     bool close = (IS_TRACE_STOP_OBJECT(trace_res) && trace_res->GetObjectType() == OBJECT_TYPE_MAPOBJECT) || (trace_res == TRACE_STOP_WATER) || (trace_res == TRACE_STOP_LANDSCAPE);
 
                     if(placebest >= 0) //Если уже найдено место то выбираем наилучшее
@@ -6278,9 +6282,9 @@ void CMatrixSideUnit::WarTL(int group)
                 }
             }
 
-            //des.x += (float)g_MatrixMap->RndFloat(-5.0f, 5.0f);
-            //des.y += (float)g_MatrixMap->RndFloat(-5.0f, 5.0f);
-            //des.z += (float)g_MatrixMap->RndFloat(-5.0f, 5.0f);
+            //des.x += g_MatrixMap->RndFloat(-5.0f, 5.0f);
+            //des.y += g_MatrixMap->RndFloat(-5.0f, 5.0f);
+            //des.z += g_MatrixMap->RndFloat(-5.0f, 5.0f);
 
             CInfo* env = GetEnv(robot);
             if(env->m_TargetAttack != env->m_TargetLast)
@@ -6451,7 +6455,7 @@ void CMatrixSideUnit::WarTL(int group)
 
 void CMatrixSideUnit::RepairTL(int group)
 {
-    CMatrixRobotAI* ally_robots[MAX_ROBOTS]; //Список роботов на карте
+    CMatrixRobotAI* ally_robots[MAX_ROBOTS_ON_MAP]; //Список роботов на карте
     int ally_robots_cnt = 0;
     D3DXVECTOR2 v, v2;
 
@@ -6657,8 +6661,8 @@ void CMatrixSideUnit::AssignPlace(int group, int region)
     SMatrixPlace* place;
     byte mm = 0;
 
-    CMatrixRobotAI* ally_robots[MAX_ROBOTS]; // Список роботов на карте
-    int rl_cnt = 0;                  // Кол-во роботов на карте
+    CMatrixRobotAI* ally_robots[MAX_ROBOTS_ON_MAP]; // Список роботов на карте
+    int ally_robots_cnt = 0;                  // Кол-во роботов на карте
 
     BufPrepare();
 
@@ -6678,9 +6682,9 @@ void CMatrixSideUnit::AssignPlace(int group, int region)
             {
                 if(bot->GetSide() == m_Id && GetGroupLogic(bot) == group)
                 {
-                    ally_robots[rl_cnt] = bot;
+                    ally_robots[ally_robots_cnt] = bot;
                     mm |= 1 << (bot->m_Module[0].m_Kind - 1);
-                    ++rl_cnt;
+                    ++ally_robots_cnt;
                 }
                 if(bot->GetSide() != m_Id || GetGroupLogic(bot) != group) ObjPlaceData(bot, 1);
             }
@@ -6688,9 +6692,9 @@ void CMatrixSideUnit::AssignPlace(int group, int region)
         else if(obj->IsActiveTurretAlive()) ObjPlaceData(obj, 1);
         obj = obj->GetNextLogic();
     }
-    if(rl_cnt <= 0) return;
+    if(ally_robots_cnt <= 0) return;
 
-    SortRobotList(ally_robots, rl_cnt);
+    SortRobotList(ally_robots, ally_robots_cnt);
 
     //Рассчитываем вектор на врага
     D3DXVECTOR2 venemy;
@@ -6749,7 +6753,7 @@ void CMatrixSideUnit::AssignPlace(int group, int region)
     }
 
     //Назначаем места
-    for(t = 0; t < rl_cnt; ++t)
+    for(t = 0; t < ally_robots_cnt; ++t)
     {
         for(i = 0; i < listcnt; ++i)
         {
@@ -6765,9 +6769,9 @@ void CMatrixSideUnit::AssignPlace(int group, int region)
         }
         else //Если не нашли, то расширяем список
         {
-            for(i = 0; i < rl_cnt; ++i) ally_robots[i]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
+            for(i = 0; i < ally_robots_cnt; ++i) ally_robots[i]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
 
-            if(g_MatrixMap->PlaceListGrow(mm, m_PlaceList, &listcnt, rl_cnt) <= 0) continue;
+            if(g_MatrixMap->PlaceListGrow(mm, m_PlaceList, &listcnt, ally_robots_cnt) <= 0) continue;
 
             for(i = 0; i < listcnt - 1; ++i) //Сортируем по дальности
             {
@@ -6804,50 +6808,50 @@ void CMatrixSideUnit::AssignPlace(int group, int region)
         }
     }
 
-        /*
-        //Помечаем места, которые устраивают
-        t=0;
-        for(i=0; i<rl_cnt; ++i)
+    /*
+    //Помечаем места, которые устраивают
+    t=0;
+    for(i=0; i<ally_robots_cnt; ++i)
+    {
+        if(ally_robots[i]->GetEnv()->m_Place>=0 && GetPlacePtr(ally_robots[i]->GetEnv()->m_Place)->m_Region==region && GetPlacePtr(ally_robots[i]->GetEnv()->m_Place)->m_Data==0)
         {
-            if(ally_robots[i]->GetEnv()->m_Place>=0 && GetPlacePtr(ally_robots[i]->GetEnv()->m_Place)->m_Region==region && GetPlacePtr(ally_robots[i]->GetEnv()->m_Place)->m_Data==0)
-            {
-                GetPlacePtr(ally_robots[i]->GetEnv()->m_Place)->m_Data=1;
-                ++t;
-            }
-            else ally_robots[i]->GetEnv()->m_Place=-1;
+            GetPlacePtr(ally_robots[i]->GetEnv()->m_Place)->m_Data=1;
+            ++t;
         }
-        if(t==rl_cnt) return;
+        else ally_robots[i]->GetEnv()->m_Place=-1;
+    }
+    if(t==ally_robots_cnt) return;
 
-        // Назначаем остальные места
-        for(i=0; i<rl_cnt; ++i)
+    // Назначаем остальные места
+    for(i=0; i<ally_robots_cnt; ++i)
+    {
+        if(ally_robots[i]->GetEnv()->m_Place<0)
         {
-            if(ally_robots[i]->GetEnv()->m_Place<0)
+            for(u=0; u<uregion->m_PlaceAllCnt; ++u)
             {
-                for(u=0; u<uregion->m_PlaceAllCnt; ++u)
-                {
-                    place=GetPlacePtr(uregion->m_PlaceAll[u]);
-                    if(place->m_Data) continue;
-                    if(!CanMove(place->m_Move,ally_robots[i])) continue; // Если робот не может стоять на этом месте то, пропускаем
+                place=GetPlacePtr(uregion->m_PlaceAll[u]);
+                if(place->m_Data) continue;
+                if(!CanMove(place->m_Move,ally_robots[i])) continue; // Если робот не может стоять на этом месте то, пропускаем
 
-                    ally_robots[i]->GetEnv()->m_Place=uregion->m_PlaceAll[u];
-                    place->m_Data=1;
-                    break;
-                }
-                if(u>=uregion->m_PlaceAllCnt)
-                {
-                    ERROR_E;
-                }
+                ally_robots[i]->GetEnv()->m_Place=uregion->m_PlaceAll[u];
+                place->m_Data=1;
+                break;
             }
-        }*/
+            if(u>=uregion->m_PlaceAllCnt)
+            {
+                ERROR_E;
+            }
+        }
+    }*/
 }
 
 void CMatrixSideUnit::SortRobotList(CMatrixRobotAI** ally_robots, int ally_robots_cnt)
 {
     if(ally_robots_cnt <= 1) return;
 
-    CMatrixRobotAI* ally_robots_normals[MAX_ROBOTS];
-    CMatrixRobotAI* ally_robots_repairers[MAX_ROBOTS];
-    CMatrixRobotAI* ally_robots_bombers[MAX_ROBOTS];
+    CMatrixRobotAI* ally_robots_normals[MAX_ROBOTS_ON_MAP];
+    CMatrixRobotAI* ally_robots_repairers[MAX_ROBOTS_ON_MAP];
+    CMatrixRobotAI* ally_robots_bombers[MAX_ROBOTS_ON_MAP];
     int ally_robots_normals_cnt = 0;
     int ally_robots_repairers_cnt = 0;
     int ally_robots_bombers_cnt = 0;
@@ -8860,8 +8864,8 @@ void CMatrixSideUnit::RepairPL(int group)
 {
     CPoint tp;
     CMatrixMapStatic* obj;
-    CMatrixRobotAI* player_robots[MAX_ROBOTS]; // Список роботов на карте
-    bool player_robots_ok[MAX_ROBOTS];
+    CMatrixRobotAI* player_robots[MAX_ROBOTS_ON_MAP]; // Список роботов на карте
+    bool player_robots_ok[MAX_ROBOTS_ON_MAP];
     int player_robots_cnt = 0;                 // Кол-во роботов на карте
     byte mm = 0;
     SMatrixPlace* place;
@@ -9095,23 +9099,23 @@ bool CMatrixSideUnit::FirePL(int group)
     bool rv = false;
     int i;
     CMatrixMapStatic* obj;
-    CMatrixRobotAI* rl[MAX_ROBOTS]; // Список роботов на карте
-    int rl_cnt = 0;                     // Кол-во роботов на карте
+    CMatrixRobotAI* rl[MAX_ROBOTS_ON_MAP]; // Список роботов на карте
+    int ally_robots_cnt = 0;                     // Кол-во роботов на карте
 
     obj = CMatrixMapStatic::GetFirstLogic();
     while(obj)
     {
         if(obj->IsRobotAlive() && obj->GetSide() == m_Id && GetGroupLogic(obj) == group)
         {
-            rl[rl_cnt] = (CMatrixRobotAI*)obj;
-            ++rl_cnt;
+            rl[ally_robots_cnt] = (CMatrixRobotAI*)obj;
+            ++ally_robots_cnt;
         }
         obj = obj->GetNextLogic();
     }
-    if(rl_cnt <= 0) return false;
+    if(ally_robots_cnt <= 0) return false;
 
     // Находим врага для всей группы
-    for(i = 0; i < rl_cnt; ++i)
+    for(i = 0; i < ally_robots_cnt; ++i)
     {
         CInfo* env = rl[i]->GetEnv();
         if(env->m_TargetAttack && env->SearchEnemy(env->m_TargetAttack))
@@ -9197,7 +9201,7 @@ bool CMatrixSideUnit::FirePL(int group)
     D3DXVECTOR3 des, from, dir, p;
     float t, dist;
 
-    for(i = 0; i < rl_cnt; ++i)
+    for(i = 0; i < ally_robots_cnt; ++i)
     {
         CInfo* env = rl[i]->GetEnv();
         if(env->m_TargetAttack && env->SearchEnemy(env->m_TargetAttack))
@@ -9373,9 +9377,9 @@ void CMatrixSideUnit::WarPL(int group)
     int i, u;//,x, y;
     byte mm = 0;
     CMatrixMapStatic* obj;
-    CMatrixRobotAI* rl[MAX_ROBOTS]; // Список роботов на карте
-    int rl_cnt = 0;                  // Кол-во роботов на карте
-    bool rl_ok_move[MAX_ROBOTS];
+    CMatrixRobotAI* ally_robots[MAX_ROBOTS_ON_MAP]; // Список роботов на карте
+    int ally_robots_cnt = 0;                  // Кол-во роботов на карте
+    bool ally_robots_ok_move[MAX_ROBOTS_ON_MAP];
 
     BufPrepare();
 
@@ -9384,37 +9388,37 @@ void CMatrixSideUnit::WarPL(int group)
     {
         if (obj->IsRobotAlive() && obj->GetSide() == m_Id && GetGroupLogic(obj) == group)
         {
-            rl[rl_cnt] = (CMatrixRobotAI*)obj;
+            ally_robots[ally_robots_cnt] = (CMatrixRobotAI*)obj;
             mm |= 1 << (obj->AsRobot()->m_Module[0].m_Kind - 1);
-            ++rl_cnt;
+            ++ally_robots_cnt;
         }
         obj = obj->GetNextLogic();
     }
-    if(rl_cnt < 0) return;
+    if(ally_robots_cnt < 0) return;
 
     // Находим врага для всей группы
-    for(i = 0; i < rl_cnt; ++i)
+    for(i = 0; i < ally_robots_cnt; ++i)
     {
-        if(m_PlayerGroup[group].Order() == mpo_Attack && m_PlayerGroup[group].m_Obj && m_PlayerGroup[group].m_Obj != rl[i] && m_PlayerGroup[group].m_Obj->IsAlive() && m_PlayerGroup[group].m_Obj != rl[i]->GetEnv()->m_TargetAttack)
+        if(m_PlayerGroup[group].Order() == mpo_Attack && m_PlayerGroup[group].m_Obj && m_PlayerGroup[group].m_Obj != ally_robots[i] && m_PlayerGroup[group].m_Obj->IsAlive() && m_PlayerGroup[group].m_Obj != ally_robots[i]->GetEnv()->m_TargetAttack)
         {
-            if (rl[i]->GetEnv()->SearchEnemy(m_PlayerGroup[group].m_Obj))
+            if (ally_robots[i]->GetEnv()->SearchEnemy(m_PlayerGroup[group].m_Obj))
             {
-                rl[i]->GetEnv()->m_TargetAttack = m_PlayerGroup[group].m_Obj;
+                ally_robots[i]->GetEnv()->m_TargetAttack = m_PlayerGroup[group].m_Obj;
             }
         }
         if(m_PlayerGroup[group].Order() == mpo_Capture && m_PlayerGroup[group].m_Obj && m_PlayerGroup[group].m_Obj->IsAlive() &&
-            rl[i]->GetEnv()->m_TargetAttack && rl[i]->GetEnv()->m_TargetAttack->IsAlive() && (rl[i]->GetEnv()->m_TargetAttack->GetObjectType() != OBJECT_TYPE_TURRET || ((CMatrixTurret*)(rl[i]->GetEnv()->m_TargetAttack))->m_ParentBuilding != m_PlayerGroup[group].m_Obj))
+            ally_robots[i]->GetEnv()->m_TargetAttack && ally_robots[i]->GetEnv()->m_TargetAttack->IsAlive() && (ally_robots[i]->GetEnv()->m_TargetAttack->GetObjectType() != OBJECT_TYPE_TURRET || ((CMatrixTurret*)(ally_robots[i]->GetEnv()->m_TargetAttack))->m_ParentBuilding != m_PlayerGroup[group].m_Obj))
         {
             float min_dist = 1e10f;
             CEnemy* enemy_find = nullptr;
-            CEnemy* enemy = rl[i]->GetEnv()->m_FirstEnemy;
+            CEnemy* enemy = ally_robots[i]->GetEnv()->m_FirstEnemy;
             while(enemy)
             {
                 if(enemy->m_Enemy->IsActiveTurretAlive() && enemy->m_Enemy->AsTurret()->m_ParentBuilding == m_PlayerGroup[group].m_Obj)
                 {
                     while(true)
                     {
-                        float cd = Dist2(GetWorldPos(enemy->m_Enemy), GetWorldPos(rl[i]));
+                        float cd = Dist2(GetWorldPos(enemy->m_Enemy), GetWorldPos(ally_robots[i]));
                         if (enemy_find)
                         {
                             if (min_dist < cd) break;
@@ -9429,37 +9433,37 @@ void CMatrixSideUnit::WarPL(int group)
             }
             if(enemy_find)
             {
-                rl[i]->GetEnv()->m_TargetAttack = enemy_find->m_Enemy;
-                rl[i]->GetEnv()->m_Place = -1;
+                ally_robots[i]->GetEnv()->m_TargetAttack = enemy_find->m_Enemy;
+                ally_robots[i]->GetEnv()->m_Place = -1;
             }
         }
 
-        if(!rl[i]->GetEnv()->m_TargetAttack)
+        if(!ally_robots[i]->GetEnv()->m_TargetAttack)
         {
             float min_dist = 1e10f;
             CEnemy* enemy_find = nullptr;
             CEnemy* enemy = nullptr;
             // Находим цель которую указал игрок
-            if(m_PlayerGroup[group].m_Obj && m_PlayerGroup[group].m_Obj != rl[i])
+            if(m_PlayerGroup[group].m_Obj && m_PlayerGroup[group].m_Obj != ally_robots[i])
             {
-                enemy_find = rl[i]->GetEnv()->SearchEnemy(m_PlayerGroup[group].m_Obj);
+                enemy_find = ally_robots[i]->GetEnv()->SearchEnemy(m_PlayerGroup[group].m_Obj);
             }
             // Находим ближайшего незакрытого врага
             if(!enemy_find)
             {
-                enemy = rl[i]->GetEnv()->m_FirstEnemy;
+                enemy = ally_robots[i]->GetEnv()->m_FirstEnemy;
                 while(enemy)
                 {
-                    if(enemy->m_Enemy->IsUnitAlive() && enemy->m_Enemy != rl[i])
+                    if(enemy->m_Enemy->IsUnitAlive() && enemy->m_Enemy != ally_robots[i])
                     {
-                        float cd = Dist2(GetWorldPos(enemy->m_Enemy), GetWorldPos(rl[i]));
+                        float cd = Dist2(GetWorldPos(enemy->m_Enemy), GetWorldPos(ally_robots[i]));
                         if(cd < min_dist)
                         {
                             //Проверяем не закрыт ли он своими
                             D3DXVECTOR3 des, from, dir, p;
                             float t, dist;
 
-                            from = rl[i]->GetGeoCenter();
+                            from = ally_robots[i]->GetGeoCenter();
                             des = SetPointOfAim(enemy->m_Enemy);
                             dist = sqrt(POW2(from.x - des.x) + POW2(from.y - des.y) + POW2(from.z - des.z));
                             if(dist > 0.0f)
@@ -9471,7 +9475,7 @@ void CMatrixSideUnit::WarPL(int group)
                                 obj = CMatrixMapStatic::GetFirstLogic();
                                 while(obj)
                                 {
-                                    if(obj->IsUnitAlive() && obj->GetSide() == m_Id && rl[i] != obj && rl[i]->GetEnv()->m_TargetAttack != obj)
+                                    if(obj->IsUnitAlive() && obj->GetSide() == m_Id && ally_robots[i] != obj && ally_robots[i]->GetEnv()->m_TargetAttack != obj)
                                     {
                                         p = SetPointOfAim(obj);
 
@@ -9496,12 +9500,12 @@ void CMatrixSideUnit::WarPL(int group)
             //Если не нашли открытого ищем закрытого
             if(!enemy_find)
             {
-                enemy = rl[i]->GetEnv()->m_FirstEnemy;
+                enemy = ally_robots[i]->GetEnv()->m_FirstEnemy;
                 while(enemy)
                 {
-                    if(enemy->m_Enemy->IsUnitAlive() && enemy->m_Enemy != rl[i])
+                    if(enemy->m_Enemy->IsUnitAlive() && enemy->m_Enemy != ally_robots[i])
                     {
-                        float cd = Dist2(GetWorldPos(enemy->m_Enemy), GetWorldPos(rl[i]));
+                        float cd = Dist2(GetWorldPos(enemy->m_Enemy), GetWorldPos(ally_robots[i]));
                         if(cd < min_dist)
                         {
                             min_dist = cd;
@@ -9514,11 +9518,11 @@ void CMatrixSideUnit::WarPL(int group)
 
             if(enemy_find)
             {
-                rl[i]->GetEnv()->m_TargetAttack = enemy_find->m_Enemy;
+                ally_robots[i]->GetEnv()->m_TargetAttack = enemy_find->m_Enemy;
                 // Если новая цель пушка или завод, то меняем позицию
-                if(rl[i]->GetEnv()->m_TargetAttack->IsActiveTurretAlive() || rl[i]->GetEnv()->m_TargetAttack->IsBuildingAlive())
+                if(ally_robots[i]->GetEnv()->m_TargetAttack->IsActiveTurretAlive() || ally_robots[i]->GetEnv()->m_TargetAttack->IsBuildingAlive())
                 {
-                    rl[i]->GetEnv()->m_Place = -1;
+                    ally_robots[i]->GetEnv()->m_Place = -1;
                 }
             }
         }
@@ -9526,61 +9530,61 @@ void CMatrixSideUnit::WarPL(int group)
 
     // Проверяем правильно ли роботы идут
     bool moveok = true;
-    for(i = 0; i < rl_cnt; ++i)
+    for(i = 0; i < ally_robots_cnt; ++i)
     {
-        rl_ok_move[i] = true;
+        ally_robots_ok_move[i] = true;
 
-        if(!rl[i]->CanBreakOrder()) continue; // Пропускаем если робот не может прервать текущий приказ
-        if(!rl[i]->GetEnv()->m_TargetAttack) // Если у робота нет цели то ждем завершение состояния войны
+        if(!ally_robots[i]->CanBreakOrder()) continue; // Пропускаем если робот не может прервать текущий приказ
+        if(!ally_robots[i]->GetEnv()->m_TargetAttack) // Если у робота нет цели то ждем завершение состояния войны
         {
-/*            if(GetDesRegion(rl[i])!=m_LogicGroup[group].m_Action.m_Region) {
-                if(!PlaceInRegion(rl[i],rl[i]->GetEnv()->m_Place,m_LogicGroup[group].m_Action.m_Region)) {
-                    if(CanChangePlace(rl[i])) {
-                    AssignPlace(rl[i],m_LogicGroup[group].m_Action.m_Region);
+/*            if(GetDesRegion(ally_robots[i])!=m_LogicGroup[group].m_Action.m_Region) {
+                if(!PlaceInRegion(ally_robots[i],ally_robots[i]->GetEnv()->m_Place,m_LogicGroup[group].m_Action.m_Region)) {
+                    if(CanChangePlace(ally_robots[i])) {
+                    AssignPlace(ally_robots[i],m_LogicGroup[group].m_Action.m_Region);
 
-                    SMatrixPlace * place=ObjPlacePtr(rl[i]);
-                    if(place && PrepareBreakOrder(rl[i])) {
-                        rl[i]->MoveToHigh(place->m_Pos.x,place->m_Pos.y);
+                    SMatrixPlace * place=ObjPlacePtr(ally_robots[i]);
+                    if(place && PrepareBreakOrder(ally_robots[i])) {
+                        ally_robots[i]->MoveToHigh(place->m_Pos.x,place->m_Pos.y);
                     }
                 }
                 }
             }*/
             continue;
         }
-        if (rl[i]->GetEnv()->m_Place < 0)
+        if (ally_robots[i]->GetEnv()->m_Place < 0)
         {
-            if (CanChangePlace(rl[i])) {
-                rl_ok_move[i] = false;
+            if (CanChangePlace(ally_robots[i])) {
+                ally_robots_ok_move[i] = false;
                 moveok = false;
                 continue;
             }
         }
-        D3DXVECTOR2 tv = GetWorldPos(rl[i]->GetEnv()->m_TargetAttack);
+        D3DXVECTOR2 tv = GetWorldPos(ally_robots[i]->GetEnv()->m_TargetAttack);
 
-        SMatrixPlace* place = GetPlacePtr(rl[i]->GetEnv()->m_Place);
+        SMatrixPlace* place = GetPlacePtr(ally_robots[i]->GetEnv()->m_Place);
         if (place == nullptr) {
-            if (CanChangePlace(rl[i]))
+            if (CanChangePlace(ally_robots[i]))
             {
-                rl[i]->GetEnv()->m_Place = -1;
-                rl_ok_move[i] = false;
+                ally_robots[i]->GetEnv()->m_Place = -1;
+                ally_robots_ok_move[i] = false;
                 moveok = false;
                 continue;
             }
         }
         else {
             float dist2 = POW2(GLOBAL_SCALE_MOVE * place->m_Pos.x + GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2 - tv.x) + POW2(GLOBAL_SCALE_MOVE * place->m_Pos.y + GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2 - tv.y);
-            if (dist2 > POW2(rl[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2)) {
-                if (CanChangePlace(rl[i])) {
-                    rl[i]->GetEnv()->m_Place = -1;
-                    rl_ok_move[i] = false;
+            if (dist2 > POW2(ally_robots[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2)) {
+                if (CanChangePlace(ally_robots[i])) {
+                    ally_robots[i]->GetEnv()->m_Place = -1;
+                    ally_robots_ok_move[i] = false;
                     moveok = false;
                     continue;
                 }
             }
         }
-        /*        if(!IsToPlace(rl[i],rl[i]->GetEnv()->m_Place)) {
-        //            IsToPlace(rl[i],rl[i]->GetEnv()->m_Place);
-                    rl_ok_move[i]=false;
+        /*        if(!IsToPlace(ally_robots[i],ally_robots[i]->GetEnv()->m_Place)) {
+        //            IsToPlace(ally_robots[i],ally_robots[i]->GetEnv()->m_Place);
+                    ally_robots_ok_move[i]=false;
                     moveok=false;
                     continue;
                 }*/
@@ -9592,20 +9596,20 @@ void CMatrixSideUnit::WarPL(int group)
         // Находим центр и радиус
         CPoint center, tp2, tp = CPoint(0, 0);
         int f = 0;
-        for(i = 0; i < rl_cnt; ++i)
+        for(i = 0; i < ally_robots_cnt; ++i)
         {
-            if(!rl[i]->GetEnv()->m_TargetAttack) continue;
-            tp += GetMapPos(rl[i]->GetEnv()->m_TargetAttack);
+            if(!ally_robots[i]->GetEnv()->m_TargetAttack) continue;
+            tp += GetMapPos(ally_robots[i]->GetEnv()->m_TargetAttack);
             ++f;
         }
 
         if(f <= 0) return;
         tp.x = tp.x / f; tp.y = tp.y / f;
         f = 1000000000;
-        for(i = 0; i < rl_cnt; ++i)
+        for(i = 0; i < ally_robots_cnt; ++i)
         {
-            if(!rl[i]->GetEnv()->m_TargetAttack) continue;
-            tp2 = GetMapPos(rl[i]->GetEnv()->m_TargetAttack);
+            if(!ally_robots[i]->GetEnv()->m_TargetAttack) continue;
+            tp2 = GetMapPos(ally_robots[i]->GetEnv()->m_TargetAttack);
             int f2 = POW2(tp.x - tp2.x) + POW2(tp.y - tp2.y);
             if(f2 < f)
             {
@@ -9616,12 +9620,12 @@ void CMatrixSideUnit::WarPL(int group)
 
         int radius = 0;
         int radiusrobot = 0;
-        for(i = 0; i < rl_cnt; ++i)
+        for(i = 0; i < ally_robots_cnt; ++i)
         {
-            if(!rl[i]->GetEnv()->m_TargetAttack) continue;
-            tp2 = GetMapPos(rl[i]->GetEnv()->m_TargetAttack);
-            radiusrobot = max(radiusrobot, Float2Int(rl[i]->GetMaxFireDist() / GLOBAL_SCALE_MOVE));
-            radius = max(radius, Float2Int(sqrt(float(POW2(center.x - tp2.x) + POW2(center.y - tp2.y))) + rl[i]->GetMaxFireDist() / GLOBAL_SCALE_MOVE + ROBOT_MOVECELLS_PER_SIZE));
+            if(!ally_robots[i]->GetEnv()->m_TargetAttack) continue;
+            tp2 = GetMapPos(ally_robots[i]->GetEnv()->m_TargetAttack);
+            radiusrobot = max(radiusrobot, Float2Int(ally_robots[i]->GetMaxFireDist() / GLOBAL_SCALE_MOVE));
+            radius = max(radius, Float2Int(sqrt(float(POW2(center.x - tp2.x) + POW2(center.y - tp2.y))) + ally_robots[i]->GetMaxFireDist() / GLOBAL_SCALE_MOVE + ROBOT_MOVECELLS_PER_SIZE));
         }
 
         //DM(L"RadiusSeek",CWStr().Format(L"<i>   <i>",radius,radiusrobot).Get());
@@ -9630,12 +9634,12 @@ void CMatrixSideUnit::WarPL(int group)
 
         // Находим место
         int listcnt;
-        if(g_MatrixMap->PlaceList(mm, GetMapPos(rl[0]), center, radius, false, m_PlaceList, &listcnt) == 0)
+        if(g_MatrixMap->PlaceList(mm, GetMapPos(ally_robots[0]), center, radius, false, m_PlaceList, &listcnt) == 0)
         {
-            for(i = 0; i < rl_cnt; ++i) rl[i]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
+            for(i = 0; i < ally_robots_cnt; ++i) ally_robots[i]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
         }
-        else {
-
+        else
+        {
             /*CHelper::DestroyByGroup(524234);
             D3DXVECTOR3 v1;
             v1.x=center.x*GLOBAL_SCALE_MOVE;
@@ -9656,11 +9660,11 @@ void CMatrixSideUnit::WarPL(int group)
             //int growsizemin=0;
             //int growsizemax=0;
 
-            //for(i=0;i<rl_cnt;i++) {
-            //    growsizemin=max(growsizemin,int(rl[i]->GetMinFireDist()/GLOBAL_SCALE_MOVE));
-            //    growsizemax=max(growsizemax,int(rl[i]->GetMaxFireDist()/GLOBAL_SCALE_MOVE));
+            //for(i=0;i<ally_robots_cnt;i++) {
+            //    growsizemin=max(growsizemin,int(ally_robots[i]->GetMinFireDist()/GLOBAL_SCALE_MOVE));
+            //    growsizemax=max(growsizemax,int(ally_robots[i]->GetMaxFireDist()/GLOBAL_SCALE_MOVE));
 
-            //    CEnemy * enemy=rl[i]->GetEnv()->m_FirstEnemy;
+            //    CEnemy * enemy=ally_robots[i]->GetEnv()->m_FirstEnemy;
             //    while(enemy) {
             //        if(IsLive(enemy->m_Enemy)) {
             //            tp=GetMapPos(enemy->m_Enemy);
@@ -9676,11 +9680,11 @@ void CMatrixSideUnit::WarPL(int group)
                 // Помечаем уже занетые места
     //            g_MatrixMap->m_RoadNetwork.ActionDataPL(CRect(rect.left-growsizemax,rect.top-growsizemax,rect.right+growsizemax,rect.bottom+growsizemax),0);
                 /*
-                for(i = 0; i < rl_cnt; ++i)
+                for(i = 0; i < ally_robots_cnt; ++i)
                 {
-                    if(!rl_ok_move[i]) continue;
-                    if(rl[i]->GetEnv()->m_Place<0) continue;
-                    GetPlacePtr(rl[i]->GetEnv()->m_Place)->m_Data=1;
+                    if(!ally_robots_ok_move[i]) continue;
+                    if(ally_robots[i]->GetEnv()->m_Place<0) continue;
+                    GetPlacePtr(ally_robots[i]->GetEnv()->m_Place)->m_Data=1;
                 }
                 */
             for(i = 0; i < listcnt; ++i) g_MatrixMap->m_RoadNetwork.m_Place[m_PlaceList[i]].m_Data = 0;
@@ -9693,12 +9697,12 @@ void CMatrixSideUnit::WarPL(int group)
 
             //Находим лучшее место для каждого робота
             //CRect plr=g_MatrixMap->m_RoadNetwork.CorrectRectPL(CRect(rect.left-growsizemax,rect.top-growsizemax,rect.right+growsizemax,rect.bottom+growsizemax));
-            for(i = 0; i < rl_cnt; ++i)
+            for(i = 0; i < ally_robots_cnt; ++i)
             {
-                if(rl_ok_move[i]) continue;
-                if(!rl[i]->GetEnv()->m_TargetAttack) continue; // Если нет цели, то пропускаем
+                if(ally_robots_ok_move[i]) continue;
+                if(!ally_robots[i]->GetEnv()->m_TargetAttack) continue; // Если нет цели, то пропускаем
 
-                bool havebomb = rl[i]->HaveBomb();
+                bool havebomb = ally_robots[i]->HaveBomb();
 
                 int placebest = -1;
                 float s_f1 = 0.0f;
@@ -9708,22 +9712,22 @@ void CMatrixSideUnit::WarPL(int group)
                 float tvx, tvy; // To target
                 int enemy_fire_dist;
 
-                if(rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
+                if(ally_robots[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
                 {
-                    tvx = ((CMatrixRobotAI*)(rl[i]->GetEnv()->m_TargetAttack))->m_PosX - rl[i]->m_PosX;
-                    tvy = ((CMatrixRobotAI*)(rl[i]->GetEnv()->m_TargetAttack))->m_PosY - rl[i]->m_PosY;
-                    enemy_fire_dist = Float2Int(((CMatrixRobotAI*)(rl[i]->GetEnv()->m_TargetAttack))->GetMaxFireDist());
+                    tvx = ((CMatrixRobotAI*)(ally_robots[i]->GetEnv()->m_TargetAttack))->m_PosX - ally_robots[i]->m_PosX;
+                    tvy = ((CMatrixRobotAI*)(ally_robots[i]->GetEnv()->m_TargetAttack))->m_PosY - ally_robots[i]->m_PosY;
+                    enemy_fire_dist = Float2Int(((CMatrixRobotAI*)(ally_robots[i]->GetEnv()->m_TargetAttack))->GetMaxFireDist());
                 }
-                else if(rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET)
+                else if(ally_robots[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET)
                 {
-                    tvx = ((CMatrixTurret*)(rl[i]->GetEnv()->m_TargetAttack))->m_Pos.x - rl[i]->m_PosX;
-                    tvy = ((CMatrixTurret*)(rl[i]->GetEnv()->m_TargetAttack))->m_Pos.y - rl[i]->m_PosY;
-                    enemy_fire_dist = int(((CMatrixTurret*)(rl[i]->GetEnv()->m_TargetAttack))->GetFireRadius() + GLOBAL_SCALE_MOVE);
+                    tvx = ((CMatrixTurret*)(ally_robots[i]->GetEnv()->m_TargetAttack))->m_Pos.x - ally_robots[i]->m_PosX;
+                    tvy = ((CMatrixTurret*)(ally_robots[i]->GetEnv()->m_TargetAttack))->m_Pos.y - ally_robots[i]->m_PosY;
+                    enemy_fire_dist = int(((CMatrixTurret*)(ally_robots[i]->GetEnv()->m_TargetAttack))->GetFireRadius() + GLOBAL_SCALE_MOVE);
                 }
-                else if(rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_BUILDING)
+                else if(ally_robots[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_BUILDING)
                 {
-                    tvx = ((CMatrixBuilding*)(rl[i]->GetEnv()->m_TargetAttack))->m_Pos.x - rl[i]->m_PosX;
-                    tvy = ((CMatrixBuilding*)(rl[i]->GetEnv()->m_TargetAttack))->m_Pos.y - rl[i]->m_PosY;
+                    tvx = ((CMatrixBuilding*)(ally_robots[i]->GetEnv()->m_TargetAttack))->m_Pos.x - ally_robots[i]->m_PosX;
+                    tvy = ((CMatrixBuilding*)(ally_robots[i]->GetEnv()->m_TargetAttack))->m_Pos.y - ally_robots[i]->m_PosY;
                     enemy_fire_dist = 150;//int(GLOBAL_SCALE_MOVE*12.0f);
                 }
                 else continue;
@@ -9731,54 +9735,53 @@ void CMatrixSideUnit::WarPL(int group)
                 float tsize2 = tvx * tvx + tvy * tvy;
                 float tsize2o = 1.0f / tsize2;
 
-                //SMatrixPlaceList * plist=g_MatrixMap->m_RoadNetwork.m_PLList+plr.left+plr.top*g_MatrixMap->m_RoadNetwork.m_PLSizeX;
-                //for(y=plr.top;y<plr.bottom;y++,plist+=g_MatrixMap->m_RoadNetwork.m_PLSizeX-(plr.right-plr.left)) {
-                //    for(x=plr.left;x<plr.right;x++,plist++) {
-                //        SMatrixPlace * place=g_MatrixMap->m_RoadNetwork.m_Place+plist->m_Sme;
-                //        for(u=0;u<plist->m_Cnt;u++,place++) {
+                //SMatrixPlaceList* plist = g_MatrixMap->m_RoadNetwork.m_PLList + plr.left+plr.top * g_MatrixMap->m_RoadNetwork.m_PLSizeX;
+                //for(y = plr.top; y < plr.bottom; ++y, plist += g_MatrixMap->m_RoadNetwork.m_PLSizeX - (plr.right - plr.left)) {
+                //    for(x = plr.left; x < plr.right; ++x, ++plist) {
+                //        SMatrixPlace* place = g_MatrixMap->m_RoadNetwork.m_Place + plist->m_Sme;
+                //        for(u = 0; u < plist->m_Cnt; ++u, ++place) {
                 for(u = 0; u < listcnt; ++u)
                 {
                     int iplace = m_PlaceList[u];
                     SMatrixPlace* place = g_MatrixMap->m_RoadNetwork.m_Place + iplace;
 
-                    if (place->m_Data) continue; // Занетые места игнорируем
-                    if (place->m_Move & (1 << (rl[i]->m_Module[0].m_Kind - 1))) continue; // Если робот не может стоять на этом месте то пропускаем
-                    if (rl[i]->GetEnv()->IsBadPlace(iplace)) continue; // Плохое место пропускаем
+                    if(place->m_Data) continue; // Занетые места игнорируем
+                    if(place->m_Move & (1 << (ally_robots[i]->m_Module[0].m_Kind - 1))) continue; // Если робот не может стоять на этом месте то пропускаем
+                    if(ally_robots[i]->GetEnv()->IsBadPlace(iplace)) continue; // Плохое место пропускаем
 
                     float pcx = GLOBAL_SCALE_MOVE * place->m_Pos.x + (GLOBAL_SCALE_MOVE * 4.0f / 2.0f); // Center place
                     float pcy = GLOBAL_SCALE_MOVE * place->m_Pos.y + (GLOBAL_SCALE_MOVE * 4.0f / 2.0f);
 
-                    float pvx = pcx - rl[i]->m_PosX; // To place
-                    float pvy = pcy - rl[i]->m_PosY;
+                    float pvx = pcx - ally_robots[i]->m_PosX; // To place
+                    float pvy = pcy - ally_robots[i]->m_PosY;
 
                     float k = (pvx * tvx + pvy * tvy) * tsize2o;
-                    if(!havebomb && rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET)
+                    if(!havebomb && ally_robots[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET)
                     {
-                        //                                if(k>1.5) continue; // Места за врагом не расматриваем
-
+                        //if(k>1.5) continue; // Места за врагом не рассматриваем
                     }
-                    else if(!havebomb && rl[i]->GetEnv()->m_TargetAttack->GetObjectType() != OBJECT_TYPE_BUILDING)
+                    else if(!havebomb && ally_robots[i]->GetEnv()->m_TargetAttack->GetObjectType() != OBJECT_TYPE_BUILDING)
                     {
-                        if(k > 0.95) continue; // Места за врагом не расматриваем
+                        if(k > 0.95f) continue; // Места за врагом не рассматриваем
                     }
                     else if(!havebomb)
                     {
-                        if(k > 1.2) continue; // Места сильно за врагом не расматриваем
+                        if(k > 1.20f) continue; // Места сильно за врагом не расматриваем
                     }
-                    //if(k<0.0) continue; // Места за роботом игнорируем
+                    //if(k < 0.0f) continue; // Места за роботом игнорируем
                     float m = (-pvx * tvy + pvy * tvx) * tsize2o;
                     float distfrom2 = POW2(-m * tvy) + POW2(m * tvx); // Дистанция отклонения
                     float distplace2 = POW2(tvx - pcx/*pvx*/) + POW2(tvy - pcx/*pvy*/); // Дистанция от места до врага
-                    if((placebest < 0) || (rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET && (rl[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE) > enemy_fire_dist))
+                    if((placebest < 0) || (ally_robots[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_TURRET && (ally_robots[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE) > enemy_fire_dist))
                     {
-                        if(distplace2 > POW2(0.95 * rl[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2)) continue; // Робот должен достовать врага
+                        if(distplace2 > POW2(0.95 * ally_robots[i]->GetMaxFireDist() - GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2)) continue; // Робот должен достовать врага
                     }
                     else
                     {
-                        if(distplace2 > POW2(0.95 * rl[i]->GetMinFireDist() - GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2)) continue; // Робот должен достовать врага
+                        if(distplace2 > POW2(0.95 * ally_robots[i]->GetMinFireDist() - GLOBAL_SCALE_MOVE * ROBOT_MOVECELLS_PER_SIZE / 2)) continue; // Робот должен достовать врага
                     }
 
-                    if(!havebomb && rl[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
+                    if(!havebomb && ally_robots[i]->GetEnv()->m_TargetAttack->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
                     {
                         if(distfrom2 > POW2(200 + 100)) continue; // Робот не должен отклонится слишком далеко
 //                            } else {
@@ -9786,14 +9789,14 @@ void CMatrixSideUnit::WarPL(int group)
                     }
 
                     //// Если место слишком близко к постройке, то игнорируем
-                    //if(rl[i]->GetEnv()->m_TargetAttack->GetObjectType()==OBJECT_TYPE_BUILDING) {
+                    //if(ally_robots[i]->GetEnv()->m_TargetAttack->GetObjectType()==OBJECT_TYPE_BUILDING) {
                     //    if(distplace2<POW2(200)) continue;
                     //}
 
                     int underfire = place->m_Underfire;
                     if (distplace2 <= POW2(enemy_fire_dist)) underfire++;
 
-                    CMatrixMapStatic* trace_res = g_MatrixMap->Trace(nullptr, D3DXVECTOR3(pcx, pcy, g_MatrixMap->GetZ(pcx, pcy) + 20.0f)/*rl[i]->GetGeoCenter()*/, SetPointOfAim(rl[i]->GetEnv()->m_TargetAttack), TRACE_OBJECT | TRACE_NONOBJECT | TRACE_OBJECTSPHERE | TRACE_SKIP_INVISIBLE, rl[i]);
+                    CMatrixMapStatic* trace_res = g_MatrixMap->Trace(nullptr, D3DXVECTOR3(pcx, pcy, g_MatrixMap->GetZ(pcx, pcy) + 20.0f)/*ally_robots[i]->GetGeoCenter()*/, SetPointOfAim(ally_robots[i]->GetEnv()->m_TargetAttack), TRACE_OBJECT | TRACE_NONOBJECT | TRACE_OBJECT_SPHERE | TRACE_SKIP_INVISIBLE, ally_robots[i]);
                     bool close = (IS_TRACE_STOP_OBJECT(trace_res) && trace_res->GetObjectType() == OBJECT_TYPE_MAPOBJECT) || (trace_res == TRACE_STOP_WATER) || (trace_res == TRACE_STOP_LANDSCAPE);
 
                     if (placebest >= 0) { // Если уже найдено место то выбираем наилучшее
@@ -9826,18 +9829,18 @@ void CMatrixSideUnit::WarPL(int group)
                     cplr = false;
                     SMatrixPlace* place = GetPlacePtr(placebest);
                     place->m_Data = 1;
-                    rl[i]->GetEnv()->m_Place = placebest;
-                    if (PrepareBreakOrder(rl[i]))
+                    ally_robots[i]->GetEnv()->m_Place = placebest;
+                    if (PrepareBreakOrder(ally_robots[i]))
                     {
-                        rl[i]->MoveToHigh(place->m_Pos.x, place->m_Pos.y);
+                        ally_robots[i]->MoveToHigh(place->m_Pos.x, place->m_Pos.y);
                     }
                 }
                 else if(cplr)
                 {
                     cplr = false;
-                    if(g_MatrixMap->PlaceList(mm, GetMapPos(rl[0]), center, radiusrobot, false, m_PlaceList, &listcnt) == 0)
+                    if(g_MatrixMap->PlaceList(mm, GetMapPos(ally_robots[0]), center, radiusrobot, false, m_PlaceList, &listcnt) == 0)
                     {
-                        for(u = 0; u < rl_cnt; ++u) rl[u]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
+                        for(u = 0; u < ally_robots_cnt; ++u) ally_robots[u]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
                         break;
                     }
                     else
@@ -9855,7 +9858,7 @@ void CMatrixSideUnit::WarPL(int group)
                 }
                 else //Не нашли
                 {
-                    rl[i]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
+                    ally_robots[i]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
 
                     int iplace;
                     SMatrixPlace* place;
@@ -9866,22 +9869,22 @@ void CMatrixSideUnit::WarPL(int group)
                         place = g_MatrixMap->m_RoadNetwork.m_Place + iplace;
 
                         if(place->m_Data) continue; // Занетые места игнорируем
-                        if(place->m_Move & (1 << (rl[i]->m_Module[0].m_Kind - 1))) continue; // Если робот не может стоять на этом месте то пропускаем
+                        if(place->m_Move & (1 << (ally_robots[i]->m_Module[0].m_Kind - 1))) continue; // Если робот не может стоять на этом месте то пропускаем
                         break;
                     }
 
                     if(u < listcnt)
                     {
                         place->m_Data = 1;
-                        rl[i]->GetEnv()->m_Place = iplace;
-                        if(PrepareBreakOrder(rl[i]))
+                        ally_robots[i]->GetEnv()->m_Place = iplace;
+                        if(PrepareBreakOrder(ally_robots[i]))
                         {
-                            rl[i]->MoveToHigh(place->m_Pos.x, place->m_Pos.y);
+                            ally_robots[i]->MoveToHigh(place->m_Pos.x, place->m_Pos.y);
                         }
                     }
                     else //Расширяем
                     {
-                        if(g_MatrixMap->PlaceListGrow(mm, m_PlaceList, &listcnt, rl_cnt) <= 0) continue;
+                        if(g_MatrixMap->PlaceListGrow(mm, m_PlaceList, &listcnt, ally_robots_cnt) <= 0) continue;
 
                         for(u = 0; u < listcnt; ++u) g_MatrixMap->m_RoadNetwork.m_Place[m_PlaceList[u]].m_Data = 0;
                         obj = CMatrixMapStatic::GetFirstLogic();
@@ -9892,7 +9895,6 @@ void CMatrixSideUnit::WarPL(int group)
                         }
                     }
                 }
-
             }
         }
     }
@@ -9903,23 +9905,23 @@ void CMatrixSideUnit::WarPL(int group)
 
     int curTime = g_MatrixMap->GetTime();
 
-    for(i = 0; i < rl_cnt; ++i)
+    for(i = 0; i < ally_robots_cnt; ++i)
     {
-        if(rl[i]->GetEnv()->m_TargetAttack)
+        if(ally_robots[i]->GetEnv()->m_TargetAttack)
         {
-            if(!rl[i]->GetEnv()->m_TargetAttack->IsAlive())
+            if(!ally_robots[i]->GetEnv()->m_TargetAttack->IsAlive())
             {
-                rl[i]->StopFire();
+                ally_robots[i]->StopFire();
                 continue;
             }
 
-            des = SetPointOfAim(rl[i]->GetEnv()->m_TargetAttack);
+            des = SetPointOfAim(ally_robots[i]->GetEnv()->m_TargetAttack);
 
             // Не стрелять из прямого оружия, если на пути к цели свои
-            from = rl[i]->GetGeoCenter();
+            from = ally_robots[i]->GetGeoCenter();
             dist = sqrt(POW2(from.x - des.x) + POW2(from.y - des.y) + POW2(from.z - des.z));
 
-            bool fire_line = rl[i]->HaveRepair() != 2;
+            bool fire_line = ally_robots[i]->HaveRepair() != 2;
 
             if(fire_line && dist > 0.0f)
             {
@@ -9931,7 +9933,7 @@ void CMatrixSideUnit::WarPL(int group)
                 obj = CMatrixMapStatic::GetFirstLogic();
                 while(obj)
                 {
-                    if(obj->IsUnitAlive() && obj->GetSide() == m_Id && rl[i] != obj && rl[i]->GetEnv()->m_TargetAttack != obj)
+                    if(obj->IsUnitAlive() && obj->GetSide() == m_Id && ally_robots[i] != obj && ally_robots[i]->GetEnv()->m_TargetAttack != obj)
                     {
                         p = SetPointOfAim(obj);
 
@@ -9939,9 +9941,8 @@ void CMatrixSideUnit::WarPL(int group)
                         {
                             if(t >= 0.0f && t < dist)
                             {
-
                                 //CHelper::DestroyByGroup(dword(this) + 4);
-                                //CHelper::Create(10, dword(this) + 4)->Cone(from, des, 1.0f, 1.0f,0xffffffff, 0xffffffff, 3);
+                                //CHelper::Create(10, dword(this) + 4)->Cone(from, des, 1.0f, 1.0f, 0xffffffff, 0xffffffff, 3);
                                 //CHelper::Create(10, dword(this) + 4)->Sphere(D3DXVECTOR3(from.x + dir.x * t, from.y + dir.y * t, from.z + dir.z * t), 2, 5, 0xffff0000);
 
                                 fire_line = false;
@@ -9949,15 +9950,16 @@ void CMatrixSideUnit::WarPL(int group)
                             }
                         }
                     }
+
                     obj = obj->GetNextLogic();
                 }
             }
 
-            //des.x += g_MatrixMap->RndFloat(-5.0f, +5.0f);
-            //des.y += g_MatrixMap->RndFloat(-5.0f, +5.0f);
-            //des.z += g_MatrixMap->RndFloat(-5.0f, +5.0f);
+            //des.x += g_MatrixMap->RndFloat(-5.0f, 5.0f);
+            //des.y += g_MatrixMap->RndFloat(-5.0f, 5.0f);
+            //des.z += g_MatrixMap->RndFloat(-5.0f, 5.0f);
 
-            CInfo* env = GetEnv(rl[i]);
+            CInfo* env = GetEnv(ally_robots[i]);
             if(env->m_TargetAttack != env->m_TargetLast)
             {
                 env->m_TargetLast = env->m_TargetAttack;
@@ -9966,15 +9968,15 @@ void CMatrixSideUnit::WarPL(int group)
 
             if(fire_line)
             {
-                D3DXVECTOR3 v1 = rl[i]->GetGeoCenter();
-                D3DXVECTOR3 v2 = SetPointOfAim(rl[i]->GetEnv()->m_TargetAttack);
+                D3DXVECTOR3 v1 = ally_robots[i]->GetGeoCenter();
+                D3DXVECTOR3 v2 = SetPointOfAim(ally_robots[i]->GetEnv()->m_TargetAttack);
 
                 D3DXVECTOR3 temp = v2 - v1;
-                fire_line = D3DXVec3LengthSq(&temp) <= POW2(rl[i]->GetMaxFireDist());
+                fire_line = D3DXVec3LengthSq(&temp) <= POW2(ally_robots[i]->GetMaxFireDist());
 
                 if(fire_line)
                 {
-                    CMatrixMapStatic* trace_res = g_MatrixMap->Trace(nullptr, v1, v2, TRACE_OBJECT | TRACE_NONOBJECT, rl[i]);
+                    CMatrixMapStatic* trace_res = g_MatrixMap->Trace(nullptr, v1, v2, TRACE_OBJECT | TRACE_NONOBJECT, ally_robots[i]);
                     fire_line = !((IS_TRACE_STOP_OBJECT(trace_res) && trace_res->GetObjectType() == OBJECT_TYPE_MAPOBJECT) || (trace_res == TRACE_STOP_WATER) || (trace_res == TRACE_STOP_LANDSCAPE));
                 }
             }
@@ -9989,7 +9991,7 @@ void CMatrixSideUnit::WarPL(int group)
                     {
                         env->m_TargetAngle = 0.0f;
 
-                        env->m_TargetAngle=min(30.0f * ToRad, (float)atan(env->m_TargetAttack->AsRobot()->m_AimProtect / sqrt(POW2(des.x - rl[i]->m_PosX) + POW2(des.y - rl[i]->m_PosY))));
+                        env->m_TargetAngle=min(30.0f * ToRad, (float)atan(env->m_TargetAttack->AsRobot()->m_AimProtect / sqrt(POW2(des.x - ally_robots[i]->m_PosX) + POW2(des.y - ally_robots[i]->m_PosY))));
                         if(g_MatrixMap->Rnd(0, 9) < 5) env->m_TargetAngle = -env->m_TargetAngle;
                     }
                     else if(env->m_TargetAngle > 0) env->m_TargetAngle -= 1.0f * ToRad;
@@ -10013,21 +10015,21 @@ void CMatrixSideUnit::WarPL(int group)
 
                     if(env->m_TargetAngle != 0.0f)
                     {
-                        float vx = des.x - rl[i]->m_PosX;
-                        float vy = des.y - rl[i]->m_PosY;
+                        float vx = des.x - ally_robots[i]->m_PosX;
+                        float vy = des.y - ally_robots[i]->m_PosY;
                         float sa, ca;
                         SinCos(env->m_TargetAngle, &sa, &ca);
-                        des.x = (ca * vx + sa * vy) + rl[i]->m_PosX;
-                        des.y = (-sa * vx + ca * vy) + rl[i]->m_PosY;
+                        des.x = (ca * vx + sa * vy) + ally_robots[i]->m_PosX;
+                        des.y = (-sa * vx + ca * vy) + ally_robots[i]->m_PosY;
                     }
                 }
 
                 env->m_Target = env->m_TargetAttack;
                 env->m_LastFire = curTime;
-                rl[i]->OrderFire(des);
+                ally_robots[i]->OrderFire(des);
 
                 //Если стоим на месте
-                if(IsInPlace(rl[i]))
+                if(IsInPlace(ally_robots[i]))
                 {
                     //Если несколько врагов и в цель не попадаем в течении долгого времени, то переназначаем цель
                     if(env->m_EnemyCnt > 1 && (curTime - env->m_TargetChange) > 4000 && (curTime - env->m_LastHitTarget) > 4000)
@@ -10053,31 +10055,31 @@ void CMatrixSideUnit::WarPL(int group)
             }
             else
             {
-                if(rl[i]->HaveRepair() && (g_MatrixMap->GetTime() - rl[i]->GetEnv()->m_TargetChangeRepair) > 1000) //Ищем робота для починки
+                if(ally_robots[i]->HaveRepair() && (g_MatrixMap->GetTime() - ally_robots[i]->GetEnv()->m_TargetChangeRepair) > 1000) //Ищем робота для починки
                 {
                     D3DXVECTOR2 v, v2;
 
-                    if(rl[i]->GetEnv()->m_Target && rl[i]->GetEnv()->m_Target->IsUnitAlive() && rl[i]->GetEnv()->m_Target->GetSide() == m_Id && rl[i]->GetEnv()->m_Target->NeedRepair())
+                    if(ally_robots[i]->GetEnv()->m_Target && ally_robots[i]->GetEnv()->m_Target->IsUnitAlive() && ally_robots[i]->GetEnv()->m_Target->GetSide() == m_Id && ally_robots[i]->GetEnv()->m_Target->NeedRepair())
                     {
-                        v = GetWorldPos(rl[i]);
-                        v2 = GetWorldPos(rl[i]->GetEnv()->m_Target);
-                        if((POW2(v.x - v2.x) + POW2(v.y - v2.y)) > POW2(rl[i]->GetRepairDist())) rl[i]->GetEnv()->m_Target = nullptr;
+                        v = GetWorldPos(ally_robots[i]);
+                        v2 = GetWorldPos(ally_robots[i]->GetEnv()->m_Target);
+                        if((POW2(v.x - v2.x) + POW2(v.y - v2.y)) > POW2(ally_robots[i]->GetRepairDist())) ally_robots[i]->GetEnv()->m_Target = nullptr;
                     }
-                    else rl[i]->GetEnv()->m_Target = nullptr;
+                    else ally_robots[i]->GetEnv()->m_Target = nullptr;
 
-                    if(!rl[i]->GetEnv()->m_Target)
+                    if(!ally_robots[i]->GetEnv()->m_Target)
                     {
                         obj = CMatrixMapStatic::GetFirstLogic();
                         while(obj)
                         {
-                            if(obj != rl[i] && obj->IsUnitAlive() && obj->GetSide() == m_Id && obj->NeedRepair())
+                            if(obj != ally_robots[i] && obj->IsUnitAlive() && obj->GetSide() == m_Id && obj->NeedRepair())
                             {
-                                v = GetWorldPos(rl[i]);
+                                v = GetWorldPos(ally_robots[i]);
                                 v2 = GetWorldPos(obj);
-                                if((POW2(v.x - v2.x) + POW2(v.y - v2.y)) < POW2(rl[i]->GetRepairDist()))
+                                if((POW2(v.x - v2.x) + POW2(v.y - v2.y)) < POW2(ally_robots[i]->GetRepairDist()))
                                 {
-                                    rl[i]->GetEnv()->m_Target = obj;
-                                    rl[i]->GetEnv()->m_TargetChangeRepair = g_MatrixMap->GetTime();
+                                    ally_robots[i]->GetEnv()->m_Target = obj;
+                                    ally_robots[i]->GetEnv()->m_TargetChangeRepair = g_MatrixMap->GetTime();
                                     break;
                                 }
                             }
@@ -10087,11 +10089,11 @@ void CMatrixSideUnit::WarPL(int group)
                     }
                 }
 
-                if(rl[i]->GetEnv()->TargetType() == TARGET_IS_FRIEND) rl[i]->OrderFire(SetPointOfAim(rl[i]->GetEnv()->m_Target), TARGET_IS_FRIEND);
-                else rl[i]->StopFire();
+                if(ally_robots[i]->GetEnv()->TargetType() == TARGET_IS_FRIEND) ally_robots[i]->OrderFire(SetPointOfAim(ally_robots[i]->GetEnv()->m_Target), TARGET_IS_FRIEND);
+                else ally_robots[i]->StopFire();
 
                 // Если стоим на месте
-                if(IsInPlace(rl[i]))
+                if(IsInPlace(ally_robots[i]))
                 {
                     // Если несколько врагов, а текущий долго закрыт своими, то переназначаем цель
                     if(env->m_EnemyCnt > 1 && (curTime - env->m_TargetChange) > 4000 && (curTime - env->m_LastFire) > 4000)
@@ -10101,7 +10103,7 @@ void CMatrixSideUnit::WarPL(int group)
                     // Если долго закрыт своими, то меняем позицию
                     if((curTime - env->m_TargetChange) > 4000 && (curTime - env->m_LastFire) > 6000)
                     {
-                        if(CanChangePlace(rl[i]))
+                        if(CanChangePlace(ally_robots[i]))
                         {
                             env->AddBadPlace(env->m_Place);
                             env->m_Place = -1;
@@ -10706,24 +10708,24 @@ void CMatrixSideUnit::PGOrderAutoDefence(int no)
     }
 }
 
-void CMatrixSideUnit::PGRemoveAllPassive(int no, CMatrixMapStatic *skip)
+void CMatrixSideUnit::PGRemoveAllPassive(int no, CMatrixMapStatic* skip)
 {
 #define IsPassive(obj) (((obj)->GetObjectType() == OBJECT_TYPE_BUILDING) || ((obj)->IsAlive() && (obj)->GetSide() == m_Id))
 
-    CMatrixMapStatic *obj;
+    CMatrixMapStatic* obj;
     obj = CMatrixMapStatic::GetFirstLogic();
     while(obj)
     {
         if(obj->IsRobotAlive() && obj->GetSide() == m_Id && obj->AsRobot()->GetGroupLogic() == no)
         {
-            CMatrixRobotAI *robot = (CMatrixRobotAI*)obj;
-            CInfo *env = robot->GetEnv();
+            CMatrixRobotAI* robot = (CMatrixRobotAI*)obj;
+            CInfo* env = robot->GetEnv();
 
             if(env->m_Target && env->m_Target != skip && IsPassive(env->m_Target)) env->m_Target = nullptr;
-            CEnemy *enemy = env->m_FirstEnemy;
+            CEnemy* enemy = env->m_FirstEnemy;
             while(enemy)
             {
-                CEnemy *e2 = enemy;
+                CEnemy* e2 = enemy;
                 enemy = enemy->m_NextEnemy;
                 if(e2->GetEnemy() != skip && IsPassive(e2->GetEnemy())) env->RemoveFromList(e2);
             }
@@ -10733,20 +10735,20 @@ void CMatrixSideUnit::PGRemoveAllPassive(int no, CMatrixMapStatic *skip)
 #undef IsPassive
 }
 
-void CMatrixSideUnit::PGSetPlace(CMatrixRobotAI *robot, const CPoint &p)
+void CMatrixSideUnit::PGSetPlace(CMatrixRobotAI* robot, const CPoint& p)
 {
     int x, y, u;
     CRect plr = g_MatrixMap->m_RoadNetwork.CorrectRectPL(CRect(p.x - 4, p.y - 4, p.x + 4, p.y + 4));
 
     SMatrixPlaceList* plist = g_MatrixMap->m_RoadNetwork.m_PLList + plr.left + plr.top * g_MatrixMap->m_RoadNetwork.m_PLSizeX;
-    for (y = plr.top; y < plr.bottom; ++y, plist += g_MatrixMap->m_RoadNetwork.m_PLSizeX - (plr.right - plr.left))
+    for(y = plr.top; y < plr.bottom; ++y, plist += g_MatrixMap->m_RoadNetwork.m_PLSizeX - (plr.right - plr.left))
     {
-        for (x = plr.left; x < plr.right; ++x, ++plist)
+        for(x = plr.left; x < plr.right; ++x, ++plist)
         {
             SMatrixPlace* place = g_MatrixMap->m_RoadNetwork.m_Place + plist->m_Sme;
-            for (u = 0; u < plist->m_Cnt; ++u, ++place)
+            for(u = 0; u < plist->m_Cnt; ++u, ++place)
             {
-                if (!(p.x >= (place->m_Pos.x + 4) || (p.x + 4) <= place->m_Pos.x) && !(p.y >= (place->m_Pos.y + 4) || (p.y + 4) <= place->m_Pos.y))
+                if(!(p.x >= (place->m_Pos.x + 4) || (p.x + 4) <= place->m_Pos.x) && !(p.y >= (place->m_Pos.y + 4) || (p.y + 4) <= place->m_Pos.y))
                 {
                     robot->GetEnv()->m_Place = plist->m_Sme + u;
                     robot->GetEnv()->m_PlaceAdd = CPoint(-1, -1);
@@ -10767,9 +10769,9 @@ CPoint CMatrixSideUnit::PGCalcCenterGroup(int no)
     int cnt = 0;
 
     obj = CMatrixMapStatic::GetFirstLogic();
-    while (obj)
+    while(obj)
     {
-        if (obj->IsRobotAlive() && (obj->AsRobot()->GetSide() == m_Id && obj->AsRobot()->GetGroupLogic() == no))
+        if(obj->IsRobotAlive() && (obj->AsRobot()->GetSide() == m_Id && obj->AsRobot()->GetGroupLogic() == no))
         {
             CMatrixRobotAI* robot = (CMatrixRobotAI*)obj;
 
@@ -10779,6 +10781,7 @@ CPoint CMatrixSideUnit::PGCalcCenterGroup(int no)
         }
         obj = obj->GetNextLogic();
     }
+
     return CPoint(tp.x / cnt, tp.y / cnt);
 }
 
@@ -10787,9 +10790,9 @@ void CMatrixSideUnit::PGPlaceClear(int no)
     CMatrixMapStatic* obj;
 
     obj = CMatrixMapStatic::GetFirstLogic();
-    while (obj)
+    while(obj)
     {
-        if (obj->IsRobotAlive() && (obj->AsRobot()->GetSide() == m_Id && obj->AsRobot()->GetGroupLogic() == no))
+        if(obj->IsRobotAlive() && (obj->AsRobot()->GetSide() == m_Id && obj->AsRobot()->GetGroupLogic() == no))
         {
             CMatrixRobotAI* robot = (CMatrixRobotAI*)obj;
 
@@ -10872,8 +10875,8 @@ void CMatrixSideUnit::PGAssignPlace(int no, CPoint& center)
     byte mm = 0;
     CMatrixMapStatic*obj;
     SMatrixPlace *place;
-    CMatrixRobotAI *rl[MAX_ROBOTS];
-    int rl_cnt = 0;
+    CMatrixRobotAI *rl[MAX_ROBOTS_ON_MAP];
+    int ally_robots_cnt = 0;
     int listcnt = 0;
 
     BufPrepare();
@@ -10885,16 +10888,16 @@ void CMatrixSideUnit::PGAssignPlace(int no, CPoint& center)
         {
             if(obj->GetSide() == m_Id && GetGroupLogic(obj) == no)
             {
-                rl[rl_cnt] = (CMatrixRobotAI*)obj;
+                rl[ally_robots_cnt] = (CMatrixRobotAI*)obj;
                 mm |= 1 << (obj->AsRobot()->m_Module[0].m_Kind - 1);
-                ++rl_cnt;
+                ++ally_robots_cnt;
             }
         }
 
         obj = obj->GetNextLogic();
     }
 
-    if(rl_cnt <= 0) return;
+    if(ally_robots_cnt <= 0) return;
 
 
     int x = center.x, y = center.y;
@@ -10907,14 +10910,14 @@ void CMatrixSideUnit::PGAssignPlace(int no, CPoint& center)
     m_PlaceList[listcnt] = g_MatrixMap->FindNearPlace(mm, center);
     if(m_PlaceList[listcnt] < 0)
     {
-        for(i = 0; i < rl_cnt; ++i) rl[i]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
+        for(i = 0; i < ally_robots_cnt; ++i) rl[i]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
         return;
     }
 
     ++listcnt;
-    if(rl_cnt > 1 && g_MatrixMap->PlaceListGrow(mm, m_PlaceList, &listcnt, rl_cnt - 1) <= 0)
+    if(ally_robots_cnt > 1 && g_MatrixMap->PlaceListGrow(mm, m_PlaceList, &listcnt, ally_robots_cnt - 1) <= 0)
     {
-        for(i = 0; i < rl_cnt; ++i) rl[i]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
+        for(i = 0; i < ally_robots_cnt; ++i) rl[i]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
         return;
     }
 
@@ -10926,7 +10929,7 @@ void CMatrixSideUnit::PGAssignPlace(int no, CPoint& center)
         obj = obj->GetNextLogic();
     }
 
-    for(i = 0; i < rl_cnt; ++i)
+    for(i = 0; i < ally_robots_cnt; ++i)
     {
         for(u = 0; u < listcnt; ++u)
         {
@@ -10943,9 +10946,9 @@ void CMatrixSideUnit::PGAssignPlace(int no, CPoint& center)
         }
         else
         {
-            if(g_MatrixMap->PlaceListGrow(mm, m_PlaceList, &listcnt, rl_cnt) <= 0)
+            if(g_MatrixMap->PlaceListGrow(mm, m_PlaceList, &listcnt, ally_robots_cnt) <= 0)
             {
-                for(; i < rl_cnt; ++i) rl[i]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
+                for(; i < ally_robots_cnt; ++i) rl[i]->GetEnv()->m_PlaceNotFound = g_MatrixMap->GetTime();
                 return;
             }
             for(u = 0; u < listcnt; ++u) g_MatrixMap->m_RoadNetwork.m_Place[m_PlaceList[u]].m_Data = 0;

@@ -11,9 +11,9 @@
 #include <vector>
 
 //#define MAX_ROBOTS_BUILD      10
-#define MAX_ROBOTS              60
+#define MAX_ROBOTS_ON_MAP              60
 #define MAX_FACTORIES           10
-#define MAX_LOGIC_GROUP         (MAX_ROBOTS + 1)
+#define MAX_LOGIC_GROUP         (MAX_ROBOTS_ON_MAP + 1)
 
 #define MAX_TEAM_CNT            3
 #define MAX_SELECTION_GROUPS    10
@@ -274,8 +274,8 @@ public:
     CMatrixRoadRoute* m_RoadPath = nullptr;
 
     int m_RegionListCnt = 0;                    // Список регионов, в которых находятся роботы 
-    int m_RegionList[MAX_ROBOTS] = { 0 };       // Регионы
-    int m_RegionListRobots[MAX_ROBOTS] = { 0 }; // Кол-во роботов
+    int m_RegionList[MAX_ROBOTS_ON_MAP] = { 0 };       // Регионы
+    int m_RegionListRobots[MAX_ROBOTS_ON_MAP] = { 0 }; // Кол-во роботов
 
 
     byte Move() const { return byte(m_Bits & 0xFF); }
@@ -414,7 +414,7 @@ public:
     int*  m_PlaceList = nullptr;
 
     CMatrixMapStatic* m_ActiveObject = nullptr;
-    SRobot            m_Robots[MAX_ROBOTS];
+    SRobot            m_Robots[MAX_ROBOTS_ON_MAP];
     SCannonForBuild   m_CannonForBuild;
 
     //Отдельные логические группы роботов для доминаторов и игрока
@@ -585,7 +585,7 @@ public:
     void RepairTL(int group); //Отработка логики раздачи приказов ремонта роботам ИИ
     void AssignPlace(CMatrixRobotAI* robot, int region, CPoint* target = nullptr, std::vector<SMatrixRegion*>* all_regions = nullptr);
     void AssignPlace(int group, int region);
-    void SortRobotList(CMatrixRobotAI** rl, int rl_cnt);
+    void SortRobotList(CMatrixRobotAI** ally_robots, int ally_robots_cnt);
     bool CmpOrder(int team, int group) { ASSERT(team >= 0 && team < m_TeamCnt); return m_LogicGroup[group].m_Action.m_Type == m_Team[team].m_Action.m_Type && m_LogicGroup[group].m_Action.m_Region == m_Team[team].m_Action.m_Region; } // Путь не сравнивается
     void CopyOrder(int team, int group) { ASSERT(team >= 0 && team < m_TeamCnt); m_LogicGroup[group].m_Action = m_Team[team].m_Action; }
 

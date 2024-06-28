@@ -13,10 +13,7 @@
 #include <math.h>
 
 CMatrixEffectWeapon::CMatrixEffectWeapon(const D3DXVECTOR3& pos, const D3DXVECTOR3& dir, dword user, FIRE_END_HANDLER handler, int type, int cooldown) :
-    CMatrixEffect(), m_WeaponNum(type), m_User(user), m_Handler(handler), m_Pos(pos), m_Dir(dir), m_CoolDown(cooldown ? float(cooldown) : ((float)(int)type))
-#ifdef _DEBUG
-    , m_Effect(DEBUG_CALL_INFO)
-#endif
+    CMatrixEffect(), m_WeaponNum(type), m_User(user), m_Handler(handler), m_Pos(pos), m_Dir(dir), m_CoolDown(cooldown ? float(cooldown) : ((float)type))
 {
     m_EffectType = EFFECT_WEAPON;
     m_WeaponCoefficient = g_WeaponDamageNormalCoef;
@@ -89,7 +86,7 @@ DTRACE();
     }
     else if(hiti == TRACE_STOP_WATER && w->m_WeaponNum != WEAPON_FLAMETHROWER && w->m_WeaponNum != WEAPON_BOMB)
     {
-        CMatrixEffect::CreateKonusSplash(pos, D3DXVECTOR3(0, 0, 1), 10, 5, FSRND((float)M_PI), 1000, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged,TEXTURE_PATH_SPLASH));
+        CMatrixEffect::CreateKonusSplash(pos, D3DXVECTOR3(0.0f, 0.0f, 1.0f), 10.0f, 5.0f, FSRND((float)M_PI), 1000.0f, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged,TEXTURE_PATH_SPLASH));
     }
 
     if(odead) hiti = TRACE_STOP_NONE;
@@ -99,15 +96,9 @@ DTRACE();
     if(FLAG(flags, FEHF_LASTHIT)) w->Release();
 }
 
-void CMatrixEffectWeapon::Release(void)
+void CMatrixEffectWeapon::Release()
 {
-DTRACE();
-
     --m_Ref;
-
-#ifdef _DEBUG
-    if(m_Ref < 0) _asm int 3
-#endif
 
     if(m_Ref <= 0)
     {

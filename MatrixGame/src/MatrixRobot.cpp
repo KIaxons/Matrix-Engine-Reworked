@@ -4528,13 +4528,13 @@ void CMatrixRobotAI::GatherInfo(int type)
                     /*
                     D3DXVECTOR3 rem;
                     CMatrixMapStatic* trace_res = nullptr;
-                    trace_res = g_MatrixMap->Trace(&rem, GetGeoCenter(), robot->GetGeoCenter(), TRACE_ANYOBJECT | TRACE_NONOBJECT | TRACE_OBJECTSPHERE | TRACE_SKIP_INVISIBLE, this);
+                    trace_res = g_MatrixMap->Trace(&rem, GetGeoCenter(), robot->GetGeoCenter(), TRACE_ANYOBJECT | TRACE_NONOBJECT | TRACE_OBJECT_SPHERE | TRACE_SKIP_INVISIBLE, this);
                     if((IS_TRACE_STOP_OBJECT(trace_res) && trace_res == robot) && !m_Environment.SearchEnemy(robot)) m_Environment.AddToList(obj);
                     else
                     {
                         D3DXVECTOR3 v1 = GetGeoCenter();
                         v1.z += 50.0f;
-                        trace_res = g_MatrixMap->Trace(&rem, v1, robot->GetGeoCenter(), TRACE_ANYOBJECT | TRACE_NONOBJECT | TRACE_OBJECTSPHERE | TRACE_SKIP_INVISIBLE, this);
+                        trace_res = g_MatrixMap->Trace(&rem, v1, robot->GetGeoCenter(), TRACE_ANYOBJECT | TRACE_NONOBJECT | TRACE_OBJECT_SPHERE | TRACE_SKIP_INVISIBLE, this);
                         if((IS_TRACE_STOP_OBJECT(trace_res) && trace_res == robot) && !m_Environment.SearchEnemy(robot)) m_Environment.AddToList(obj);
                     }
                     */
@@ -5352,7 +5352,7 @@ void CMatrixRobotAI::GetLost(const D3DXVECTOR3& v)
 
     if(angle > GRAD2RAD(70))
     {
-        RotateRobotChassis((D3DXVECTOR3(m_PosX, m_PosY, 0) + v));
+        RotateRobotChassis((D3DXVECTOR3(m_PosX, m_PosY, 0.0f) + v));
         return;
     }
 
@@ -5364,8 +5364,8 @@ void CMatrixRobotAI::GetLost(const D3DXVECTOR3& v)
 
     vRight = -vLeft;
 
-    v_param = (float)g_MatrixMap->RndFloat(0, 1);
-    lost_param = (float)g_MatrixMap->RndFloat(0, 1);
+    v_param = g_MatrixMap->RndFloat(0.0f, 1.0f);
+    lost_param = g_MatrixMap->RndFloat(0.0f, 1.0f);
 
     D3DXVECTOR3 vLost = LERPVECTOR(v_param, vLeft, vRight);
     lost_len = LERPFLOAT(lost_param, GET_LOST_MIN, GET_LOST_MAX);

@@ -2592,25 +2592,25 @@ bool CMatrixMap::FindObjects(
     if(minx1 < 0)
     {
         minx1 = 0;
-        if(0 > maxx1) goto skip;
+        if(0 > maxx1) goto skip_search;
     }
 
     if(maxx1 >= m_GroupSize.x)
     {
         maxx1 = m_GroupSize.x - 1;
-        if(maxx1 < minx1) goto skip;
+        if(maxx1 < minx1) goto skip_search;
     }
 
     if(miny1 < 0)
     {
         miny1 = 0;
-        if(0 > maxy1) goto skip;
+        if(0 > maxy1) goto skip_search;
     }
 
     if(maxy1 >= m_GroupSize.y)
     {
         maxy1 = m_GroupSize.y - 1;
-        if(maxy1 < miny1) goto skip;
+        if(maxy1 < miny1) goto skip_search;
     }
 
     for(int x = minx1; x <= maxx1; ++x)
@@ -2638,7 +2638,7 @@ bool CMatrixMap::FindObjects(
                 if(ms == skip) continue;
                 if(ms->GetObjectType() == OBJECT_TYPE_FLYER)
                 {
-                    ms2 = ((CMatrixFlyer*)ms)->GetCarryingRobot();
+                    ms2 = ms->AsFlyer()->GetCarryingRobot();
                     if(ms2 != nullptr)
                     {
                         D3DXVECTOR3 temp = ms2->GetGeoCenter() - pos;
@@ -2657,7 +2657,7 @@ bool CMatrixMap::FindObjects(
         }
     }
 
-skip:;
+skip_search:;
     for(int od = 0; od < m_AD_Obj_cnt; ++od)
     {
         if(m_AD_Obj[od]->m_IntersectFlagFindObjects != m_IntersectFlagFindObjects)
@@ -2665,29 +2665,29 @@ skip:;
             m_AD_Obj[od]->m_IntersectFlagFindObjects = m_IntersectFlagFindObjects;
 
             CMatrixMapStatic* msa[2];
-            int mscnt = 1;
+            int ms_cnt = 1;
             msa[0] = m_AD_Obj[od];
 
             while(true)
             {
-                if(mscnt == 0) break;
+                if(!ms_cnt) break;
                 CMatrixMapStatic* ms = msa[0];
-                if(mscnt == 2) msa[0] = msa[1];
-                --mscnt;
+                if(ms_cnt == 2) msa[0] = msa[1];
+                --ms_cnt;
 
                 if(ms->IsRobot())
                 {
-                    if(((CMatrixRobot*)ms)->m_CurrentState == ROBOT_DIP) continue;
+                    if(ms->AsRobot()->m_CurrentState == ROBOT_DIP) continue;
                     if(!(mask & TRACE_ROBOT)) continue;
                 }
                 else if(ms->IsFlyer())
                 {
-                    msa[mscnt] = ((CMatrixFlyer*)ms)->GetCarryingRobot();
-                    if(msa[mscnt] != nullptr)
+                    msa[ms_cnt] = ms->AsFlyer()->GetCarryingRobot();
+                    if(msa[ms_cnt] != nullptr)
                     {
-                        D3DXVECTOR3 temp = msa[mscnt]->GetGeoCenter() - pos;
-                        float dist = D3DXVec3Length(&temp) - msa[mscnt]->GetRadius() * oscale;
-                        if(dist < radius) ++mscnt;
+                        D3DXVECTOR3 temp = msa[ms_cnt]->GetGeoCenter() - pos;
+                        float dist = D3DXVec3Length(&temp) - msa[ms_cnt]->GetRadius() * oscale;
+                        if(dist < radius) ++ms_cnt;
                     }
 
                     if(!(mask & TRACE_FLYER)) continue;

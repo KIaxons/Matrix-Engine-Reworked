@@ -14,12 +14,12 @@
 #include "Interface/CInterface.h"
 
 
-float CMatrixTurret::GetSeekRadius(void)
+float CMatrixTurret::GetSeekRadius()
 {
     return g_Config.m_TurretsConsts[m_TurretKind].seek_target_range;
 }
 
-float CMatrixTurret::GetStrength(void)
+float CMatrixTurret::GetStrength()
 {
     return g_Config.m_TurretsConsts[m_TurretKind].strength * (0.4f + 0.6f * (m_Hitpoints / m_MaxHitpoints));
 }
@@ -57,8 +57,9 @@ CMatrixTurret::~CMatrixTurret()
         m_ShadowProj = nullptr;
     }
 
-    for(int i = 0; i < m_TurretWeapon.size(); ++i)
+    for(int i = 0; i < (int)m_TurretWeapon.size(); ++i)
     {
+        m_TurretWeapon[i].m_Weapon->FireEnd();
         m_TurretWeapon[i].m_Weapon->Release();
         m_TurretWeapon[i].m_Weapon = nullptr;
     }
@@ -202,7 +203,7 @@ void CMatrixTurret::GetResources(dword need)
                 int n = m_Module[m_ModulesCount].m_Graph->VO()->GetMatrixCount();
                 //Определяем число и тип орудий на турели
                 int top_range = 0;
-                for(int i = 0; i < g_Config.m_TurretsConsts[m_TurretKind].guns.size(); ++i)
+                for(int i = 0; i < (int)g_Config.m_TurretsConsts[m_TurretKind].guns.size(); ++i)
                 {
                     STurretWeapon gun;
                     m_TurretWeapon.push_back(gun);
@@ -738,6 +739,7 @@ struct FTData
     CMatrixMapStatic* skip = nullptr;
 };
 
+//Функция проверки цели на пригодность для турели (всё говно с херовым определением целей идёт именно отсюда)
 static bool FindTarget(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dword user)
 {
     FTData* d = (FTData*)user;
@@ -755,7 +757,7 @@ static bool FindTarget(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dword us
 
     if(match || dot > d->coss)
     {
-        CMatrixMapStatic* cel = g_MatrixMap->Trace(nullptr, center, ms->GetGeoCenter(), TRACE_OBJECTSPHERE | TRACE_ROBOT | TRACE_FLYER | TRACE_LANDSCAPE, d->skip);
+        CMatrixMapStatic* cel = g_MatrixMap->Trace(nullptr, center, ms->GetGeoCenter(), TRACE_OBJECT_SPHERE | TRACE_ROBOT | TRACE_FLYER | TRACE_LANDSCAPE, d->skip);
 
         if(cel == ms)
         {
@@ -883,17 +885,6 @@ void CMatrixTurret::LogicTact(int tact)
     }
     else
     {
-        /*
-        if(m_ParentBuilding && m_ParentBuilding->m_BS.m_Top == this)
-        {
-            m_NextTimeAblaze += tact;
-            float percent_done = float(m_NextTimeAblaze) / float(g_Config.m_Timings[UNIT_TURRET]);
-
-            if(m_NextTimeAblaze > )
-            SetHitpoints(10.0f * GetMaxHitpoints() * percent_done);
-        }
-        */
-
         m_ShowHitpointsTime = 1;
         return;
     }
@@ -941,7 +932,7 @@ void CMatrixTurret::LogicTact(int tact)
             {
                 pos.x = m_Core->m_Matrix._41 + FSRND(m_Core->m_Radius);
                 pos.y = m_Core->m_Matrix._42 + FSRND(m_Core->m_Radius);
-                pos.z = m_Core->m_Matrix._43 + FRND(m_Core->m_Radius * 2);
+                pos.z = m_Core->m_Matrix._43 + FRND(m_Core->m_Radius * 2.0f);
                 D3DXVECTOR3 temp = { m_Core->m_Matrix._41 - pos.x, m_Core->m_Matrix._42 - pos.y, m_Core->m_Matrix._43 - pos.z };
                 D3DXVec3Normalize(&dir, &temp);
                 
@@ -964,7 +955,7 @@ void CMatrixTurret::LogicTact(int tact)
             if(cnt > 0)
             {
                 d2 = pos + dir * t;
-                CMatrixEffect::CreateShorted(d1, d2, FRND(400) + 100, g_Config.m_WeaponsConsts[shorted_effect_num].hex_BGRA_sprites_color, g_Config.m_WeaponsConsts[shorted_effect_num].sprite_set[0].sprites_num[0]);
+                CMatrixEffect::CreateShorted(d1, d2, FRND(400.0f) + 100.0f, g_Config.m_WeaponsConsts[shorted_effect_num].hex_BGRA_sprites_color, g_Config.m_WeaponsConsts[shorted_effect_num].sprite_set[0].sprites_num[0]);
             }
 
             if(TakingDamage(shorted_effect_num, pos, dir, m_LastDelayDamageSide, nullptr)) return; //Турель была уничтожена
@@ -977,25 +968,26 @@ void CMatrixTurret::LogicTact(int tact)
     STurretsConsts* props = &g_Config.m_TurretsConsts[m_TurretKind];
 
     bool its_time = false;
-    int delta = m_FireNextThinkTime-g_MatrixMap->GetTime();
-    if(delta < 0 || delta > CANNON_FIRE_THINK_PERIOD)
+    if(m_FireNextThinkTime - g_MatrixMap->GetTime() <= 0)
     {
         its_time = true;
         m_FireNextThinkTime = g_MatrixMap->GetTime() + CANNON_FIRE_THINK_PERIOD;
     }
 
-    if(its_time)
+    if(m_TargetOverride && m_TargetOverride->IsUnitAlive()) m_TargetCore = m_TargetOverride->GetCore();
+    else if(its_time)
     {
         // Seek new target
         // seek side target
 
         CMatrixMapStatic* target = nullptr;
-        if(m_TargetOverride && m_TargetOverride->IsUnitAlive()) target = m_TargetOverride;
+        m_TargetOverride = nullptr;
 
+        //Этот блок инфы будет обновлён при вызове FindObjects()
         FTData data;
         //data.dist = props->seek_target_range * props->seek_target_range;
         data.coss = -1.0f;
-        data.target = &target;
+        data.target = &target; //Реуказатель на target также обновит и саму временную target
         data.side = m_Side;
         data.skip = this;
 
@@ -1008,7 +1000,6 @@ void CMatrixTurret::LogicTact(int tact)
         m_TargetDisp = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
         dword mask = TRACE_ROBOT | TRACE_FLYER;
-        if(m_TargetOverride) mask = TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET;
         g_MatrixMap->FindObjects(GetGeoCenter(), props->seek_target_range, 1, mask, nullptr, FindTarget, (dword)&data);
 
         if(target)
@@ -1018,10 +1009,9 @@ void CMatrixTurret::LogicTact(int tact)
         }
         else
         {
-            // цель не найдена (уехала далеко наверное)
+            //Цель не найдена (уехала далеко, наверное)
             if(m_TargetCore) m_TargetCore->Release();
             m_TargetCore = nullptr;
-            m_TargetOverride = nullptr; //На случай, если выставленная принудительно цель покинула зону поражения
         }
     }
 
@@ -1056,7 +1046,7 @@ no_target:
 
         //Отрабатываем логику выстрела
         bool fire_was = false;
-        for(int i = 0; i < m_TurretWeapon.size(); ++i)
+        for(int i = 0; i < (int)m_TurretWeapon.size(); ++i)
         {
             SETFLAG(m_ObjectFlags, OBJECT_CANNON_REF_PROTECTION);
             RESETFLAG(m_ObjectFlags, OBJECT_CANNON_REF_PROTECTION_HIT);
@@ -1172,7 +1162,6 @@ no_target:
         for(int i = 0; i < m_TurretWeapon.size(); ++i)
         {
             D3DXVECTOR3 hp = m_TurretWeapon[i].m_FireFrom + m_TurretWeapon[i].m_FireDir * m_TurretWeapon[i].m_Weapon->GetWeaponDist();
-            //CMatrixMapStatic* s = 
             g_MatrixMap->Trace(&hp, m_TurretWeapon[i].m_FireFrom, hp, TRACE_ALL, this);
 
             float dist = DistOtrezokPoint(m_TurretWeapon[i].m_FireFrom, hp, m_TargetCore->m_GeoCenter);
@@ -1183,16 +1172,6 @@ no_target:
             }
         }
     }
-
-    //цель в зоне обстрела, жмём на гашетку
-    /*
-    if(m_TargetCore && m_TargetCore->m_Object && m_TargetCore->m_Object->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
-    {
-        CMatrixRobotAI* tgt = (CMatrixRobotAI*)m_TargetCore->m_Object;
-
-        if(!tgt->GetEnv()->SearchEnemy(this)) tgt->GetEnv()->AddToList(this);
-    }
-    */
 
     m_NullTargetTime = CANNON_NULL_TARGET_TIME; // типа, чтобы стрелять ещё некоторое время после потери цели...
 
@@ -1214,7 +1193,7 @@ no_target:
 
     //Отрабатываем логику выстрела
     bool fire_was = false;
-    for(int i = 0; i < m_TurretWeapon.size(); ++i)
+    for(int i = 0; i < (int)m_TurretWeapon.size(); ++i)
     {
         SETFLAG(m_ObjectFlags, OBJECT_CANNON_REF_PROTECTION);
         RESETFLAG(m_ObjectFlags, OBJECT_CANNON_REF_PROTECTION_HIT);
@@ -1375,15 +1354,15 @@ inst_death:;
 
         ReleaseMe();
 
-        for(int i = 0; i < m_TurretWeapon.size(); ++i)
+        for(int i = 0; i < (int)m_TurretWeapon.size(); ++i)
         {
-            m_TurretWeapon[i].m_Weapon->Release();
+            m_TurretWeapon[i].m_Weapon->FireEnd();
         }
         m_TurretWeapon.clear();
 
         ///bool cstay = FRND(1) < 0.5f;
 
-        m_Module[0].m_TTL = FRND(3000) + 2000;
+        m_Module[0].m_TTL = FRND(3000.0f) + 2000.0f;
         m_Module[0].m_Pos.x = m_Module[0].m_Matrix._41;
         m_Module[0].m_Pos.y = m_Module[0].m_Matrix._42;
         m_Module[0].m_Pos.z = m_Module[0].m_Matrix._43;
@@ -1540,6 +1519,10 @@ void CMatrixTurret::ReleaseMe()
         if(objects->IsRobotAlive())
         {
             objects->AsRobot()->GetEnv()->RemoveFromList(this);
+        }
+        else if(objects->IsFlyerAlive())
+        {
+            //objects->AsFlyer()->GetEnv()->RemoveFromList(this);
         }
         else if(objects->IsBuildingAlive())
         {

@@ -74,32 +74,24 @@ void CMatrixMapLogic::Clear()
 
 int CMatrixMapLogic::Rnd()
 {
-DTRACE();
-
     m_Rnd = 16807 * (m_Rnd % 127773) - 2836 * (m_Rnd / 127773);
     if(m_Rnd <= 0) m_Rnd = m_Rnd + 2147483647;
     return m_Rnd - 1;
 }
 
-double CMatrixMapLogic::RndFloat(void)
+float CMatrixMapLogic::RndFloat()
 {
-DTRACE();
-
-    return float(Rnd()) / float(2147483647 - 2);
+    return float(Rnd()) / 2147483647.0f - 2.0f;
 }
 
 int CMatrixMapLogic::Rnd(int min, int max)
 {
-DTRACE();
-
     if(min <= max) return min + (Rnd() % (max - min + 1));
     else return max + (Rnd() % (min - max + 1));
 }
 
-double CMatrixMapLogic::RndFloat(double min, double max)
+float CMatrixMapLogic::RndFloat(float min, float max)
 {
-DTRACE();
-
     return min + RndFloat() * (max - min);
 }
 
@@ -3544,12 +3536,12 @@ bool CMatrixMapLogic::IsLogicVisible(CMatrixMapStatic* ofrom, CMatrixMapStatic* 
 
     while(true)
     {
-        CMatrixMapStatic* trace_res = g_MatrixMap->Trace(&vt, vstart, vend, TRACE_ANYOBJECT | TRACE_NONOBJECT | TRACE_OBJECTSPHERE | TRACE_SKIP_INVISIBLE, ofrom);
+        CMatrixMapStatic* trace_res = g_MatrixMap->Trace(&vt, vstart, vend, TRACE_ANYOBJECT | TRACE_NONOBJECT | TRACE_OBJECT_SPHERE | TRACE_SKIP_INVISIBLE, ofrom);
         if(IS_TRACE_STOP_OBJECT(trace_res) && trace_res->IsBuilding())
         {
             trace_res = g_MatrixMap->Trace(&vt, vstart, vend, TRACE_BUILDING | TRACE_SKIP_INVISIBLE, ofrom);
             if(IS_TRACE_STOP_OBJECT(trace_res) && trace_res->IsBuilding()) break;
-            trace_res = g_MatrixMap->Trace(&vt, vstart, vend, (TRACE_OBJECT | TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET) | TRACE_NONOBJECT | TRACE_OBJECTSPHERE | TRACE_SKIP_INVISIBLE, ofrom);
+            trace_res = g_MatrixMap->Trace(&vt, vstart, vend, (TRACE_OBJECT | TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET) | TRACE_NONOBJECT | TRACE_OBJECT_SPHERE | TRACE_SKIP_INVISIBLE, ofrom);
         }
         if(IS_TRACE_STOP_OBJECT(trace_res) && trace_res == oto) return true;
         break;
@@ -3559,12 +3551,12 @@ bool CMatrixMapLogic::IsLogicVisible(CMatrixMapStatic* ofrom, CMatrixMapStatic* 
 
     while(true)
     {
-        CMatrixMapStatic *trace_res = g_MatrixMap->Trace(&vt, vstart, vend, TRACE_ANYOBJECT | TRACE_NONOBJECT | TRACE_OBJECTSPHERE | TRACE_SKIP_INVISIBLE, ofrom);
+        CMatrixMapStatic *trace_res = g_MatrixMap->Trace(&vt, vstart, vend, TRACE_ANYOBJECT | TRACE_NONOBJECT | TRACE_OBJECT_SPHERE | TRACE_SKIP_INVISIBLE, ofrom);
         if(IS_TRACE_STOP_OBJECT(trace_res) && trace_res->IsBuilding())
         {
             trace_res = g_MatrixMap->Trace(&vt, vstart, vend, TRACE_BUILDING | TRACE_SKIP_INVISIBLE, ofrom);
             if(IS_TRACE_STOP_OBJECT(trace_res) && trace_res->IsBuilding()) break;
-            trace_res = g_MatrixMap->Trace(&vt, vstart, vend, (TRACE_OBJECT | TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET) | TRACE_NONOBJECT | TRACE_OBJECTSPHERE | TRACE_SKIP_INVISIBLE, ofrom);
+            trace_res = g_MatrixMap->Trace(&vt, vstart, vend, (TRACE_OBJECT | TRACE_ROBOT | TRACE_FLYER | TRACE_TURRET) | TRACE_NONOBJECT | TRACE_OBJECT_SPHERE | TRACE_SKIP_INVISIBLE, ofrom);
         }
         if(IS_TRACE_STOP_OBJECT(trace_res) && trace_res == oto) return true;
         break;

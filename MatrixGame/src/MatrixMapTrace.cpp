@@ -11,37 +11,35 @@
 #include "MatrixObjectCannon.hpp"
 #include "MatrixObjectBuilding.hpp"
 
-typedef struct
+struct internal_trace_data
 {
-    D3DXVECTOR3 dir;
-    D3DXVECTOR3 out;
-    float len;
-    float dx,dy,dz,ddx,ddy, dzdx, dzdy;
-    float minz, maxz;
-    int   gdx, gdy; 
-    bool  usex;
-    double k;
-    float last_t;
-    CMatrixMapStatic *obj;
-    CMatrixMapStatic *skip;
-    dword mask;
+    D3DXVECTOR3 dir = { 0.0f, 0.0f, 0.0f };
+    D3DXVECTOR3 out = { 0.0f, 0.0f, 0.0f };
+    float len = 0.0f;
+    float dx = 0.0f, dy = 0.0f, dz = 0.0f, ddx = 0.0f, ddy = 0.0f, dzdx = 0.0f, dzdy = 0.0f;
+    float minz = 0.0f, maxz = 0.0f;
+    int   gdx = 0, gdy = 0;
+    bool  usex = false;
+    double k = 0.0;
+    float last_t = 0.0f;
+    CMatrixMapStatic* obj = nullptr;
+    CMatrixMapStatic* skip = nullptr;
+    dword mask = 0;
+};
 
-} internal_trace_data;
-
-CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, const D3DXVECTOR3 &start, const D3DXVECTOR3 &end)
+CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void* d, int gx, int gy, const D3DXVECTOR3& start, const D3DXVECTOR3& end)
 {
-    DTRACE();
-    internal_trace_data *data = (internal_trace_data *)d;
+    internal_trace_data* data = (internal_trace_data*)d;
 
-    if (gx < 0  || gx >= m_GroupSize.x || gy < 0 || gy >= m_GroupSize.y)
+    if (gx < 0 || gx >= m_GroupSize.x || gy < 0 || gy >= m_GroupSize.y)
     {
-       
+
         return SR_NONE;
     }
 
     bool object_hit = data->obj != nullptr;
 
-    CMatrixMapGroup *mg = m_Group[gx + gy * m_GroupSize.x];
+    CMatrixMapGroup* mg = m_Group[gx + gy * m_GroupSize.x];
     if (mg == nullptr) return SR_NONE;
 
     //mg->DrawBBox();
@@ -59,12 +57,13 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
     if (data->dx != 0)
     {
         float ft0 = ((gx * (GLOBAL_SCALE * MAP_GROUP_SIZE)) - start.x) * data->ddx;
-        float ft1 = (((gx+1) * (GLOBAL_SCALE * MAP_GROUP_SIZE)) - start.x) * data->ddx;
+        float ft1 = (((gx + 1) * (GLOBAL_SCALE * MAP_GROUP_SIZE)) - start.x) * data->ddx;
         if (ft0 > ft1)
         {
             if (ft1 > 0) t0 = ft1;
             if (ft0 > 0) t1 = ft0;
-        } else
+        }
+        else
         {
             if (ft0 > 0) t0 = ft0;
             if (ft1 > 0) t1 = ft1;
@@ -73,12 +72,13 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
     if (data->dy != 0)
     {
         float ft0 = ((gy * (GLOBAL_SCALE * MAP_GROUP_SIZE)) - start.y) * data->ddy;
-        float ft1 = (((gy+1) * (GLOBAL_SCALE * MAP_GROUP_SIZE)) - start.y) * data->ddy;
+        float ft1 = (((gy + 1) * (GLOBAL_SCALE * MAP_GROUP_SIZE)) - start.y) * data->ddy;
         if (ft0 > ft1)
         {
             if (ft1 > t0) t0 = ft1;
             if (ft0 < t1) t1 = ft0;
-        } else
+        }
+        else
         {
             if (ft0 > t0) t0 = ft0;
             if (ft1 < t1) t1 = ft1;
@@ -87,23 +87,22 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
 
     if (t0 > data->last_t) return SR_BREAK;
 
-    double minz = min(start.z  + data->dir.z * t0, start.z  + data->dir.z * t1);
+    double minz = min(start.z + data->dir.z * t0, start.z + data->dir.z * t1);
     if (minz < data->minz) minz = data->minz;
 
-
-    if(mg->GetMaxZObjRobots() >= minz)
+    if (mg->GetMaxZObjRobots() >= minz)
     {
         // trace objects
-        if((data->mask & (TRACE_OBJECT | TRACE_ROBOT | TRACE_FLYER | TRACE_BUILDING | TRACE_TURRET)) != 0)
+        if ((data->mask & (TRACE_OBJECT | TRACE_ROBOT | TRACE_FLYER | TRACE_BUILDING | TRACE_TURRET)) != 0)
         {
             int n = mg->ObjectsCnt();
 
-            CMatrixMapStatic *o2 = nullptr;
+            CMatrixMapStatic* o2 = nullptr;
 
-            for(int i = 0; i < n; ++i)
+            for (int i = 0; i < n; ++i)
             {
-                CMatrixMapStatic *o;
-                if(o2 == nullptr)
+                CMatrixMapStatic* o;
+                if (o2 == nullptr)
                 {
                     o = mg->ReturnObject(i);
                 }
@@ -114,7 +113,7 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
                     --i;
                 }
 
-                dword trace_sphere = TRACE_OBJECTSPHERE;
+                dword trace_sphere = TRACE_OBJECT_SPHERE;
                 if (data->mask & TRACE_SKIP_INVISIBLE)
                 {
                     if (o->IsTraceInvisible()) trace_sphere = 0;
@@ -130,9 +129,10 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
                     hit = IsIntersectSphere(o->GetGeoCenter(), o->GetRadius(), start, data->dir, t);
                     if (hit && (t < 0)) hit = false;
 
-                } else
+                }
+                else
                 {
-                    hit = o->Pick(start,data->dir, &t);
+                    hit = o->Pick(start, data->dir, &t);
                 }
 
                 if (hit && (t < data->last_t) && t < t1 && t > t0)
@@ -151,45 +151,43 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
     }
 
 
-    if (!(data->mask & TRACE_LANDSCAPE)) return object_hit?SR_FOUND:SR_NONE;
-    if (mg->GetMaxZLand() < minz) return object_hit?SR_FOUND:SR_NONE;
+    if (!(data->mask & TRACE_LANDSCAPE)) return object_hit ? SR_FOUND : SR_NONE;
+    if (mg->GetMaxZLand() < minz) return object_hit ? SR_FOUND : SR_NONE;
 
     if (start.y < 0 && data->gdy < 0)
     {
-        return object_hit?SR_FOUND:SR_BREAK;
+        return object_hit ? SR_FOUND : SR_BREAK;
     }
     if (start.y > (m_Size.y * GLOBAL_SCALE) && data->gdy > 0)
     {
-        return object_hit?SR_FOUND:SR_BREAK;
+        return object_hit ? SR_FOUND : SR_BREAK;
     }
     if (start.x < 0 && data->gdx < 0)
     {
-        return object_hit?SR_FOUND:SR_BREAK;
+        return object_hit ? SR_FOUND : SR_BREAK;
     }
     if (start.x > (m_Size.x * GLOBAL_SCALE) && data->gdx > 0)
     {
-        return object_hit?SR_FOUND:SR_BREAK;
+        return object_hit ? SR_FOUND : SR_BREAK;
     }
 
     // so, scan can be intersect with current group...
-
-
-
 
 #ifdef EXPEREMENTAL_TRACER_IS_SLOWER_THEN_ORIGINAL
     { /////////////////////////////////////////////// experemental
     float t = data->last_t;
     bool hit = mg->Pick(start, data->dir, t);
 
-    if (hit && (t>=0))
+    if(hit && (t>=0))
     {
-        if (t < data->last_t)
+        if(t < data->last_t)
         {
             data->last_t = t;
             data->out = start + (data->dir * t);
             data->obj = nullptr;
             return SR_FOUND;
-        } else
+        }
+        else
         {
             return SR_BREAK;
         }
@@ -198,11 +196,10 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
     } /////////////////////////////////////////////// experemental
 #endif
 
-
     int px0 = gx * MAP_GROUP_SIZE;
     int py0 = gy * MAP_GROUP_SIZE;
-    int px1 = (gx+1) * MAP_GROUP_SIZE;
-    int py1 = (gy+1) * MAP_GROUP_SIZE;
+    int px1 = (gx + 1) * MAP_GROUP_SIZE;
+    int py1 = (gy + 1) * MAP_GROUP_SIZE;
     if (px1 > m_Size.x) px1 = m_Size.x;
     if (py1 > m_Size.y) py1 = m_Size.y;
 
@@ -214,7 +211,7 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
         if (data->gdx > 0)
         {
             x = (gx * MAP_GROUP_SIZE);
-            ex = min(((gx+1) * MAP_GROUP_SIZE), px1);
+            ex = min(((gx + 1) * MAP_GROUP_SIZE), px1);
             bx = (x * GLOBAL_SCALE);
             if (bx < start.x)
             {
@@ -222,10 +219,11 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
                 bx = start.x;
             }
             if (ex * GLOBAL_SCALE > end.x) ex = TruncFloat(end.x * INVERT(GLOBAL_SCALE)) + 1;
-        } else
+        }
+        else
         {
-            x = ((gx+1) * MAP_GROUP_SIZE) - 1;
-            ex = min((gx * MAP_GROUP_SIZE),px1);
+            x = ((gx + 1) * MAP_GROUP_SIZE) - 1;
+            ex = min((gx * MAP_GROUP_SIZE), px1);
             bx = ((x + 1) * GLOBAL_SCALE);
             if (bx > start.x)
             {
@@ -250,27 +248,27 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
         {
             if ((x >= px0) && (x < px1) && (y >= py0) && (y < py1))
             {
-	            SMatrixMapPoint * mpo = PointGet(x,y);
+                SMatrixMapPoint* mpo = PointGet(x, y);
 
-                if ((mz < mpo->z) || (mz < (mpo + 1)->z) || (mz < (mpo + m_Size.x+1)->z) || (mz < (mpo + 1 + g_MatrixMap->m_Size.x+1)->z))
+                if ((mz < mpo->z) || (mz < (mpo + 1)->z) || (mz < (mpo + m_Size.x + 1)->z) || (mz < (mpo + 1 + g_MatrixMap->m_Size.x + 1)->z))
                 {
 
-                    D3DXVECTOR3 p0(GLOBAL_SCALE*x,GLOBAL_SCALE*(y+1),(mpo + m_Size.x+1)->z);
-                    D3DXVECTOR3 p1(GLOBAL_SCALE*x,GLOBAL_SCALE*y,mpo->z);
-                    D3DXVECTOR3 p2(GLOBAL_SCALE*(x+1),GLOBAL_SCALE*(y+1),(mpo + 1 + g_MatrixMap->m_Size.x+1)->z);
+                    D3DXVECTOR3 p0(GLOBAL_SCALE * x, GLOBAL_SCALE * (y + 1), (mpo + m_Size.x + 1)->z);
+                    D3DXVECTOR3 p1(GLOBAL_SCALE * x, GLOBAL_SCALE * y, mpo->z);
+                    D3DXVECTOR3 p2(GLOBAL_SCALE * (x + 1), GLOBAL_SCALE * (y + 1), (mpo + 1 + g_MatrixMap->m_Size.x + 1)->z);
 
                     //CHelper::Create(1,0)->Triangle(p0,p1,p2, 0xFFFF0000);
 
-                    float t = 0,dummy;
+                    float t = 0, dummy;
 
-                    bool hit = IntersectTriangle(start, data->dir, p0, p1, p2, t,dummy,dummy);
+                    bool hit = IntersectTriangle(start, data->dir, p0, p1, p2, t, dummy, dummy);
                     if (!hit)
                     {
-                        D3DXVECTOR3 p3(GLOBAL_SCALE*(x+1),GLOBAL_SCALE*y,(mpo + 1)->z);
-                        hit = IntersectTriangle(start, data->dir, p1, p3, p2, t,dummy,dummy);
+                        D3DXVECTOR3 p3(GLOBAL_SCALE * (x + 1), GLOBAL_SCALE * y, (mpo + 1)->z);
+                        hit = IntersectTriangle(start, data->dir, p1, p3, p2, t, dummy, dummy);
                         //CHelper::Create(1,0)->Triangle(p1,p3,p2, 0xFFFF0000);
                     }
-                    if (hit && (t>=0))
+                    if (hit && (t >= 0))
                     {
                         if (t < data->last_t)
                         {
@@ -278,7 +276,8 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
                             data->out = start + (data->dir * t);
                             data->obj = nullptr;
                             return SR_FOUND;
-                        } else
+                        }
+                        else
                         {
                             return SR_BREAK;
                         }
@@ -286,49 +285,52 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
                 }
             }
 
-            double y1 = data->k * ((double(x) + 0.5)* (GLOBAL_SCALE) - start.x) + start.y;
-            double y2 = data->k * ((double(x+data->gdx) + 0.5)* (GLOBAL_SCALE) - start.x) + start.y;
-            double dy1 = y1 - ((double(y+data->gdy) + 0.5)* (GLOBAL_SCALE));
-            double dy2 = y2 - ((double(y) + 0.5)* (GLOBAL_SCALE));
+            double y1 = data->k * ((double(x) + 0.5) * (GLOBAL_SCALE)-start.x) + start.y;
+            double y2 = data->k * ((double(x + data->gdx) + 0.5) * (GLOBAL_SCALE)-start.x) + start.y;
+            double dy1 = y1 - ((double(y + data->gdy) + 0.5) * (GLOBAL_SCALE));
+            double dy2 = y2 - ((double(y) + 0.5) * (GLOBAL_SCALE));
             MAKE_ABS_DOUBLE(dy1);
             MAKE_ABS_DOUBLE(dy2);
+
             if (dy1 < dy2)
             {
                 y += data->gdy;
-            } else
+            }
+            else
             {
                 x += data->gdx;
                 mz += dmz;
             }
         }
-
-    } else
+    }
+    else
     {
         // along y
         int x, y, ey;
         float by;
-        if (data->gdy > 0)
+        if(data->gdy > 0)
         {
             y = (gy * MAP_GROUP_SIZE);
-            ey = min(((gy+1) * MAP_GROUP_SIZE), py1);
+            ey = min(((gy + 1) * MAP_GROUP_SIZE), py1);
             by = (y * GLOBAL_SCALE);
-            if (by < start.y)
+            if(by < start.y)
             {
                 y = TruncFloat(start.y * INVERT(GLOBAL_SCALE));
                 by = start.y;
             }
-            if (ey * GLOBAL_SCALE > end.y) ey = TruncFloat(end.y * INVERT(GLOBAL_SCALE)) + 1;
-        } else
+            if(ey * GLOBAL_SCALE > end.y) ey = TruncFloat(end.y * INVERT(GLOBAL_SCALE)) + 1;
+        }
+        else
         {
-            y = ((gy+1) * MAP_GROUP_SIZE) - 1;
-            ey = min((gy * MAP_GROUP_SIZE),py1);
+            y = ((gy + 1) * MAP_GROUP_SIZE) - 1;
+            ey = min((gy * MAP_GROUP_SIZE), py1);
             by = ((y + 1) * GLOBAL_SCALE);
-            if (by > start.y)
+            if(by > start.y)
             {
                 y = TruncFloat(start.y * INVERT(GLOBAL_SCALE));
                 by = start.y;
             }
-            if (ey * GLOBAL_SCALE < end.y) ey = TruncFloat(end.y * INVERT(GLOBAL_SCALE));
+            if(ey * GLOBAL_SCALE < end.y) ey = TruncFloat(end.y * INVERT(GLOBAL_SCALE));
             --ey;
         }
         x = int((data->k * (by - start.y) + start.x) * INVERT(GLOBAL_SCALE));
@@ -339,40 +341,42 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
             float mz1 = ((y * GLOBAL_SCALE) + GLOBAL_SCALE - start.y) * data->dzdy + start.z;
             dmz = mz1 - mz;
             COPY_SIGN_FLOAT(dmz, data->dz);
-            if (mz1 < mz) mz = mz1;
+            if(mz1 < mz) mz = mz1;
         }
 
-        while (y != ey)
+        while(y != ey)
         {
-            if ((x >= px0) && (x < px1) && (y >= py0) && (y < py1))
+            if((x >= px0) && (x < px1) && (y >= py0) && (y < py1))
             {
 
-                SMatrixMapPoint * mpo = PointGet(x,y);
-                if ((mz < mpo->z) || (mz < (mpo + 1)->z) || (mz < (mpo + m_Size.x+1)->z) || (mz < (mpo + 1 + g_MatrixMap->m_Size.x+1)->z))
+                SMatrixMapPoint* mpo = PointGet(x, y);
+                if((mz < mpo->z) || (mz < (mpo + 1)->z) || (mz < (mpo + m_Size.x + 1)->z) || (mz < (mpo + 1 + g_MatrixMap->m_Size.x + 1)->z))
                 {
 
 
-                    D3DXVECTOR3 p0(GLOBAL_SCALE*x,GLOBAL_SCALE*(y+1),(mpo + m_Size.x+1)->z);
-                    D3DXVECTOR3 p1(GLOBAL_SCALE*x,GLOBAL_SCALE*y,mpo->z);
-                    D3DXVECTOR3 p2(GLOBAL_SCALE*(x+1),GLOBAL_SCALE*(y+1),(mpo + 1 + g_MatrixMap->m_Size.x+1)->z);
+                    D3DXVECTOR3 p0(GLOBAL_SCALE * x, GLOBAL_SCALE * (y + 1), (mpo + m_Size.x + 1)->z);
+                    D3DXVECTOR3 p1(GLOBAL_SCALE * x, GLOBAL_SCALE * y, mpo->z);
+                    D3DXVECTOR3 p2(GLOBAL_SCALE * (x + 1), GLOBAL_SCALE * (y + 1), (mpo + 1 + g_MatrixMap->m_Size.x + 1)->z);
 
                     float t = 0,dummy;
 
-                    bool hit = IntersectTriangle(start, data->dir, p0, p1, p2, t,dummy,dummy);
-                    if (!hit)
+                    bool hit = IntersectTriangle(start, data->dir, p0, p1, p2, t, dummy, dummy);
+                    if(!hit)
                     {
-                        D3DXVECTOR3 p3(GLOBAL_SCALE*(x+1),GLOBAL_SCALE*y,(mpo + 1)->z);
-                        hit = IntersectTriangle(start, data->dir, p1, p3, p2, t,dummy,dummy);
+                        D3DXVECTOR3 p3(GLOBAL_SCALE * (x + 1), GLOBAL_SCALE * y, (mpo + 1)->z);
+                        hit = IntersectTriangle(start, data->dir, p1, p3, p2, t, dummy, dummy);
                     }
-                    if (hit && (t>=0))
+
+                    if(hit && (t >= 0))
                     {
-                        if (t < data->last_t)
+                        if(t < data->last_t)
                         {
                             data->last_t = t;
                             data->out = start + (data->dir * t);
                             data->obj = nullptr;
                             return SR_FOUND;
-                        } else
+                        }
+                        else
                         {
                             return SR_BREAK;
                         }
@@ -381,9 +385,9 @@ CMatrixMap::EScanResult CMatrixMap::ScanLandscapeGroup(void *d, int gx, int gy, 
             }
 
             double x1 = data->k * ((double(y) + 0.5)* (GLOBAL_SCALE) - start.y) + start.x;
-            double x2 = data->k * ((double(y+data->gdy) + 0.5)* (GLOBAL_SCALE) - start.y) + start.x;
-            double dx1 = x1 - ((double(x+data->gdx) + 0.5)* (GLOBAL_SCALE));
-            double dx2 = x2 - ((double(x) + 0.5)* (GLOBAL_SCALE));
+            double x2 = data->k * ((double(y + data->gdy) + 0.5) * (GLOBAL_SCALE) - start.y) + start.x;
+            double dx1 = x1 - ((double(x + data->gdx) + 0.5) * (GLOBAL_SCALE));
+            double dx2 = x2 - ((double(x) + 0.5) * (GLOBAL_SCALE));
 
             MAKE_ABS_DOUBLE(dx1);
             MAKE_ABS_DOUBLE(dx2);
@@ -444,7 +448,7 @@ CMatrixMapStatic* CMatrixMap::Trace(
             {
                 if(mask & TRACE_FLYER)
                 {
-                    if((data.mask & TRACE_OBJECTSPHERE) != 0)
+                    if((data.mask & TRACE_OBJECT_SPHERE) != 0)
                     {
                         hit = IsIntersectSphere(m_AD_Obj[od]->GetGeoCenter(), m_AD_Obj[od]->GetRadius(), start, data.dir, ttt);
                         if(hit && (ttt < 0)) hit = false;
@@ -464,7 +468,7 @@ CMatrixMapStatic* CMatrixMap::Trace(
                 {
                     CMatrixMapStatic* ms = fl->GetCarryingRobot();
 
-                    if((data.mask & TRACE_OBJECTSPHERE) != 0)
+                    if((data.mask & TRACE_OBJECT_SPHERE) != 0)
                     {
                         hit = IsIntersectSphere(ms->GetGeoCenter(), ms->GetRadius(), start, data.dir, ttt);
                         if(hit && (ttt < 0)) hit = false;
@@ -531,7 +535,7 @@ CMatrixMapStatic* CMatrixMap::Trace(
 
                             float t;
                             bool hit;
-                            if((mask & TRACE_OBJECTSPHERE) != 0)
+                            if((mask & TRACE_OBJECT_SPHERE) != 0)
                             {
                                 hit = IsIntersectSphere(o->GetGeoCenter(), o->GetRadius(), start, data.dir, t);
                                 if(hit && (t < 0)) hit = false;
