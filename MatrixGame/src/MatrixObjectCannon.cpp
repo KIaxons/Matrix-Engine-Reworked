@@ -979,8 +979,8 @@ void CMatrixTurret::LogicTact(int tact)
 
     if(m_TargetOverride)
     {
-        //Если вышло время ведения (без стрельбы) заданной вручную цели (7,5 секунд)
-        if(m_LastTimeFireForOverridedTarget - g_MatrixMap->GetTime() <= -7500)
+        //Если вышло время ведения (без стрельбы) заданной вручную цели (8 секунд)
+        if(m_LastTimeFireForOverridedTarget - g_MatrixMap->GetTime() <= -8000)
         {
             m_TargetOverride = nullptr;
 
