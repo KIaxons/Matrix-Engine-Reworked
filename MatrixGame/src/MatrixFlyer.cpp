@@ -1982,11 +1982,6 @@ bool CMatrixFlyer::CreateSelection()
     return true;
 }
 
-void CMatrixFlyer::ClearSelection()
-{
-    if(g_MatrixMap->GetPlayerSide()->m_ActiveObject == this) g_MatrixMap->GetPlayerSide()->Select(NOTHING, nullptr);
-}
-
 void CMatrixFlyer::KillSelection()
 {
     if(m_Selection)
@@ -2037,7 +2032,7 @@ void CMatrixFlyer::ReleaseMe()
     {
         CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
         ps->RemoveFromSelection(this);
-        ClearSelection();
+        if(g_MatrixMap->GetPlayerSide()->m_ActiveObject == this) g_MatrixMap->GetPlayerSide()->Select(NOTHING);
         int pos = 0;
 
         //Если данным вертолётом управлял игрок, то обновляем интерфейс, выводим его из аркадного режима

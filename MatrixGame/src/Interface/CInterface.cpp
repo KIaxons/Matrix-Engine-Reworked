@@ -4607,7 +4607,7 @@ void __stdcall CIFaceList::PlayerAction(void* object)
         if(!ps->m_ActiveObject->AsTurret()->m_ParentBuilding->m_BuildingQueue.IsMaxItems())
         {
             ps->m_ActiveObject->AsTurret()->Dismantle();
-            ps->Select(NOTHING, nullptr);
+            ps->Select(NOTHING);
             CSound::Play(S_TURRET_BUILD_START, SL_ALL);
         }
     }

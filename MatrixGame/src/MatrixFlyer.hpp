@@ -369,7 +369,6 @@ public:
     bool        IsSelected();
     CMatrixEffectSelection* GetSelection()  { return m_Selection; }
     bool        CreateSelection();
-    void        ClearSelection();
     void        KillSelection();
     void        MoveSelection();
     CWStr*      GetName()                   { return &m_Name; }

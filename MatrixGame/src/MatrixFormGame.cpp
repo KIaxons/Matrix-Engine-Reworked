@@ -1639,7 +1639,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                             if(!turret->m_ParentBuilding->m_BuildingQueue.IsMaxItems())
                             {
                                 turret->Dismantle();
-                                ps->Select(NOTHING, nullptr);
+                                ps->Select(NOTHING);
                                 CSound::Play(S_TURRET_BUILD_START, SL_ALL);
                             }
                         }

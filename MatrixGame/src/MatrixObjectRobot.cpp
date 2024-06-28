@@ -1242,12 +1242,7 @@ bool CMatrixRobot::Carry(CMatrixFlyer* cargo, bool quick_connect)
         //m_CargoFlyer->SetAlt(FLYER_ALT_EMPTY);
         if(m_CargoFlyer->GetCarryData()->m_RobotElevatorField != nullptr)
         {
-#ifdef _DEBUG
-            g_MatrixMap->SubEffect(DEBUG_CALL_INFO, m_CargoFlyer->GetCarryData()->m_RobotElevatorField);
-#else
             g_MatrixMap->SubEffect(m_CargoFlyer->GetCarryData()->m_RobotElevatorField);
-#endif
-
             m_CargoFlyer->GetCarryData()->m_RobotElevatorField = nullptr;
         }
 
@@ -1291,7 +1286,7 @@ bool CMatrixRobot::Carry(CMatrixFlyer* cargo, bool quick_connect)
 
 void CMatrixRobot::ClearSelection()
 {
-    if(g_MatrixMap->GetPlayerSide()->m_ActiveObject == this) g_MatrixMap->GetPlayerSide()->Select(NOTHING, nullptr);
+    if(m_Side == PLAYER_SIDE && g_MatrixMap->GetPlayerSide()->m_ActiveObject == this) g_MatrixMap->GetPlayerSide()->Select(NOTHING);
 }
 
 //Получает общую команду на выставление той или иной анимации для шасси робота,

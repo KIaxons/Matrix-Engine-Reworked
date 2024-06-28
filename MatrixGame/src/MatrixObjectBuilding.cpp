@@ -1466,7 +1466,7 @@ void CMatrixBuilding::ReleaseMe()
     //    s = g_MatrixMap->GetSideById(c);
     //    if(s->m_Id == PLAYER_SIDE && s->m_ActiveObject == this)
     //    {
-    //        s->Select(NOTHING, nullptr);
+    //        s->Select(NOTHING);
     //    }
     //    if(s != g_MatrixMap->GetPlayerSide() && s->m_GroupsList)
     //    {

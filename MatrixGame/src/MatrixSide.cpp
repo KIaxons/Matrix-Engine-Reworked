@@ -402,11 +402,14 @@ void CMatrixSideUnit::LogicTact(int ms)
 {
     if(GetStatus() != SS_NONE && FLAG(g_Config.m_DIFlags, DI_SIDE_INFO))
     {
-        if(m_Id == 1) g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Player Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get());
-        else if(m_Id == 2) g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Blazer Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get());
-        else if(m_Id == 3) g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Keller Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get());
-        else if(m_Id == 4) g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Terron Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get());
-        else g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Side ") + CWStr(m_Id) + CWStr(L":"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get());
+        switch(m_Id)
+        {
+            case PLAYER_SIDE: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Player Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get()); break;
+            case BLAZER_SIDE: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Blazer Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get()); break;
+            case KELLER_SIDE: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Keller Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get()); break;
+            case TERRON_SIDE: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Terron Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get()); break;
+            default: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Side ") + CWStr(m_Id) + CWStr(L":"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get()); break;
+        }
     }
 
     if(GetStatus() != SS_NONE)
@@ -441,11 +444,7 @@ void CMatrixSideUnit::LogicTact(int ms)
         }
 
         TactSideLogic();
-        //dword t2 = timeGetTime();
         TactTL();
-
-        //dword t3 = timeGetTime();
-        //DM(L"TactTL", CWStr().Format(L"<i>", t3-t2).Get());
     }
     else
     {
@@ -464,13 +463,10 @@ void CMatrixSideUnit::LogicTact(int ms)
         PumpGroups();
         if((!GetCurGroup() || !GetCurGroup()->GetObjectsCnt()) && (m_CurrSel == GROUP_SELECTED || m_CurrSel == ROBOT_SELECTED || m_CurrSel == FLYER_SELECTED))
         {
-            Select(NOTHING, nullptr);
+            Select(NOTHING);
         }
 
-        //dword t1 = timeGetTime();
         TactPL();
-        //dword t2 = timeGetTime();
-        //DM(L"TactPL", CWStr().Format(L"<i>", t2-t1).Get());
     }
 
     CalcMaxSpeed();
@@ -723,6 +719,7 @@ void CMatrixSideUnit::OnLButtonDown(const CPoint& mouse_pos)
             //Игрок указал курсором с прицелом на какой-то объект
             if(IS_TRACE_STOP_OBJECT(pObject) && (pObject->IsAlive() || pObject->IsSpecial()))
             {
+                //Для турели
                 if(m_ActiveObject && m_ActiveObject->GetObjectType() == OBJECT_TYPE_TURRET)
                 {
                     RESETFLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE | ORDERING_MODE);
@@ -1525,7 +1522,7 @@ void CMatrixSideUnit::SetManualControledUnit(CMatrixMapStatic* cur_unit)
         cur_unit = nullptr;
         robot->UnSelect();
         if(g_IFaceList) g_IFaceList->DeleteWeaponDynamicStatics();
-        Select(NOTHING, nullptr);
+        Select(NOTHING);
     }
     else if(IsUnitUnderManualControlRobot() && cur_unit->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
     {
@@ -1936,7 +1933,7 @@ void CMatrixSideUnit::PLDropAllActions()
         m_ActiveObject->AsBuilding()->m_BuildingQueue.KillBar();
     }
 
-    Select(NOTHING, nullptr);
+    Select(NOTHING);
     RESETFLAG(g_IFaceList->m_IfListFlags, POPUP_MENU_ACTIVE);
     m_ConstructPanel->ResetGroupNClose();
     g_MatrixMap->m_Cursor.SetVisible(true);

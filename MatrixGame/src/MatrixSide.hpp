@@ -524,7 +524,7 @@ public:
     void __stdcall PlayerAction(void* object);
 
     void RobotStop(void* pObject);
-    void Select(ESelType type, CMatrixMapStatic* object);
+    void Select(ESelType type, CMatrixMapStatic* object = nullptr);
     void Reselect();
     void ShowOrderState();
     bool MouseToLand(const CPoint& mouse_pos, float* pWorldX, float* pWorldY, int* pMapX, int* pMapY);

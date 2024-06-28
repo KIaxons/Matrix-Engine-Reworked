@@ -920,10 +920,9 @@ void CMatrixTurret::LogicTact(int tact)
                 
             } while(!Pick(pos, dir, &t) && (--cnt > 0));
 
-            if(cnt > 0) CMatrixEffect::CreateFire(nullptr, pos + dir * (t + 2), 100, 2500, 10, 2.5f, false, FIRE_SPEED, g_Config.m_WeaponsConsts[ablaze_effect_num].close_color_rgb, g_Config.m_WeaponsConsts[ablaze_effect_num].far_color_rgb);
+            if(cnt > 0) CMatrixEffect::CreateFire(nullptr, pos + dir * (t + 2), 100.0f, 2500.0f, 10.0f, 2.5f, false, FIRE_SPEED, g_Config.m_WeaponsConsts[ablaze_effect_num].close_color_rgb, g_Config.m_WeaponsConsts[ablaze_effect_num].far_color_rgb);
 
-            //Если турель была уничтожена огнём
-            if(TakingDamage(ablaze_effect_num, pos, dir, m_LastDelayDamageSide, nullptr)) return;
+            if(TakingDamage(ablaze_effect_num, pos, dir, m_LastDelayDamageSide, nullptr)) return; //Если турель была уничтожена огнём
         }
     }
 
@@ -954,7 +953,7 @@ void CMatrixTurret::LogicTact(int tact)
             {
                 pos.x = m_Core->m_Matrix._41 + FSRND(m_Core->m_Radius);
                 pos.y = m_Core->m_Matrix._42 + FSRND(m_Core->m_Radius);
-                pos.z = m_Core->m_Matrix._43 + FRND(m_Core->m_Radius * 2);
+                pos.z = m_Core->m_Matrix._43 + FRND(m_Core->m_Radius * 2.0f);
                 D3DXVECTOR3 temp = { m_Core->m_Matrix._41 - pos.x, m_Core->m_Matrix._42 - pos.y, m_Core->m_Matrix._43 - pos.z };
                 D3DXVec3Normalize(&dir, &temp);
                 
@@ -968,13 +967,13 @@ void CMatrixTurret::LogicTact(int tact)
                 CMatrixEffect::CreateShorted(d1, d2, FRND(400) + 100, g_Config.m_WeaponsConsts[shorted_effect_num].hex_BGRA_sprites_color, g_Config.m_WeaponsConsts[shorted_effect_num].sprite_set[0].sprites_num[0]);
             }
 
-            if(TakingDamage(shorted_effect_num, pos, dir, m_LastDelayDamageSide, nullptr)) return;
+            if(TakingDamage(shorted_effect_num, pos, dir, m_LastDelayDamageSide, nullptr)) return; //Турель была уничтожена
         }
 
         return;
     }
 
-    //Непосредственно логика поведения пушки
+    //Начинается основная логика поведения турели
     STurretsConsts* props = &g_Config.m_TurretsConsts[m_TurretKind];
 
     bool its_time = false;
@@ -1077,11 +1076,9 @@ no_target:
 
         return;
     }
-    else
+    else //Нашли цель
     {
-        //Нашли цель
         //Начинаем доворачивать пушку турели до цели
-
         bool ang_match_horizontal = false;
         bool ang_match_vertical = false;
 
@@ -1199,12 +1196,12 @@ no_target:
 
     m_NullTargetTime = CANNON_NULL_TARGET_TIME; // типа, чтобы стрелять ещё некоторое время после потери цели...
 
-    for(int i = 0; i < m_TurretWeapon.size(); ++i)
+    for(int i = 0; i < (int)m_TurretWeapon.size(); ++i)
     {
         if(m_NextGunToShot == i && !m_TurretWeapon[i].m_AsyncAwaitTimer)
         {
-            m_TurretWeapon[i].m_Weapon->FireBegin(D3DXVECTOR3(0, 0, 0), this);
-            m_NextGunToShot = i < m_TurretWeapon.size() - 1 ? i + 1 : 0;
+            m_TurretWeapon[i].m_Weapon->FireBegin(D3DXVECTOR3(0.0f, 0.0f, 0.0f), this);
+            m_NextGunToShot = i < (int)m_TurretWeapon.size() - 1 ? i + 1 : 0;
 
             if(m_AsyncDelay)
             {
@@ -1292,11 +1289,14 @@ bool CMatrixTurret::TakingDamage(
     {
         if(!m_UnderAttackTime)
         {
-            int ss = IRND(3);
-            if(!ss) CSound::Play(S_SIDE_UNDER_ATTACK_1);
-            else if(ss == 1) CSound::Play(S_SIDE_UNDER_ATTACK_2);
-            else if(ss == 2) CSound::Play(S_SIDE_UNDER_ATTACK_3);
+            switch(IRND(3))
+            {
+                case 0: CSound::Play(S_SIDE_UNDER_ATTACK_1); break;
+                case 1: CSound::Play(S_SIDE_UNDER_ATTACK_2); break;
+                case 2: CSound::Play(S_SIDE_UNDER_ATTACK_3); break;
+            }
         }
+
         m_UnderAttackTime = UNDER_ATTACK_IDLE_TIME;
     }
 
@@ -1351,12 +1351,14 @@ bool CMatrixTurret::TakingDamage(
     }
     else m_LastDelayDamageSide = 0;
 
-    if(m_Hitpoints > 0)
+    if(m_Hitpoints > 0.0f)
     {
         if(g_Config.m_WeaponsConsts[weap].explosive_hit) CMatrixEffect::CreateExplosion(pos, ExplosionRobotHit);
     }
     else
     {
+        if(m_Side == PLAYER_SIDE && g_MatrixMap->GetPlayerSide()->m_ActiveObject == this) g_MatrixMap->GetPlayerSide()->Select(NOTHING);
+
         if(attacker_side != NEUTRAL_SIDE && !friendly_fire)
         {
             g_MatrixMap->GetSideById(attacker_side)->IncStatValue(STAT_TURRET_KILL);

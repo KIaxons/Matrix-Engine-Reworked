@@ -1217,7 +1217,7 @@ void CMatrixRobotAI::LogicTact(int ms)
                         CMatrixBuilding* bld = ((CMatrixBuilding*)ps->m_ActiveObject);
                         if(bld == building)
                         {
-                            ps->Select(NOTHING, nullptr);
+                            ps->Select(NOTHING);
                             ps->PLDropAllActions();
                         }
                     }

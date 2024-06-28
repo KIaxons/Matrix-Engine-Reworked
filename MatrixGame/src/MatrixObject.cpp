@@ -125,7 +125,7 @@ bool CMatrixMapObject::TakingDamage(
         if(FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_HealthBar == nullptr)
         {
             m_HealthBar = HNew(g_MatrixHeap) CMatrixProgressBar();
-            m_HealthBar->Modify(1000000, 0, PB_SPECIAL_WIDTH, 1);
+            m_HealthBar->Modify(1000000.0f, 0.0f, PB_SPECIAL_WIDTH, 1.0f);
         }
 
         if(m_BreakHitPoint <= 0)
