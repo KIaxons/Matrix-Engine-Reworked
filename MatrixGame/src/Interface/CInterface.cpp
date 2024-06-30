@@ -1897,9 +1897,12 @@ void CInterface::Init(void)
                         }
                         else if(pElement->m_strName == IF_DISMANTLE_TURRET)
                         {
-                            pElement->SetVisibility(true);
-                            if(turret->m_ParentBuilding->m_BuildingQueue.IsMaxItems()) pElement->SetState(IFACE_DISABLED);
-                            else if(pElement->GetState() == IFACE_DISABLED) pElement->SetState(IFACE_NORMAL);
+                            if(turret->m_ParentBuilding)
+                            {
+                                pElement->SetVisibility(true);
+                                if(turret->m_ParentBuilding->m_BuildingQueue.IsMaxItems()) pElement->SetState(IFACE_DISABLED);
+                                else if(pElement->GetState() == IFACE_DISABLED) pElement->SetState(IFACE_NORMAL);
+                            }
                         }
                     }
                 }

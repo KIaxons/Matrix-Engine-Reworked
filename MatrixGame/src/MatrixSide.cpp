@@ -723,7 +723,7 @@ void CMatrixSideUnit::OnLButtonDown(const CPoint& mouse_pos)
                 if(m_ActiveObject && m_ActiveObject->GetObjectType() == OBJECT_TYPE_TURRET)
                 {
                     RESETFLAG(g_IFaceList->m_IfListFlags, PREORDER_FIRE | ORDERING_MODE);
-                    m_ActiveObject->AsTurret()->SetTargetOverride(pObject);
+                    if(pObject != m_ActiveObject->AsTurret()) m_ActiveObject->AsTurret()->SetTargetOverride(pObject);
                 }
                 else //Для роботов и вертолётов
                 {
