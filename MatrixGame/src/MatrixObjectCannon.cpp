@@ -811,15 +811,17 @@ void CMatrixTurret::PauseTact(int tact)
 {
     SetPBOutOfScreen();
     if(m_CurrentState == TURRET_DIP) return;
-    if(m_CurrentState != TURRET_UNDER_CONSTRUCTION && m_CurrentState != TURRET_UNDER_DECONSTRUCTION)
+    if(m_CurrentState == TURRET_UNDER_CONSTRUCTION || m_CurrentState == TURRET_UNDER_DECONSTRUCTION)
     {
-        if(m_ShowHitpointsTime > 0)
-        {
-            m_ShowHitpointsTime -= tact;
-            if(m_ShowHitpointsTime < 0) m_ShowHitpointsTime = 0;
-        }
+        m_ShowHitpointsTime = 1;
+        return;
     }
-    else m_ShowHitpointsTime = 1;
+
+    if(m_ShowHitpointsTime > 0)
+    {
+        m_ShowHitpointsTime -= tact;
+        if(m_ShowHitpointsTime < 0) m_ShowHitpointsTime = 0;
+    }
 }
 
 void CMatrixTurret::LogicTact(int tact)
