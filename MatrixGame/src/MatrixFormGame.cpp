@@ -911,273 +911,278 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
 
 //Обработчики набора читов
 #ifdef CHEATS_ON
-        //Вызов консоли не срабатывает, нужно откапывать оригинальную функцию вызова
-        /*
-        if(m_LastScans[MAX_SCANS - 6].scan == KEY_D)
-            if(m_LastScans[MAX_SCANS - 5].scan == KEY_E)
-                if(m_LastScans[MAX_SCANS - 4].scan == KEY_V)
-                    if(m_LastScans[MAX_SCANS - 3].scan == KEY_C)
-                        if(m_LastScans[MAX_SCANS - 2].scan == KEY_O)
-                            if(m_LastScans[MAX_SCANS - 1].scan == KEY_N)
-                            //if(m_LastScans[MAX_SCANS - 1].scan == KEY_TILDA)
-                            {
-                                m_LastScans[MAX_SCANS - 1].scan = 0;
-                                g_MatrixMap->m_Console.SetActive(true);
-                                return;
-                            }
-        */
-        if(m_LastScans[MAX_SCANS - 7].scan == KEY_S)
-            if(m_LastScans[MAX_SCANS - 6].scan == KEY_H)
-                if(m_LastScans[MAX_SCANS - 5].scan == KEY_O)
-                    if(m_LastScans[MAX_SCANS - 4].scan == KEY_W)
-                        if(m_LastScans[MAX_SCANS - 3].scan == KEY_F)
-                            if(m_LastScans[MAX_SCANS - 2].scan == KEY_P)
-                                if(m_LastScans[MAX_SCANS - 1].scan == KEY_S)
+
+        if(g_EnableCheats)
+        {
+            //Вызов консоли не срабатывает, нужно откапывать оригинальную функцию вызова
+            /*
+            if(m_LastScans[MAX_SCANS - 6].scan == KEY_D)
+                if(m_LastScans[MAX_SCANS - 5].scan == KEY_E)
+                    if(m_LastScans[MAX_SCANS - 4].scan == KEY_V)
+                        if(m_LastScans[MAX_SCANS - 3].scan == KEY_C)
+                            if(m_LastScans[MAX_SCANS - 2].scan == KEY_O)
+                                if(m_LastScans[MAX_SCANS - 1].scan == KEY_N)
+                                //if(m_LastScans[MAX_SCANS - 1].scan == KEY_TILDA)
                                 {
                                     m_LastScans[MAX_SCANS - 1].scan = 0;
-                                    INVERTFLAG(g_Config.m_DIFlags, DI_DRAW_FPS);
+                                    g_MatrixMap->m_Console.SetActive(true);
                                     return;
                                 }
-        if(m_LastScans[MAX_SCANS - 4].scan == KEY_I)
-            if(m_LastScans[MAX_SCANS - 3].scan == KEY_N)
-                if(m_LastScans[MAX_SCANS - 2].scan == KEY_F)
-                    if(m_LastScans[MAX_SCANS - 1].scan == KEY_O)
-                    {
-                        //if(m_LastScans[MAX_SCANS - 1].scan == KEY_SPACE)
-                        //{
-                        m_LastScans[MAX_SCANS - 1].scan = 0;
-                        INVERTFLAG(g_Config.m_DIFlags, DI_TMEM | DI_TARGET_COORD | DI_VIS_OBJ | DI_ACTIVE_SOUNDS | DI_FRUSTUM_CENTER);
-                        return;
-                        //}
-                    }
-        if(m_LastScans[MAX_SCANS - 4].scan == KEY_A)
-            if(m_LastScans[MAX_SCANS - 3].scan == KEY_U)
-                if(m_LastScans[MAX_SCANS - 2].scan == KEY_T)
-                    if(m_LastScans[MAX_SCANS - 1].scan == KEY_O)
-                    {
-                        m_LastScans[MAX_SCANS - 1].scan = 0;
-                        INVERTFLAG(g_MatrixMap->m_Flags, MMFLAG_AUTOMATIC_MODE);
-                        return;
-                    }
+            */
 
-        if(m_LastScans[MAX_SCANS - 6].scan == KEY_F)
-            if(m_LastScans[MAX_SCANS - 5].scan == KEY_L)
-                if(m_LastScans[MAX_SCANS - 4].scan == KEY_Y)
-                    if(m_LastScans[MAX_SCANS - 3].scan == KEY_C)
-                        if(m_LastScans[MAX_SCANS - 2].scan == KEY_A)
-                            if(m_LastScans[MAX_SCANS - 1].scan == KEY_M)
-                            {
-                                m_LastScans[MAX_SCANS - 1].scan = 0;
-                                INVERTFLAG(g_MatrixMap->m_Flags, MMFLAG_FLYCAM);
-                                return;
-                            }
-
-        if(m_LastScans[MAX_SCANS - 5].scan == KEY_B)
-            if(m_LastScans[MAX_SCANS - 4].scan == KEY_A)
-                if(m_LastScans[MAX_SCANS - 3].scan == KEY_B)
-                    if(m_LastScans[MAX_SCANS - 2].scan == KEY_K)
-                        if(m_LastScans[MAX_SCANS - 1].scan == KEY_I)
-                        {
-                            m_LastScans[MAX_SCANS - 1].scan = 0;
-                            INVERTFLAG(g_Config.m_DIFlags, DI_SIDE_INFO);
-                            return;
-                        }
-
-        if(m_LastScans[MAX_SCANS - 8].scan == KEY_C)
-            if(m_LastScans[MAX_SCANS - 7].scan == KEY_R)
-                if(m_LastScans[MAX_SCANS - 6].scan == KEY_A)
-                    if(m_LastScans[MAX_SCANS - 5].scan == KEY_Z)
-                        if(m_LastScans[MAX_SCANS - 4].scan == KEY_Y)
-                            if(m_LastScans[MAX_SCANS - 3].scan == KEY_B)
-                                if(m_LastScans[MAX_SCANS - 2].scan == KEY_O)
-                                    if(m_LastScans[MAX_SCANS - 1].scan == KEY_T)
+            if(m_LastScans[MAX_SCANS - 7].scan == KEY_S)
+                if(m_LastScans[MAX_SCANS - 6].scan == KEY_H)
+                    if(m_LastScans[MAX_SCANS - 5].scan == KEY_O)
+                        if(m_LastScans[MAX_SCANS - 4].scan == KEY_W)
+                            if(m_LastScans[MAX_SCANS - 3].scan == KEY_F)
+                                if(m_LastScans[MAX_SCANS - 2].scan == KEY_P)
+                                    if(m_LastScans[MAX_SCANS - 1].scan == KEY_S)
                                     {
                                         m_LastScans[MAX_SCANS - 1].scan = 0;
-                                        g_MatrixMap->GetPlayerSide()->BuildCrazyBot();
+                                        INVERTFLAG(g_Config.m_DIFlags, DI_DRAW_FPS);
                                         return;
                                     }
-
-        if(m_LastScans[MAX_SCANS - 5].scan == KEY_H)
-            if(m_LastScans[MAX_SCANS - 4].scan == KEY_U)
-                if(m_LastScans[MAX_SCANS - 3].scan == KEY_R)
-                    if(m_LastScans[MAX_SCANS - 2].scan == KEY_R)
-                        if(m_LastScans[MAX_SCANS - 1].scan == KEY_Y)
-                        {
-                            m_LastScans[MAX_SCANS - 1].scan = 0;
-                            if(!g_MatrixMap->ReinforcementsDisabled() && g_MatrixMap->BeforeReinforcementsTime() > 0)
-                            {
-                                g_MatrixMap->SetReinforcementsTime(1);
-                                return;
-                            }
-                        }
-
-        if(m_LastScans[MAX_SCANS - 8].scan == KEY_M)
-            if(m_LastScans[MAX_SCANS - 7].scan == KEY_E)
-                if(m_LastScans[MAX_SCANS - 6].scan == KEY_G)
-                    if(m_LastScans[MAX_SCANS - 5].scan == KEY_A)
-                        if(m_LastScans[MAX_SCANS - 4].scan == KEY_B)
-                            if(m_LastScans[MAX_SCANS - 3].scan == KEY_U)
-                                if(m_LastScans[MAX_SCANS - 2].scan == KEY_S)
-                                    if(m_LastScans[MAX_SCANS - 1].scan == KEY_T)
-                                    {
-                                        m_LastScans[MAX_SCANS - 1].scan = 0;
-                            
-                                        //CSound::Play(S_BENTER, SL_INTERFACE);
-                                        //CSound::Play(S_REINFORCEMENTS_READY, SL_INTERFACE);
-                                        //CSound::Play(S_ROBOT_BUILD_END, SL_ALL);
-                                        //CSound::Play(S_TERRON_KILLED, SL_ALL);
-                                        //CSound::Play(S_TURRET_BUILD_3, SL_ALL);
-
-                                        if(FLAG(g_MatrixMap->m_Flags, MMFLAG_MEGABUSTALREADY))
-                                        //if(0)
-                                        {
-                                            CMatrixMapStatic* s = CMatrixMapStatic::GetFirstLogic();
-                                            for(; s; s = s->GetNextLogic())
-                                            {
-                                                if(s->GetSide() == PLAYER_SIDE)
-                                                {
-                                                    if(s->IsRobot() && !s->AsRobot()->IsAutomaticMode()) s->AsRobot()->MustDie();
-                                                    /*
-                                                    else if(s->IsTurret()) s->AsTurret()->InitMaxHitpoints(s->AsTurret()->GetMaxHitpoints() * 20);
-                                                    else if(s->IsBuilding()) s->AsBuilding()->InitMaxHitpoints(s->AsBuilding()->GetMaxHitpoints() * 20);
-                                                    */
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            CMatrixMapStatic* s = CMatrixMapStatic::GetFirstLogic();
-                                            for(; s; s = s->GetNextLogic())
-                                            {
-                                                if(s->GetSide() == PLAYER_SIDE)
-                                                {
-                                                    if(s->IsRobot()) s->AsRobot()->InitMaxHitpoints(s->AsRobot()->GetMaxHitpoints() * 20);
-                                                    else if(s->IsTurret()) s->AsTurret()->InitMaxHitpoints(s->AsTurret()->GetMaxHitpoints() * 20);
-                                                    else if(s->IsBuilding()) s->AsBuilding()->InitMaxHitpoints(s->AsBuilding()->GetMaxHitpoints() * 20);
-                                                }
-                                            }
-
-                                            SETFLAG(g_MatrixMap->m_Flags, MMFLAG_MEGABUSTALREADY);
-                                        }
-                                        return;
-                                    }
-
-        if(m_LastScans[MAX_SCANS - 5].scan == KEY_S)
-            if(m_LastScans[MAX_SCANS - 4].scan == KEY_T)
-                if(m_LastScans[MAX_SCANS - 3].scan == KEY_A)
-                    if(m_LastScans[MAX_SCANS - 2].scan == KEY_T)
-                        if(m_LastScans[MAX_SCANS - 1].scan == KEY_S)
-                        {
-                            m_LastScans[MAX_SCANS - 1].scan = 0;
-
-                            if(!g_MatrixMap->IsPaused())
-                            {
-                                SETFLAG(g_MatrixMap->m_Flags, MMFLAG_STAT_DIALOG_D);
-                            }
-                            return;
-                        }
-
-        if(m_LastScans[MAX_SCANS - 5].scan == KEY_V)
             if(m_LastScans[MAX_SCANS - 4].scan == KEY_I)
-                if(m_LastScans[MAX_SCANS - 3].scan == KEY_D)
-                    if(m_LastScans[MAX_SCANS - 2].scan == KEY_E)
+                if(m_LastScans[MAX_SCANS - 3].scan == KEY_N)
+                    if(m_LastScans[MAX_SCANS - 2].scan == KEY_F)
+                        if(m_LastScans[MAX_SCANS - 1].scan == KEY_O)
+                        {
+                            //if(m_LastScans[MAX_SCANS - 1].scan == KEY_SPACE)
+                            //{
+                            m_LastScans[MAX_SCANS - 1].scan = 0;
+                            INVERTFLAG(g_Config.m_DIFlags, DI_TMEM | DI_TARGET_COORD | DI_VIS_OBJ | DI_ACTIVE_SOUNDS | DI_FRUSTUM_CENTER);
+                            return;
+                            //}
+                        }
+            if(m_LastScans[MAX_SCANS - 4].scan == KEY_A)
+                if(m_LastScans[MAX_SCANS - 3].scan == KEY_U)
+                    if(m_LastScans[MAX_SCANS - 2].scan == KEY_T)
                         if(m_LastScans[MAX_SCANS - 1].scan == KEY_O)
                         {
                             m_LastScans[MAX_SCANS - 1].scan = 0;
-                            g_MatrixMap->m_DI.ShowScreenText(L"_____________________________", L"", 10000);
-                            g_MatrixMap->m_DI.ShowScreenText(L"Sim textures", CWStr(g_D3DDCaps.MaxSimultaneousTextures, g_CacheHeap).Get(), 10000);
-                            g_MatrixMap->m_DI.ShowScreenText(L"Stencil available", FLAG(g_Flags, GFLAG_STENCILAVAILABLE) ? L"Yes" : L"No", 10000);
-
-                            // vidmode
-	                        D3DDISPLAYMODE d3ddm;
-
-                            CWStr modet(g_CacheHeap);
-                            CWStr modev(g_CacheHeap);
-                            for(int i = 0; i < 2; ++i)
-                            {
-                                modet.Set(L"Buffer ");
-                                modet += i;
-                                modet += L" mode";
-	                            ASSERT_DX(g_D3DD->GetDisplayMode(0,&d3ddm));
-                                if(d3ddm.Format == D3DFMT_X8R8G8B8)
-                                {
-                                    modev = L"X8R8G8B8";
-                                }
-                                else if(d3ddm.Format == D3DFMT_A8R8G8B8)
-                                {
-                                    modev = L"A8R8G8B8";
-                                }
-                                else if(d3ddm.Format == D3DFMT_R8G8B8)
-                                {
-                                    modev = L"R8G8B8";
-                                }
-                                else if(d3ddm.Format == D3DFMT_R5G6B5)
-                                {
-                                    modev = L"R5G6B5";
-                                }
-                                else
-                                {
-                                    modev.Set(d3ddm.Format);
-                                }
-                                g_MatrixMap->m_DI.ShowScreenText(modet.Get(), modev.Get(), 10000);
-                            }
-
+                            INVERTFLAG(g_MatrixMap->m_Flags, MMFLAG_AUTOMATIC_MODE);
                             return;
                         }
 
-        if(m_LastScans[MAX_SCANS - 9].scan == KEY_I)
-            if(m_LastScans[MAX_SCANS - 8].scan == KEY_A)
-                if(m_LastScans[MAX_SCANS - 7].scan == KEY_M)
-                    if(m_LastScans[MAX_SCANS - 6].scan == KEY_L)
-                        if(m_LastScans[MAX_SCANS - 5].scan == KEY_O)
-                            if(m_LastScans[MAX_SCANS - 4].scan == KEY_O)
-                                if(m_LastScans[MAX_SCANS - 3].scan == KEY_S)
-                                    if(m_LastScans[MAX_SCANS - 2].scan == KEY_E)
-                                        if(m_LastScans[MAX_SCANS - 1].scan == KEY_R)
+            if(m_LastScans[MAX_SCANS - 6].scan == KEY_F)
+                if(m_LastScans[MAX_SCANS - 5].scan == KEY_L)
+                    if(m_LastScans[MAX_SCANS - 4].scan == KEY_Y)
+                        if(m_LastScans[MAX_SCANS - 3].scan == KEY_C)
+                            if(m_LastScans[MAX_SCANS - 2].scan == KEY_A)
+                                if(m_LastScans[MAX_SCANS - 1].scan == KEY_M)
+                                {
+                                    m_LastScans[MAX_SCANS - 1].scan = 0;
+                                    INVERTFLAG(g_MatrixMap->m_Flags, MMFLAG_FLYCAM);
+                                    return;
+                                }
+
+            if(m_LastScans[MAX_SCANS - 5].scan == KEY_B)
+                if(m_LastScans[MAX_SCANS - 4].scan == KEY_A)
+                    if(m_LastScans[MAX_SCANS - 3].scan == KEY_B)
+                        if(m_LastScans[MAX_SCANS - 2].scan == KEY_K)
+                            if(m_LastScans[MAX_SCANS - 1].scan == KEY_I)
+                            {
+                                m_LastScans[MAX_SCANS - 1].scan = 0;
+                                INVERTFLAG(g_Config.m_DIFlags, DI_SIDE_INFO);
+                                return;
+                            }
+
+            if(m_LastScans[MAX_SCANS - 8].scan == KEY_C)
+                if(m_LastScans[MAX_SCANS - 7].scan == KEY_R)
+                    if(m_LastScans[MAX_SCANS - 6].scan == KEY_A)
+                        if(m_LastScans[MAX_SCANS - 5].scan == KEY_Z)
+                            if(m_LastScans[MAX_SCANS - 4].scan == KEY_Y)
+                                if(m_LastScans[MAX_SCANS - 3].scan == KEY_B)
+                                    if(m_LastScans[MAX_SCANS - 2].scan == KEY_O)
+                                        if(m_LastScans[MAX_SCANS - 1].scan == KEY_T)
                                         {
-                                            g_ExitState = ES_EXIT_AFTER_WIN;
-                                            g_MatrixMap->EnterDialogMode(TEMPLATE_DIALOG_WIN);
+                                            m_LastScans[MAX_SCANS - 1].scan = 0;
+                                            g_MatrixMap->GetPlayerSide()->BuildCrazyBot();
                                             return;
                                         }
 
-        if(m_LastScans[MAX_SCANS - 6].scan == KEY_B)
-            if(m_LastScans[MAX_SCANS - 5].scan == KEY_U)
-                if(m_LastScans[MAX_SCANS - 4].scan == KEY_B)
-                    if(m_LastScans[MAX_SCANS - 3].scan == KEY_U)
-                        if(m_LastScans[MAX_SCANS - 2].scan == KEY_B)
-                            if(m_LastScans[MAX_SCANS - 1].scan == KEY_U)
+            if(m_LastScans[MAX_SCANS - 5].scan == KEY_H)
+                if(m_LastScans[MAX_SCANS - 4].scan == KEY_U)
+                    if(m_LastScans[MAX_SCANS - 3].scan == KEY_R)
+                        if(m_LastScans[MAX_SCANS - 2].scan == KEY_R)
+                            if(m_LastScans[MAX_SCANS - 1].scan == KEY_Y)
                             {
-                                //if(m_LastScans[MAX_SCANS - 1].scan == KEY_SPACE)
-                                //{
                                 m_LastScans[MAX_SCANS - 1].scan = 0;
-
-                                int delay = 0;
-                                int ctime = 0;
-                                int od = 0;
-                                for (int i = 0; stuff[i].t1 != nullptr; ++i)
+                                if(!g_MatrixMap->ReinforcementsDisabled() && g_MatrixMap->BeforeReinforcementsTime() > 0)
                                 {
-                                    if (stuff[i].time)
-                                    {
-                                        od = delay;
-                                        ctime = stuff[i].time;
-                                        delay += stuff[i].time + 100;
-                                    }
-                                    g_MatrixMap->m_DI.ShowScreenText(stuff[i].t1, stuff[i].t2, ctime, od, true);
+                                    g_MatrixMap->SetReinforcementsTime(1);
+                                    return;
                                 }
-                                return;
-                                //}
                             }
 
-        if(m_LastScans[MAX_SCANS - 5].scan == KEY_C)
-            if(m_LastScans[MAX_SCANS - 4].scan == KEY_R)
-                if(m_LastScans[MAX_SCANS - 3].scan == KEY_A)
-                    if(m_LastScans[MAX_SCANS - 2].scan == KEY_S)
-                        if(m_LastScans[MAX_SCANS - 1].scan == KEY_H)
-                        {
-                            _asm xor eax,eax
-                            _asm mov [eax],  eax
-                            return;
-                        }
+            if(m_LastScans[MAX_SCANS - 8].scan == KEY_M)
+                if(m_LastScans[MAX_SCANS - 7].scan == KEY_E)
+                    if(m_LastScans[MAX_SCANS - 6].scan == KEY_G)
+                        if(m_LastScans[MAX_SCANS - 5].scan == KEY_A)
+                            if(m_LastScans[MAX_SCANS - 4].scan == KEY_B)
+                                if(m_LastScans[MAX_SCANS - 3].scan == KEY_U)
+                                    if(m_LastScans[MAX_SCANS - 2].scan == KEY_S)
+                                        if(m_LastScans[MAX_SCANS - 1].scan == KEY_T)
+                                        {
+                                            m_LastScans[MAX_SCANS - 1].scan = 0;
+                            
+                                            //CSound::Play(S_BENTER, SL_INTERFACE);
+                                            //CSound::Play(S_REINFORCEMENTS_READY, SL_INTERFACE);
+                                            //CSound::Play(S_ROBOT_BUILD_END, SL_ALL);
+                                            //CSound::Play(S_TERRON_KILLED, SL_ALL);
+                                            //CSound::Play(S_TURRET_BUILD_3, SL_ALL);
+
+                                            if(FLAG(g_MatrixMap->m_Flags, MMFLAG_MEGABUSTALREADY))
+                                            //if(0)
+                                            {
+                                                CMatrixMapStatic* s = CMatrixMapStatic::GetFirstLogic();
+                                                for(; s; s = s->GetNextLogic())
+                                                {
+                                                    if(s->GetSide() == PLAYER_SIDE)
+                                                    {
+                                                        if(s->IsRobot() && !s->AsRobot()->IsAutomaticMode()) s->AsRobot()->MustDie();
+                                                        /*
+                                                        else if(s->IsTurret()) s->AsTurret()->InitMaxHitpoints(s->AsTurret()->GetMaxHitpoints() * 20);
+                                                        else if(s->IsBuilding()) s->AsBuilding()->InitMaxHitpoints(s->AsBuilding()->GetMaxHitpoints() * 20);
+                                                        */
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                CMatrixMapStatic* s = CMatrixMapStatic::GetFirstLogic();
+                                                for(; s; s = s->GetNextLogic())
+                                                {
+                                                    if(s->GetSide() == PLAYER_SIDE)
+                                                    {
+                                                        if(s->IsRobot()) s->AsRobot()->InitMaxHitpoints(s->AsRobot()->GetMaxHitpoints() * 20);
+                                                        else if(s->IsTurret()) s->AsTurret()->InitMaxHitpoints(s->AsTurret()->GetMaxHitpoints() * 20);
+                                                        else if(s->IsBuilding()) s->AsBuilding()->InitMaxHitpoints(s->AsBuilding()->GetMaxHitpoints() * 20);
+                                                    }
+                                                }
+
+                                                SETFLAG(g_MatrixMap->m_Flags, MMFLAG_MEGABUSTALREADY);
+                                            }
+                                            return;
+                                        }
+
+            if(m_LastScans[MAX_SCANS - 5].scan == KEY_S)
+                if(m_LastScans[MAX_SCANS - 4].scan == KEY_T)
+                    if(m_LastScans[MAX_SCANS - 3].scan == KEY_A)
+                        if(m_LastScans[MAX_SCANS - 2].scan == KEY_T)
+                            if(m_LastScans[MAX_SCANS - 1].scan == KEY_S)
+                            {
+                                m_LastScans[MAX_SCANS - 1].scan = 0;
+
+                                if(!g_MatrixMap->IsPaused())
+                                {
+                                    SETFLAG(g_MatrixMap->m_Flags, MMFLAG_STAT_DIALOG_D);
+                                }
+                                return;
+                            }
+
+            if(m_LastScans[MAX_SCANS - 5].scan == KEY_V)
+                if(m_LastScans[MAX_SCANS - 4].scan == KEY_I)
+                    if(m_LastScans[MAX_SCANS - 3].scan == KEY_D)
+                        if(m_LastScans[MAX_SCANS - 2].scan == KEY_E)
+                            if(m_LastScans[MAX_SCANS - 1].scan == KEY_O)
+                            {
+                                m_LastScans[MAX_SCANS - 1].scan = 0;
+                                g_MatrixMap->m_DI.ShowScreenText(L"_____________________________", L"", 10000);
+                                g_MatrixMap->m_DI.ShowScreenText(L"Sim textures", CWStr(g_D3DDCaps.MaxSimultaneousTextures, g_CacheHeap).Get(), 10000);
+                                g_MatrixMap->m_DI.ShowScreenText(L"Stencil available", FLAG(g_Flags, GFLAG_STENCILAVAILABLE) ? L"Yes" : L"No", 10000);
+
+                                // vidmode
+	                            D3DDISPLAYMODE d3ddm;
+
+                                CWStr modet(g_CacheHeap);
+                                CWStr modev(g_CacheHeap);
+                                for(int i = 0; i < 2; ++i)
+                                {
+                                    modet.Set(L"Buffer ");
+                                    modet += i;
+                                    modet += L" mode";
+	                                ASSERT_DX(g_D3DD->GetDisplayMode(0,&d3ddm));
+                                    if(d3ddm.Format == D3DFMT_X8R8G8B8)
+                                    {
+                                        modev = L"X8R8G8B8";
+                                    }
+                                    else if(d3ddm.Format == D3DFMT_A8R8G8B8)
+                                    {
+                                        modev = L"A8R8G8B8";
+                                    }
+                                    else if(d3ddm.Format == D3DFMT_R8G8B8)
+                                    {
+                                        modev = L"R8G8B8";
+                                    }
+                                    else if(d3ddm.Format == D3DFMT_R5G6B5)
+                                    {
+                                        modev = L"R5G6B5";
+                                    }
+                                    else
+                                    {
+                                        modev.Set(d3ddm.Format);
+                                    }
+                                    g_MatrixMap->m_DI.ShowScreenText(modet.Get(), modev.Get(), 10000);
+                                }
+
+                                return;
+                            }
+
+            if(m_LastScans[MAX_SCANS - 9].scan == KEY_I)
+                if(m_LastScans[MAX_SCANS - 8].scan == KEY_A)
+                    if(m_LastScans[MAX_SCANS - 7].scan == KEY_M)
+                        if(m_LastScans[MAX_SCANS - 6].scan == KEY_L)
+                            if(m_LastScans[MAX_SCANS - 5].scan == KEY_O)
+                                if(m_LastScans[MAX_SCANS - 4].scan == KEY_O)
+                                    if(m_LastScans[MAX_SCANS - 3].scan == KEY_S)
+                                        if(m_LastScans[MAX_SCANS - 2].scan == KEY_E)
+                                            if(m_LastScans[MAX_SCANS - 1].scan == KEY_R)
+                                            {
+                                                g_ExitState = ES_EXIT_AFTER_WIN;
+                                                g_MatrixMap->EnterDialogMode(TEMPLATE_DIALOG_WIN);
+                                                return;
+                                            }
+
+            if(m_LastScans[MAX_SCANS - 6].scan == KEY_B)
+                if(m_LastScans[MAX_SCANS - 5].scan == KEY_U)
+                    if(m_LastScans[MAX_SCANS - 4].scan == KEY_B)
+                        if(m_LastScans[MAX_SCANS - 3].scan == KEY_U)
+                            if(m_LastScans[MAX_SCANS - 2].scan == KEY_B)
+                                if(m_LastScans[MAX_SCANS - 1].scan == KEY_U)
+                                {
+                                    //if(m_LastScans[MAX_SCANS - 1].scan == KEY_SPACE)
+                                    //{
+                                    m_LastScans[MAX_SCANS - 1].scan = 0;
+
+                                    int delay = 0;
+                                    int ctime = 0;
+                                    int od = 0;
+                                    for (int i = 0; stuff[i].t1 != nullptr; ++i)
+                                    {
+                                        if (stuff[i].time)
+                                        {
+                                            od = delay;
+                                            ctime = stuff[i].time;
+                                            delay += stuff[i].time + 100;
+                                        }
+                                        g_MatrixMap->m_DI.ShowScreenText(stuff[i].t1, stuff[i].t2, ctime, od, true);
+                                    }
+                                    return;
+                                    //}
+                                }
+
+            if(m_LastScans[MAX_SCANS - 5].scan == KEY_C)
+                if(m_LastScans[MAX_SCANS - 4].scan == KEY_R)
+                    if(m_LastScans[MAX_SCANS - 3].scan == KEY_A)
+                        if(m_LastScans[MAX_SCANS - 2].scan == KEY_S)
+                            if(m_LastScans[MAX_SCANS - 1].scan == KEY_H)
+                            {
+                                _asm xor eax,eax
+                                _asm mov [eax],  eax
+                                return;
+                            }
+        }
 #endif
     }
 

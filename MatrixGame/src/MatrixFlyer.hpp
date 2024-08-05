@@ -248,8 +248,6 @@ class CMatrixFlyer : public CMatrixMapStatic
     CMatrixBuilding* m_Base = nullptr;
     //};
 
-	D3DXVECTOR3 m_Pos = { 200.0f, 280.0f, FLYER_ALT_EMPTY }; //origin
-
     //Все углы представлены в радианах
     float m_DAngle = 0.0f;
     float m_AngleZ = 0.0f;
@@ -329,6 +327,8 @@ class CMatrixFlyer : public CMatrixMapStatic
     int m_CtrlGroup = 0;
 
 public:
+    D3DXVECTOR3 m_Pos = { 200.0f, 280.0f, FLYER_ALT_EMPTY }; //origin
+
     //carrying
     struct SCarryData
     {

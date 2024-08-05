@@ -45,8 +45,9 @@ int g_TactTime = 0;
 int g_AvailableTexMem;
 
 byte g_PlayerRobotsAutoBoom = 0;
-bool g_SelectableTurrets = false;
+bool g_EnableCheats = false;
 bool g_EnableFlyers = false;
+bool g_SelectableTurrets = false;
 
 #ifdef DO_SMART_COLOROPS
 

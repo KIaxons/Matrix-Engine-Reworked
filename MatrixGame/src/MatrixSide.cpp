@@ -11808,11 +11808,11 @@ inline D3DXVECTOR2 GetWorldPos(CMatrixMapStatic* obj)
     switch(obj->GetObjectType())
     {
         case OBJECT_TYPE_ROBOT_AI: return D3DXVECTOR2(obj->AsRobot()->m_PosX, obj->AsRobot()->m_PosY);
+        case OBJECT_TYPE_FLYER: return D3DXVECTOR2(obj->AsFlyer()->m_Pos.x, obj->AsFlyer()->m_Pos.y);
         case OBJECT_TYPE_TURRET: return obj->AsTurret()->m_Pos;
         case OBJECT_TYPE_BUILDING: return obj->AsBuilding()->m_Pos;
+        default: ERROR_S(L"GetWorldPos Error!");
     }
-
-    ERROR_S(L"GetWorldPos Error!");
 }
 
 inline bool IsToPlace(CMatrixRobotAI* robot, int place)

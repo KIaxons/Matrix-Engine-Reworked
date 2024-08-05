@@ -155,8 +155,9 @@
 #define CFG_DENSE_FOG_DRAW_DISTANCE		 		L"DenseFogDrawDistance"
 #define CFG_DESIGNS_TO_SAVE						L"MaxDesignsToSave"
 #define CFG_PLAYER_ROBOTS_AUTO_BOOM				L"PlayerRobotsAutoBoom"
-#define CFG_SELECTABLE_TURRETS					L"SelectableTurrets"
+#define CFG_ENABLE_CHEATS                       L"EnableCheats"
 #define CFG_ENABLE_FLYERS						L"EnableFlyers"
+#define CFG_SELECTABLE_TURRETS					L"SelectableTurrets"
 #define CFG_LOADING_SCREEN_ANIM					L"LoadingScreenAnim"
 
 #define BLOCK_PATH_MAIN_CONFIG                  L"MainConfig"

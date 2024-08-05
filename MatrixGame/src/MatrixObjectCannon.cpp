@@ -784,7 +784,6 @@ void CMatrixTurret::BeginFireAnimation()
     {
         if(m_Module[i].m_Type == TURRET_PART_GUN)
         {
-
             if(m_Module[i].m_Graph->SetAnimByNameNoBegin(ANIMATION_NAME_FIRELOOP))
             {
                 // not looped

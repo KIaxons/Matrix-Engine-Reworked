@@ -352,8 +352,10 @@ void CMatrixConfig::SetDefaults()
     g_ThinFogDrawDistance = 0.5f;
     g_DenseFogDrawDistance = 0.7f;
     g_PlayerRobotsAutoBoom = 0;
-    g_SelectableTurrets = false;
+    g_EnableCheats = false;
     g_EnableFlyers = false;
+    g_SelectableTurrets = false;
+
 
 
     //Camera properties
@@ -518,10 +520,10 @@ void CMatrixConfig::ReadParams()
         g_PlayerRobotsAutoBoom = cfg_par->Par(CFG_PLAYER_ROBOTS_AUTO_BOOM).GetBool();
     }
 
-    if(cfg_par->ParCount(CFG_SELECTABLE_TURRETS))
+    if(cfg_par->ParCount(CFG_ENABLE_CHEATS))
     {
-        //Проверяем, включена ли опция, разрешающая выделять турели и через это частично управлять ими
-        g_SelectableTurrets = cfg_par->Par(CFG_SELECTABLE_TURRETS).GetBool();
+        //Проверяем, включена ли опция активации читов
+        g_EnableCheats = cfg_par->Par(CFG_ENABLE_CHEATS).GetBool();
     }
 
     if(cfg_par->ParCount(CFG_ENABLE_FLYERS))
@@ -529,6 +531,12 @@ void CMatrixConfig::ReadParams()
         //Проверяем, включена ли опция активации вертолётов в качестве играбельного класса юнитов
         //(В данный момент вертолёты работают в тестовом режиме)
         g_EnableFlyers = cfg_par->Par(CFG_ENABLE_FLYERS).GetBool();
+    }
+
+    if(cfg_par->ParCount(CFG_SELECTABLE_TURRETS))
+    {
+        //Проверяем, включена ли опция, разрешающая выделять турели и через это частично управлять ими
+        g_SelectableTurrets = cfg_par->Par(CFG_SELECTABLE_TURRETS).GetBool();
     }
         
     if(cfg_par->ParCount(CFG_OBJECTS_TO_MINIMAP))
