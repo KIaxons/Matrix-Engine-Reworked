@@ -760,7 +760,7 @@ static bool FindTarget(const D3DXVECTOR3& center, CMatrixMapStatic* ms, dword us
 
     if(match || dot > d->coss)
     {
-        CMatrixMapStatic* cel = g_MatrixMap->Trace(nullptr, center, ms->GetGeoCenter(), /*TRACE_OBJECT_SPHERE | */ TRACE_ROBOT | TRACE_FLYER | TRACE_LANDSCAPE, d->skip);
+        CMatrixMapStatic* cel = g_MatrixMap->Trace(nullptr, center, ms->GetGeoCenter(), TRACE_OBJECT_SPHERE | TRACE_ROBOT | TRACE_FLYER | TRACE_LANDSCAPE, d->skip);
 
         if(cel == ms)
         {
