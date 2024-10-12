@@ -45,6 +45,8 @@ extern float g_ThinFogDrawDistance;
 extern float g_DenseFogDrawDistance;
 extern int g_AvailableTexMem;
 
+extern float g_GameSpeedFactor;
+
 extern byte g_PlayerRobotsAutoBoom;
 extern bool g_EnableCheats;
 extern bool g_EnableFlyers;

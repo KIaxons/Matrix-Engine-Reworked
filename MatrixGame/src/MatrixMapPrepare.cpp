@@ -1160,12 +1160,12 @@ int CMatrixMap::PrepareMap(CStorage& stor, const CWStr& map_name)
                 //Блядская пирамида, вместо нормального скайбокса
                 switch(idx)
                 {
-                    case 0: sky_name = L"Front"; break;
-                    case 1: sky_name = L"Back"; break;
-                    case 2: sky_name = L"Left"; break;
-                    case 3: sky_name = L"Right"; break;
-                    //case 4: sky_name = L"Up"; break;
-                    //case 5: sky_name = L"Down"; break;
+                    case SKY_FRONT: sky_name = L"Front"; break;
+                    case SKY_BACK: sky_name = L"Back"; break;
+                    case SKY_LEFT: sky_name = L"Left"; break;
+                    case SKY_RIGHT: sky_name = L"Right"; break;
+                    //case SKY_TOP: sky_name = L"Top"; break;
+                    //case SKY_BOTTOM: sky_name = L"Bottom"; break;
                 }
 
                 CWStr tex_name(skbp->ParGet(sky_name).GetStrPar(0, L","), g_CacheHeap);
@@ -1950,7 +1950,7 @@ void CMatrixMap::Restart()
             if(building->GatheringPointIsSet()) building->ClearGatheringPoint();
             if(ms->IsBuildingAlive())
             {
-                building->LogicTact(100000);
+                building->LogicTact(100000); //Прокручиваем вперёд время здания, чтобы оно успела там себе "раздуплиться"
                 ms->GetResources(MR_Matrix | MR_Graph | MR_MiniMap);
                 if(!building->IsBase()) building->CreateCaptureCirclesEffect();
             }
@@ -2067,7 +2067,7 @@ void CMatrixMap::CreatePoolDefaultResources(bool loading)
             {
                 CMatrixBuilding* building = ms->AsBuilding();
 
-                building->LogicTact(100000);
+                building->LogicTact(100000); //Прокручиваем вперёд время здания, чтобы оно успела там себе "раздуплиться"
                 ms->GetResources(MR_Matrix | MR_Graph | MR_MiniMap);
                 if(!building->IsBase()) building->CreateCaptureCirclesEffect();
             }

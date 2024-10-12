@@ -2900,6 +2900,7 @@ void CMatrixMapLogic::Tact(int step)
 
             if(FLAG(m_Flags, MMFLAG_STAT_DIALOG)) EnterDialogMode(TEMPLATE_DIALOG_STATISTICS);
             else EnterDialogMode(TEMPLATE_DIALOG_STATISTICS_D);
+
             RESETFLAG(m_Flags, MMFLAG_STAT_DIALOG | MMFLAG_STAT_DIALOG_D);
         }
     }
@@ -2914,9 +2915,15 @@ void CMatrixMapLogic::Tact(int step)
 
     if(IsPaused()) 
     {
+        if(m_GameSpeedHint)
+        {
+            m_GameSpeedHint->Release();
+            m_GameSpeedHint = nullptr;
+        }
+
         if(m_PauseHint == nullptr && g_RangersInterface && !FLAG(m_Flags, MMFLAG_DIALOG_MODE))
         {
-            m_PauseHint = CMatrixHint::Build(CWStr(TEMPLATE_PAUSE, g_CacheHeap));
+            m_PauseHint = CMatrixHint::Build(CWStr(TEMPLATE_PAUSE));
             m_PauseHint->Show(14, 62);
         }
 
@@ -2956,6 +2963,27 @@ void CMatrixMapLogic::Tact(int step)
         {
             m_PauseHint->Release();
             m_PauseHint = nullptr;
+        }
+
+        if(g_GameSpeedFactor != 1.0f && (!m_GameSpeedHint || (m_GameSpeedHintVal != g_GameSpeedFactor)))
+        {
+            if(m_GameSpeedHint)
+            {
+                m_GameSpeedHint->Release();
+                m_GameSpeedHint = nullptr;
+            }
+
+            m_GameSpeedHint = CMatrixHint::Build(CWStr(TEMPLATE_GAME_SPEED), L"", CWStr(L" " + CWStr(int(g_GameSpeedFactor * 100.0f)) + L"%"));
+            m_GameSpeedHint->Show(14, 62);
+
+            m_GameSpeedHintVal = g_GameSpeedFactor;
+        }
+        else if(m_GameSpeedHint && g_GameSpeedFactor == 1.0f)
+        {
+            m_GameSpeedHint->Release();
+            m_GameSpeedHint = nullptr;
+
+            m_GameSpeedHintVal = g_GameSpeedFactor;
         }
     }
 
@@ -3016,14 +3044,14 @@ void CMatrixMapLogic::Tact(int step)
         //GatherInfo(2);
     }
 
-    int portions = step / LOGIC_TACT_PERIOD;
+    int portions = step / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
     
     for(int cnt = 0; cnt < portions; ++cnt)
     {
-        CMatrixMapStatic::ProceedLogic(LOGIC_TACT_PERIOD);
+        CMatrixMapStatic::ProceedLogic(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
     }
 
-    portions = step - portions * LOGIC_TACT_PERIOD;
+    portions = step - portions * (LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
     if(portions)
     {
         CMatrixMapStatic::ProceedLogic(portions);
@@ -3031,12 +3059,12 @@ void CMatrixMapLogic::Tact(int step)
 
     while(GetTime() > m_TactNext)
     {
-		m_TactNext += LOGIC_TACT_PERIOD;
-        //CMatrixMapStatic::ProceedLogic(LOGIC_TACT_PERIOD);
+		m_TactNext += LOGIC_TACT_DIVIDER * g_GameSpeedFactor;
+        //CMatrixMapStatic::ProceedLogic(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
 
 		for(int i = 0; i < m_SidesCount; ++i)
         {
-			m_Side[i].LogicTact(LOGIC_TACT_PERIOD);
+			m_Side[i].LogicTact(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
 		}
 	}
 

@@ -13,7 +13,7 @@
 
 #define DAMAGE_PER_TIME     10000
 #define SECRET_VALUE        1000000.0f
-#define LOGIC_TACT_PERIOD   10 //В миллисекундах, итого имеем 100 логических тактов в секунду
+#define LOGIC_TACT_DIVIDER  10 //В миллисекундах
 
 struct SStringPair
 {
@@ -179,6 +179,8 @@ enum EKeyAction
     KA_CAM_SETDEFAULT,
     KA_TAKE_SCREENSHOT,
     KA_SAVE_SCREENSHOT,
+    KA_GAME_SPEED_UP,
+    KA_GAME_SPEED_DOWN,
     KA_GAME_PAUSED,
 
     KA_AUTOORDER_CAPTURE,

@@ -839,8 +839,12 @@ void CMatrixTurret::LogicTact(int tact)
         m_MiniMapFlashTime -= tact;
     }
 
+    //Если родительское здание турели было захвачено другой стороной
     if(m_ParentBuilding && m_ParentBuilding->m_Side != m_Side)
     {
+        //Снимаем выделение с выделенной игроком турели
+        if(m_Side == PLAYER_SIDE && g_MatrixMap->GetPlayerSide()->m_ActiveObject == this) g_MatrixMap->GetPlayerSide()->Select(NOTHING);
+
         SetSide(m_ParentBuilding->m_Side);
 
         CMatrixMapStatic* ms = CMatrixMapStatic::GetFirstLogic();
@@ -850,6 +854,7 @@ void CMatrixTurret::LogicTact(int tact)
             {
                 if(ms->AsRobot()->GetEnv()->SearchEnemy(this)) ms->AsRobot()->GetEnv()->RemoveFromList(this);
             }
+
             ms = ms->GetNextLogic();
         }
     }
@@ -1111,13 +1116,13 @@ no_target:
         float ang_dist_to_target = (float)AngleDist(turret_ang, target_ang);
 
         //Вращаем турель (модель)
-        if(fabs(ang_dist_to_target) < props->rotation_speed + 0.001f)
+        if(fabs(ang_dist_to_target) < (props->rotation_speed * g_GameSpeedFactor) + 0.001f)
         {
             m_Module[1].m_DirectionAngle += ang_dist_to_target;
             ang_match_horizontal = true;
         }
-	    else if(ang_dist_to_target < 0.0f) m_Module[1].m_DirectionAngle -= props->rotation_speed;
-	    else m_Module[1].m_DirectionAngle += props->rotation_speed;
+	    else if(ang_dist_to_target < 0.0f) m_Module[1].m_DirectionAngle -= props->rotation_speed * g_GameSpeedFactor;
+	    else m_Module[1].m_DirectionAngle += props->rotation_speed * g_GameSpeedFactor;
 
         m_Module[2].m_DirectionAngle = m_Module[1].m_DirectionAngle;
 
@@ -1137,13 +1142,13 @@ no_target:
         ang_dist_to_target = (float)AngleDist(turret_ang, target_ang);
 
         //Поднимаем/опускаем орудие турели (модель)
-        if(fabs(ang_dist_to_target) < props->vertical_speed + 0.001f)
+        if(fabs(ang_dist_to_target) < (props->vertical_speed * g_GameSpeedFactor) + 0.001f)
         {
             m_VerticalGuidanceAngle += ang_dist_to_target;
             ang_match_vertical = true;
         }
-	    else if(ang_dist_to_target < 0.0f) m_VerticalGuidanceAngle -= props->vertical_speed;
-	    else m_VerticalGuidanceAngle += props->vertical_speed;
+	    else if(ang_dist_to_target < 0.0f) m_VerticalGuidanceAngle -= props->vertical_speed * g_GameSpeedFactor;
+	    else m_VerticalGuidanceAngle += props->vertical_speed * g_GameSpeedFactor;
 
         RChange(MR_Matrix | MR_ShadowStencil | MR_ShadowProjTex);
         GetResources(MR_Matrix);

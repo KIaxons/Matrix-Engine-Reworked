@@ -795,12 +795,12 @@ void CMatrixRobot::DoAnimation(int cms)
         }
         else if(m_Animation == ANIMATION_ROTATE_LEFT || m_Animation == ANIMATION_ROTATE_RIGHT)
         {
-            float speed_factor = 0.01f / m_MaxRotationSpeed; //Базовой скоростью вращения шасси считаем 0.01, и корректируем анимацию разворота, опираясь на это значение
+            float speed_factor = (0.01f / m_MaxRotationSpeed) * g_GameSpeedFactor; //Базовой скоростью вращения шасси считаем 0.01, и корректируем анимацию разворота, опираясь на это значение
             if(robot_chassis_model->VectorObjectAnimTact(cms, speed_factor)) frame_changed = true;
         }
         else
         {
-            float speed_factor = min(m_ChassisData.m_MovingAnimSpeed / m_Speed, 3.0f);
+            float speed_factor = (min(m_ChassisData.m_MovingAnimSpeed / m_Speed, 3.0f)) * g_GameSpeedFactor;
             if(robot_chassis_model->VectorObjectAnimTact(cms, speed_factor)) frame_changed = true;
         }
     }
@@ -863,9 +863,8 @@ void CMatrixRobot::Tact(int cms)
         {
             while(m_ChassisData.m_DustCount > 1.0)
             {
-                //CDText::T("spd", CStr(m_Speed));
                 D3DXVECTOR2 spd(m_Velocity.x, m_Velocity.y);
-                spd *= float(cms) / LOGIC_TACT_PERIOD;
+                spd *= float(cms) / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
                 CMatrixEffect::CreateDust(nullptr, *(D3DXVECTOR2*)&GetGeoCenter(), spd, 500);
                 m_ChassisData.m_DustCount -= 1.0f;
             }

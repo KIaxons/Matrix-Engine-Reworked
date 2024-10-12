@@ -235,10 +235,11 @@ struct SGatheringPointsList {
 
 enum
 {
-    SKY_FORE,
+    SKY_FRONT,
     SKY_BACK,
     SKY_LEFT,
-    SKY_RITE,
+    SKY_RIGHT,
+    SKY_TOP
 };
 
 class CMatrixHint;
@@ -273,6 +274,8 @@ public:
     dword m_Flags = 0;
 
     CMatrixHint* m_PauseHint = nullptr;
+    CMatrixHint* m_GameSpeedHint = nullptr;
+    float        m_GameSpeedHintVal = 1.0f;
 
     CBuf         m_DialogModeHints;
     const wchar* m_DialogModeName = nullptr;
@@ -379,7 +382,7 @@ public:
 
     CTextureManaged* m_Reflection = nullptr;
 
-    SSkyTex          m_SkyTex[4];
+    SSkyTex          m_SkyTex[5];
     float            m_SkyAngle = 0.0f;
     float            m_SkyDeltaAngle = 0.0f;
 

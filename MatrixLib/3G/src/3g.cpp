@@ -41,6 +41,8 @@ float g_DenseFogDrawDistance = 0.7;
 int g_DrawFPSCur = 0;
 int g_DrawFPSTime = 0;
 
+float g_GameSpeedFactor = 1.0f; //Модификатор скорости игры (влияет на такты)
+
 int g_TactTime = 0;
 int g_AvailableTexMem;
 
@@ -443,11 +445,6 @@ int L3GRun()
 
 			if(g_FormCur)
             {
-
-#ifdef _DEBUG
-                SETFLAG(g_Flags, GFLAG_TAKTINPROGRESS);
-                //CDText::T("tact", CStr(ct - g_TactTime));
-#endif
                 float tt1 = min(100, cur_takt);
                 int tt = Float2Int(tt1);
 
@@ -456,16 +453,12 @@ int L3GRun()
                 smooth[smp] = tt;
                 smp = (smp + 1) & (SMOOTH_COUNT - 1);
 
-                tt = smooths / SMOOTH_COUNT;
+                tt = smooths / SMOOTH_COUNT * g_GameSpeedFactor;
 
                 SRemindCore::Tact(tt);
 				g_FormCur->Tact(tt); //Главный тактовый логический исполнитель игры
-
-#ifdef _DEBUG
-                //DM(L"takts", CWStr(tt));
-                RESETFLAG(g_Flags, GFLAG_TAKTINPROGRESS);
-#endif
 			}
+
             tact = ctakt;
 
             if((double(ctakt - draw_time_last) * freq_inv) > g_DrawFPSMax_Period)

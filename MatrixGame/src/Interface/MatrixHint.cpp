@@ -512,45 +512,39 @@ static void Replace(CWStr& text, const wchar* baserepl, CBlockPar* repl)
 //#define BGR2RGB(c) (((c & 255) << 16) | (c & 0x0000FF00) | ((c >> 16) & 255) | c&0xFF000000)
 
 
-CMatrixHint* CMatrixHint::Build(const CWStr& templatename, const wchar* baserepl)
+CMatrixHint* CMatrixHint::Build(const CWStr& templatename, const wchar* baserepl, const wchar* add_text)
 {
-DTRACE();
-
     CBlockPar* repl = g_MatrixData->BlockGet(PAR_REPLACE);
     CBlockPar* bp = g_MatrixData->BlockGet(PAR_TEMPLATES);
     CWStr str(g_CacheHeap);
 
-DCP();
-
     int cnt = bp->ParCount();
     int ii = -1;
-DCP();
 
     for(int i = 0; i < cnt; ++i)
     {
-DCP();
         if(bp->ParGetName(i) == templatename)
         {
-DCP();
             if(ii < 0) ii = i;
             str = bp->ParGet(i);
             if(str[0] == '|') continue;
-DCP();
+
             CWStr templ(g_CacheHeap);
 
             for(; ii < cnt; ++ii)
             {
-DCP();
                 if(bp->ParGetName(ii) == templatename)
                 {
-DCP();
                     templ = bp->ParGet(ii);
                     if(templ[0] == '|') str += templ;
                 }
             }
+
             break;
         }
     }
+
+    if(add_text != L"") str += add_text;
 
     return Build(str, repl, baserepl);
 }

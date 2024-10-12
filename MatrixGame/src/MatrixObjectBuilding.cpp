@@ -1218,7 +1218,7 @@ void CMatrixBuilding::SetNeutral()
     if(GatheringPointIsSet()) ClearGatheringPoint();
 }
 
-ECaptureStatus CMatrixBuilding::Capture(CMatrixRobotAI* by)
+ECaptureStatus CMatrixBuilding::Capture(CMatrixRobotAI* capturer)
 {
     if(m_InCaptureTime <= 0)
     {
@@ -1230,7 +1230,7 @@ ECaptureStatus CMatrixBuilding::Capture(CMatrixRobotAI* by)
     if(m_InCaptureNextTimeErase >= g_MatrixMap->GetTime() || m_InCaptureNextTimePaint >= g_MatrixMap->GetTime()) return CAPTURE_BUSY;
 
     SFindRobotForCapture data;
-    data.by = by;
+    data.by = capturer;
     data.found = nullptr;
     data.dist2 = CAPTURE_RADIUS * CAPTURE_RADIUS;
     
@@ -1238,7 +1238,7 @@ ECaptureStatus CMatrixBuilding::Capture(CMatrixRobotAI* by)
  
     if(data.by == nullptr || data.by != data.found) return CAPTURE_TOO_FAR;
 
-    dword captureer_color = 0xFF000000 | g_MatrixMap->GetSideColor(by->GetSide());
+    dword captureer_color = 0xFF000000 | g_MatrixMap->GetSideColor(capturer->GetSide());
     
     m_InCaptureTime = g_Config.m_CaptureTimeErase + g_Config.m_CaptureTimePaint;
 
@@ -1254,13 +1254,14 @@ ECaptureStatus CMatrixBuilding::Capture(CMatrixRobotAI* by)
 
                 if(m_TrueColor.m_ColoredCnt == MAX_CAPTURE_CIRCLES)
                 {
-                    int side = by->GetSide();
+                    int side = capturer->GetSide();
                     if(side == PLAYER_SIDE) CSound::Play(S_ENEMY_FACTORY_CAPTURED);
                     m_Side = side;
                     m_BuildingQueue.ClearStack();
                     RChange(MR_MiniMap);
                     return CAPTURE_DONE;
                 }
+
                 ++m_TrueColor.m_ColoredCnt;
             }
         }
@@ -1292,13 +1293,14 @@ ECaptureStatus CMatrixBuilding::Capture(CMatrixRobotAI* by)
                 if(m_TrueColor.m_ColoredCnt == MAX_CAPTURE_CIRCLES)
                 {
                     //дозахват
-                    int side = by->GetSide();
+                    int side = capturer->GetSide();
                     //if(side == PLAYER_SIDE) CSound::Play(S_ENEMY_FACTORY_CAPTURED);
                     m_Side = side;
                     RChange(MR_MiniMap);
                     
                     return CAPTURE_DONE;
                 }
+
                 ++m_TrueColor.m_ColoredCnt;
             }
         }
@@ -1320,8 +1322,10 @@ ECaptureStatus CMatrixBuilding::Capture(CMatrixRobotAI* by)
                     m_Side = NEUTRAL_SIDE;
                     RChange(MR_MiniMap);
                     m_BuildingQueue.ClearStack();
+
                     return CAPTURE_IN_PROGRESS;
                 }
+
                 --m_TrueColor.m_ColoredCnt;
             }
         }
@@ -1832,7 +1836,7 @@ void CBuildingQueue::TickTimer(int ms)
         m_ProgressBar.Modify(100000.0f, 0);
         if(m_Timer <= g_Config.m_Timings[UNIT_FLYER])
         {
-            m_ProgressBar.Modify(m_Timer * 1.0f / g_Config.m_Timings[UNIT_FLYER]);
+            m_ProgressBar.Modify(float(m_Timer) / float(g_Config.m_Timings[UNIT_FLYER]));
         }
 
         if(ps->m_CurrSel == BASE_SELECTED && ps->m_ActiveObject == m_ParentBase)
@@ -2035,7 +2039,7 @@ void CBuildingQueue::AddItem(CMatrixMapStatic* item)
     } 
 }
 
-//Отменяем постройку робота, вертолёта или турели
+//Отменяем постройку робота, вертолёта или турели (также отменяем её демонтаж)
 int CBuildingQueue::DeleteItem(int no)
 {
     if(m_Items)
@@ -2122,10 +2126,10 @@ CBuildingQueue::~CBuildingQueue()
                 {
                     items->TakingDamage(WEAPON_INSTANT_DEATH, D3DXVECTOR3(0, 0, 0), D3DXVECTOR3(0, 0, 0), 0, nullptr);
                 }
+
 			    items = nullptr;
 			    m_Top = nullptr;
 			    m_Bottom = nullptr;
-
 		    }
 
             if(items && items->m_PrevQueueItem)
@@ -2149,15 +2153,20 @@ CBuildingQueue::~CBuildingQueue()
 
 void CBuildingQueue::DeleteItem(CMatrixMapStatic* item)
 {
-    if(m_Items){
+    if(m_Items)
+    {
         CMatrixMapStatic* i = m_Top;
         int cnt = 0;
-        while(i){
-            cnt++;
-            if(i == item){
+        while(i)
+        {
+            ++cnt;
+
+            if(i == item)
+            {
                 DeleteItem(cnt);
                 break;
             }
+
             i = i->m_NextQueueItem;
         }
     }
@@ -2176,9 +2185,11 @@ int CBuildingQueue::GetRobotsCnt() const
     return robots;
 }
 
+//Очистка очереди постройки: роботов, турелей, вертолётов
 void CBuildingQueue::ClearStack()
 {
     while(DeleteItem(1)) {}
+
     if(m_ParentBase->m_Side == PLAYER_SIDE)
     {
         CInterface* ifs = g_IFaceList->m_First;
@@ -2194,10 +2205,13 @@ void CBuildingQueue::ClearStack()
                         els = ifs->DelElement(els);
                         continue;
                     }
+
                     els = els->m_NextElement;
                 }
+
                 break;
             }
+
             ifs = ifs->m_NextInterface;
         }
     }

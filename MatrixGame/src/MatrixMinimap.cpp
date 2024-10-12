@@ -1158,7 +1158,7 @@ render:
     {
         if(ms->IsBuildingAlive())
         {
-            ((CMatrixBuilding*)ms)->LogicTact(100000);
+            ((CMatrixBuilding*)ms)->LogicTact(100000); //Прокручиваем вперёд время здания, чтобы оно успела там себе "раздуплиться"
             ms->GetResources(MR_Matrix | MR_Graph | MR_MiniMap);
         }
 

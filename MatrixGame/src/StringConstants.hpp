@@ -111,6 +111,7 @@
 #define ANIMATION_NAME_FIRELOOP                 L"FireLoop"
 
 #define TEMPLATE_PAUSE                          L"Pause"
+#define TEMPLATE_GAME_SPEED                     L"GameSpeed"
 #define TEMPLATE_DIALOG_BEGIN                   L"Begin"
 #define TEMPLATE_DIALOG_EXIT                    L"Exit"
 #define TEMPLATE_DIALOG_LOSE                    L"Loose"

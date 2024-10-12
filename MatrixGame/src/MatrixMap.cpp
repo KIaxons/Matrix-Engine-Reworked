@@ -88,21 +88,18 @@ void CMatrixMap::Clear()
 
     while(m_EffectsFirst)
     {
-#ifdef _DEBUG
-        SubEffect(DEBUG_CALL_INFO,m_EffectsFirst);
-#else
         SubEffect(m_EffectsFirst);
-#endif
     }
 
-    if (m_EffectSpawners)
+    if(m_EffectSpawners)
     {
-        for (int i = 0; i<m_EffectSpawnersCnt; ++i)
+        for(int i = 0; i < m_EffectSpawnersCnt; ++i)
         {
             m_EffectSpawners[i].~CEffectSpawner();
         }
         HFree(m_EffectSpawners, Base::g_MatrixHeap);
     }
+
     m_EffectSpawnersCnt = 0;
     m_EffectSpawners = nullptr;
     CMatrixEffect::ClearEffects();
@@ -121,12 +118,12 @@ void CMatrixMap::Clear()
     CSkinManager::Clear();
     CSound::Clear();
 
-    if (IS_VB(m_ShadowVB)) DESTROY_VB(m_ShadowVB);
+    if(IS_VB(m_ShadowVB)) DESTROY_VB(m_ShadowVB);
 
     m_Cursor.Clear();
     m_DI.Clear();
 
-    if (m_DeviceState != nullptr)
+    if(m_DeviceState != nullptr)
     {
         HDelete(CDeviceState, m_DeviceState, Base::g_MatrixHeap);
         m_DeviceState = nullptr;
@@ -135,8 +132,6 @@ void CMatrixMap::Clear()
 
 void CMatrixMap::IdsClear()
 {
-DTRACE();
-
 	if(m_Ids)
     {
 		for(int i = 0; i < m_IdsCnt; ++i)
@@ -1665,10 +1660,8 @@ void CMatrixMap::DrawShadowsProjFast(void)
 	ASSERT_DX(g_D3DD->SetSamplerState(0,D3DSAMP_ADDRESSV,			D3DTADDRESS_WRAP));
 }
 
-void CMatrixMap::DrawShadows(void)
+void CMatrixMap::DrawShadows()
 {
-    DTRACE();
-
     CVOShadowStencil::BeforeRenderAll();
 
 	ASSERT_DX(g_D3DD->SetTransform(D3DTS_WORLD,&GetIdentityMatrix()));
@@ -1760,8 +1753,8 @@ void CMatrixMap::DrawShadows(void)
 
     ASSERT_DX(g_D3DD->SetRenderState(D3DRS_COLORWRITEENABLE, 0xF));
 
-	ASSERT_DX(g_D3DD->SetSamplerState(0,D3DSAMP_ADDRESSU,			D3DTADDRESS_WRAP));
-	ASSERT_DX(g_D3DD->SetSamplerState(0,D3DSAMP_ADDRESSV,			D3DTADDRESS_WRAP));
+	ASSERT_DX(g_D3DD->SetSamplerState(0,D3DSAMP_ADDRESSU,		D3DTADDRESS_WRAP));
+	ASSERT_DX(g_D3DD->SetSamplerState(0,D3DSAMP_ADDRESSV,		D3DTADDRESS_WRAP));
 
 	ASSERT_DX(g_D3DD->SetTexture(0,nullptr));
 #endif
@@ -1790,8 +1783,7 @@ void CMatrixMap::DrawShadows(void)
 
 	ASSERT_DX(g_D3DD->SetFVF(D3DFVF_XYZRHW|D3DFVF_DIFFUSE));
     ASSERT_DX(g_D3DD->SetStreamSource( 0, GET_VB(m_ShadowVB), 0, sizeof(SShadowRectVertex) ));
-    ASSERT_DX(g_D3DD->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 ));
-
+    ASSERT_DX(g_D3DD->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2));
 
 	ASSERT_DX(g_D3DD->SetRenderState(D3DRS_ZENABLE,				D3DZB_TRUE));
 	ASSERT_DX(g_D3DD->SetRenderState(D3DRS_ZWRITEENABLE,		TRUE));
@@ -1800,11 +1792,8 @@ void CMatrixMap::DrawShadows(void)
 	ASSERT_DX(g_D3DD->SetRenderState(D3DRS_ALPHATESTENABLE,		FALSE));
 }
 
-void CMatrixMap::DrawEffects(void)
+void CMatrixMap::DrawEffects()
 {
-    DTRACE();
-
-
     CMatrixEffect::DrawBegin();
 
     //CSortable::SortBegin();
@@ -1819,10 +1808,8 @@ void CMatrixMap::DrawEffects(void)
     CMatrixEffect::DrawEnd();
 }
 
-void CMatrixMap::DrawSky(void)
+void CMatrixMap::DrawSky()
 {
-    DTRACE();
-
     ASSERT_DX(g_Sampler.SetState(0,D3DSAMP_MAGFILTER, D3DTEXF_LINEAR));
 	ASSERT_DX(g_Sampler.SetState(0,D3DSAMP_MINFILTER, D3DTEXF_LINEAR));
 	ASSERT_DX(g_Sampler.SetState(0,D3DSAMP_MIPFILTER, D3DTEXF_NONE));
@@ -1831,28 +1818,29 @@ void CMatrixMap::DrawSky(void)
     g_D3DD->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
     g_D3DD->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
 
-    if (g_Config.m_SkyBox != 0 && m_SkyTex[0].tex)
+    //Если скайбокс включён в настройках и текстуры успешно загружены
+    if(g_Config.m_SkyBox != 0 && m_SkyTex[0].tex)
     {
         ASSERT_DX(g_D3DD->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP));
         ASSERT_DX(g_D3DD->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP));
 
-        SetColorOpSelect( 0, D3DTA_TEXTURE );
+        SetColorOpSelect(0, D3DTA_TEXTURE);
         SetColorOpDisable(1);
         SetAlphaOpDisable(0);
 
-        g_D3DD->SetRenderState( D3DRS_ZENABLE, FALSE);
-        g_D3DD->SetRenderState( D3DRS_ZWRITEENABLE, FALSE);
-        g_D3DD->SetRenderState( D3DRS_CULLMODE, D3DCULL_CW);
+        g_D3DD->SetRenderState(D3DRS_ZENABLE, FALSE);
+        g_D3DD->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+        g_D3DD->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
 
         D3DXMATRIX wo;
-        D3DXMatrixPerspectiveFovLH(&wo, CAM_HFOV, float(g_ScreenX)* m_Camera.GetResYInversed(), 0.01f, 3);
-        ASSERT_DX(g_D3DD->SetTransform( D3DTS_PROJECTION, &wo ));
+        D3DXMatrixPerspectiveFovLH(&wo, CAM_HFOV, float(g_ScreenX) * m_Camera.GetResYInversed(), 0.01f, 3);
+        ASSERT_DX(g_D3DD->SetTransform(D3DTS_PROJECTION, &wo));
 
-        ASSERT_DX(g_D3DD->SetTransform( D3DTS_WORLD, &GetIdentityMatrix() ));
+        ASSERT_DX(g_D3DD->SetTransform(D3DTS_WORLD, &GetIdentityMatrix()));
 
         m_Camera.CalcSkyMatrix(wo);
-        ASSERT_DX(g_D3DD->SetTransform( D3DTS_VIEW, &wo));
-        //ASSERT_DX(g_D3DD->SetTransform( D3DTS_VIEW, &GetIdentityMatrix() ));
+        ASSERT_DX(g_D3DD->SetTransform(D3DTS_VIEW, &wo));
+        //ASSERT_DX(g_D3DD->SetTransform(D3DTS_VIEW, &GetIdentityMatrix()));
 
         SVert_V3_C_UV verts[4];
         verts[0].color = 0xFFFFFFFF;
@@ -1867,46 +1855,87 @@ void CMatrixMap::DrawSky(void)
 
         CInstDraw::BeginDraw(IDFVF_V3_C_UV);
 
-        int tex = SKY_FORE;
-        float v1 = (m_SkyTex[tex].v1 - m_SkyTex[tex].v0) * cut_dn + m_SkyTex[tex].v0;
-        verts[0].p = D3DXVECTOR3(-1, 1, 1);       verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
-        verts[1].p = D3DXVECTOR3(-1, geo_dn, 1);  verts[1].tu = m_SkyTex[tex].u0; verts[1].tv = v1;
-        verts[2].p = D3DXVECTOR3(1, 1, 1);        verts[2].tu = m_SkyTex[tex].u1; verts[2].tv = m_SkyTex[tex].v0;
-        verts[3].p = D3DXVECTOR3(1, geo_dn, 1);   verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = v1;
-
-        CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
-
-        tex = SKY_RITE;
-        v1 = (m_SkyTex[tex].v1 - m_SkyTex[tex].v0) * cut_dn + m_SkyTex[tex].v0;
-        verts[0].p = D3DXVECTOR3(1, 1, 1);        verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
-        verts[1].p = D3DXVECTOR3(1, geo_dn, 1);   verts[1].tu = m_SkyTex[tex].u0; verts[1].tv = v1;
-        verts[2].p = D3DXVECTOR3(1, 1, -1);       verts[2].tu = m_SkyTex[tex].u1; verts[2].tv = m_SkyTex[tex].v0;
-        verts[3].p = D3DXVECTOR3(1, geo_dn, -1);  verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = v1;
-
-        CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
-
-        tex = SKY_LEFT;
-        v1 = (m_SkyTex[tex].v1-m_SkyTex[tex].v0) * cut_dn + m_SkyTex[tex].v0;
-        verts[0].p = D3DXVECTOR3(-1, 1, -1);      verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
-        verts[1].p = D3DXVECTOR3(-1, geo_dn, -1); verts[1].tu = m_SkyTex[tex].u0; verts[1].tv = v1;
-        verts[2].p = D3DXVECTOR3(-1, 1, 1);       verts[2].tu = m_SkyTex[tex].u1; verts[2].tv = m_SkyTex[tex].v0;
-        verts[3].p = D3DXVECTOR3(-1, geo_dn, 1);  verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = v1;
-
-        CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
         
-        tex = SKY_BACK;
-        v1 = (m_SkyTex[tex].v1-m_SkyTex[tex].v0) * cut_dn + m_SkyTex[tex].v0;
-        verts[0].p = D3DXVECTOR3(1, 1, -1);       verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
-        verts[1].p = D3DXVECTOR3(1, geo_dn, -1);  verts[1].tu = m_SkyTex[tex].u0; verts[1].tv = v1;
-        verts[2].p = D3DXVECTOR3(-1, 1, -1);      verts[2].tu = m_SkyTex[tex].u1; verts[2].tv = m_SkyTex[tex].v0;
-        verts[3].p = D3DXVECTOR3(-1, geo_dn, -1); verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = v1;
+        if(true) //Рисуем скайёбамиду
+        {
+            int tex = SKY_FRONT;
+            float v1 = (m_SkyTex[tex].v1 - m_SkyTex[tex].v0) * cut_dn + m_SkyTex[tex].v0;
+            verts[0].p = D3DXVECTOR3(-1, 1, 1);       verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
+            verts[1].p = D3DXVECTOR3(-1, geo_dn, 1);  verts[1].tu = m_SkyTex[tex].u0; verts[1].tv = v1;
+            verts[2].p = D3DXVECTOR3(1, 1, 1);        verts[2].tu = m_SkyTex[tex].u1; verts[2].tv = m_SkyTex[tex].v0;
+            verts[3].p = D3DXVECTOR3(1, geo_dn, 1);   verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = v1;
+            CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
 
-        CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
+            tex = SKY_RIGHT;
+            v1 = (m_SkyTex[tex].v1 - m_SkyTex[tex].v0) * cut_dn + m_SkyTex[tex].v0;
+            verts[0].p = D3DXVECTOR3(1, 1, 1);        verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
+            verts[1].p = D3DXVECTOR3(1, geo_dn, 1);   verts[1].tu = m_SkyTex[tex].u0; verts[1].tv = v1;
+            verts[2].p = D3DXVECTOR3(1, 1, -1);       verts[2].tu = m_SkyTex[tex].u1; verts[2].tv = m_SkyTex[tex].v0;
+            verts[3].p = D3DXVECTOR3(1, geo_dn, -1);  verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = v1;
+            CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
+
+            tex = SKY_LEFT;
+            v1 = (m_SkyTex[tex].v1 - m_SkyTex[tex].v0) * cut_dn + m_SkyTex[tex].v0;
+            verts[0].p = D3DXVECTOR3(-1, 1, -1);      verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
+            verts[1].p = D3DXVECTOR3(-1, geo_dn, -1); verts[1].tu = m_SkyTex[tex].u0; verts[1].tv = v1;
+            verts[2].p = D3DXVECTOR3(-1, 1, 1);       verts[2].tu = m_SkyTex[tex].u1; verts[2].tv = m_SkyTex[tex].v0;
+            verts[3].p = D3DXVECTOR3(-1, geo_dn, 1);  verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = v1;
+            CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
+
+            tex = SKY_BACK;
+            v1 = (m_SkyTex[tex].v1 - m_SkyTex[tex].v0) * cut_dn + m_SkyTex[tex].v0;
+            verts[0].p = D3DXVECTOR3(1, 1, -1);       verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
+            verts[1].p = D3DXVECTOR3(1, geo_dn, -1);  verts[1].tu = m_SkyTex[tex].u0; verts[1].tv = v1;
+            verts[2].p = D3DXVECTOR3(-1, 1, -1);      verts[2].tu = m_SkyTex[tex].u1; verts[2].tv = m_SkyTex[tex].v0;
+            verts[3].p = D3DXVECTOR3(-1, geo_dn, -1); verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = v1;
+            CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
+        }
+        /*
+        else //Рисуем нормальный скайбокс
+        {
+        
+            float W = 1.0f, H = 1.0f, L = 1.0f; //Width, Height, Length
+
+            int tex = SKY_FRONT;
+            verts[0].p = D3DXVECTOR3(-W, -H, -L);    verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
+            verts[1].p = D3DXVECTOR3(-W, H, -L);     verts[1].tu = m_SkyTex[tex].u0; verts[1].tv = m_SkyTex[tex].v1;
+            verts[2].p = D3DXVECTOR3(W, -H, -L);     verts[2].tu = m_SkyTex[tex].u1; verts[2].tv = m_SkyTex[tex].v0;
+            verts[3].p = D3DXVECTOR3(W, H, -L);      verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = m_SkyTex[tex].v1;
+            CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
+
+            tex = SKY_BACK;
+            verts[0].p = D3DXVECTOR3(-W, -H, L);     verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
+            verts[1].p = D3DXVECTOR3(W, -H, L);      verts[1].tu = m_SkyTex[tex].u1; verts[1].tv = m_SkyTex[tex].v0;
+            verts[2].p = D3DXVECTOR3(-W, H, L);      verts[2].tu = m_SkyTex[tex].u0; verts[2].tv = m_SkyTex[tex].v1;
+            verts[3].p = D3DXVECTOR3(W, H, L);       verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = m_SkyTex[tex].v1;
+            CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
+
+            tex = SKY_TOP;
+            verts[0].p = D3DXVECTOR3(-W, H, -L);     verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
+            verts[1].p = D3DXVECTOR3(-W, H, L);      verts[1].tu = m_SkyTex[tex].u0; verts[1].tv = m_SkyTex[tex].v1;
+            verts[2].p = D3DXVECTOR3(W, H, -L);      verts[2].tu = m_SkyTex[tex].u1; verts[2].tv = m_SkyTex[tex].v0;
+            verts[3].p = D3DXVECTOR3(W, H, L);       verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = m_SkyTex[tex].v1;
+            CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
+
+            tex = SKY_LEFT;
+            verts[0].p = D3DXVECTOR3(-W, -H, L);     verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
+            verts[1].p = D3DXVECTOR3(-W, H, L);      verts[1].tu = m_SkyTex[tex].u0; verts[1].tv = m_SkyTex[tex].v1;
+            verts[2].p = D3DXVECTOR3(-W, -H, -L);    verts[2].tu = m_SkyTex[tex].u1; verts[2].tv = m_SkyTex[tex].v0;
+            verts[3].p = D3DXVECTOR3(-W, H, -L);     verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = m_SkyTex[tex].v1;
+            CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
+
+            tex = SKY_RIGHT;
+            verts[0].p = D3DXVECTOR3(W, -H, -L);     verts[0].tu = m_SkyTex[tex].u0; verts[0].tv = m_SkyTex[tex].v0;
+            verts[1].p = D3DXVECTOR3(W, H, -L);      verts[1].tu = m_SkyTex[tex].u0; verts[1].tv = m_SkyTex[tex].v1;
+            verts[2].p = D3DXVECTOR3(W, -H, L);      verts[2].tu = m_SkyTex[tex].u1; verts[2].tv = m_SkyTex[tex].v0;
+            verts[3].p = D3DXVECTOR3(W, H, L);       verts[3].tu = m_SkyTex[tex].u1; verts[3].tv = m_SkyTex[tex].v1;
+            CInstDraw::AddVerts(verts, m_SkyTex[tex].tex);
+        }
+        */
 
         CInstDraw::ActualDraw();
 
-        g_D3DD->SetRenderState( D3DRS_CULLMODE,   D3DCULL_CCW );
-
+        g_D3DD->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 
         float SH1 = float(g_ScreenY * 0.270416666666667);
         float SH2 = float(g_ScreenY * 0.07);
@@ -1915,10 +1944,10 @@ void CMatrixMap::DrawSky(void)
 
         dword m_SkyColorUp = m_SkyColor & 0x00FFFFFF;
         SVert_V4_C v[6];
-        v[0].p = D3DXVECTOR4(0, m_SkyHeight-SH1, 0.0f, 1.0f); v[0].col = m_SkyColorUp;
-        v[1].p = D3DXVECTOR4(float(g_ScreenX), m_SkyHeight-SH1, 0.0f, 1.0f); v[1].col = m_SkyColorUp;
-        v[2].p = D3DXVECTOR4(0, m_SkyHeight-SH2, 0.0f, 1.0f); v[2].col = m_SkyColor;
-        v[3].p = D3DXVECTOR4(float(g_ScreenX), m_SkyHeight-SH2, 0.0f, 1.0f); v[3].col = m_SkyColor;
+        v[0].p = D3DXVECTOR4(0, m_SkyHeight - SH1, 0.0f, 1.0f); v[0].col = m_SkyColorUp;
+        v[1].p = D3DXVECTOR4(float(g_ScreenX), m_SkyHeight - SH1, 0.0f, 1.0f); v[1].col = m_SkyColorUp;
+        v[2].p = D3DXVECTOR4(0, m_SkyHeight - SH2, 0.0f, 1.0f); v[2].col = m_SkyColor;
+        v[3].p = D3DXVECTOR4(float(g_ScreenX), m_SkyHeight - SH2, 0.0f, 1.0f); v[3].col = m_SkyColor;
         v[4].p = D3DXVECTOR4(0, m_SkyHeight, 0.0f, 1.0f); v[4].col = m_SkyColor;
         v[5].p = D3DXVECTOR4(float(g_ScreenX), m_SkyHeight, 0.0f, 1.0f); v[5].col = m_SkyColor;
 
@@ -1927,17 +1956,15 @@ void CMatrixMap::DrawSky(void)
         SetColorOpSelect(0, D3DTA_DIFFUSE);
         SetColorOpDisable(1);
             
-        ASSERT_DX(g_D3DD->SetRenderState(D3DRS_ZWRITEENABLE,	FALSE));
-        ASSERT_DX(g_D3DD->SetRenderState(D3DRS_ZENABLE,	FALSE));
+        ASSERT_DX(g_D3DD->SetRenderState(D3DRS_ZWRITEENABLE, FALSE));
+        ASSERT_DX(g_D3DD->SetRenderState(D3DRS_ZENABLE, FALSE));
 
         CInstDraw::BeginDraw(IDFVF_V4_C);
         CInstDraw::AddVerts(v, nullptr);
         CInstDraw::AddVerts(v + 2, nullptr);
         CInstDraw::ActualDraw();
-
-
     }
-    else
+    else //Если скайбокс выключен, либо текстуры не были загружены корректно
     {
         // do not draw skybox
         float SH1 = float(g_ScreenY * 0.270416666666667);
@@ -1960,12 +1987,10 @@ void CMatrixMap::DrawSky(void)
             v[1].p.y = 0;
         }
 
-
         SetAlphaOpDisable(0);
         
         SetColorOpSelect(0, D3DTA_DIFFUSE);
         SetColorOpDisable(1);
-            
 
         ASSERT_DX(g_D3DD->SetRenderState(D3DRS_ZWRITEENABLE, FALSE));
         ASSERT_DX(g_D3DD->SetRenderState(D3DRS_ZENABLE,	FALSE));
@@ -1974,7 +1999,6 @@ void CMatrixMap::DrawSky(void)
         CInstDraw::AddVerts(v, nullptr);
         CInstDraw::AddVerts(v+2, nullptr);
         CInstDraw::ActualDraw();
-
 
         //D3DRECT r;
         //r.x1 = 0;
@@ -1990,7 +2014,7 @@ void CMatrixMap::DrawSky(void)
 
 }
 
-void CMatrixMap::Draw(void)
+void CMatrixMap::Draw()
 {
     float fBias = -1.0f;
 
@@ -3091,6 +3115,12 @@ void CMatrixMap::EnterDialogMode(const wchar* hint_i)
     {
         m_PauseHint->Release();
         m_PauseHint = nullptr;
+    }
+
+    if(m_GameSpeedHint)
+    {
+        m_GameSpeedHint->Release();
+        m_GameSpeedHint = nullptr;
     }
 
     LeaveDialogMode();

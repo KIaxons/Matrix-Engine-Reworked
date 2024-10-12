@@ -267,7 +267,9 @@ static SKeyActions key_action_codes[] =
     //Прочее
     { L"TakeScreenShot",                   KA_TAKE_SCREENSHOT,            VK_SNAPSHOT },
     { L"SaveScreenShot",                   KA_SAVE_SCREENSHOT,            VK_F9 },
-    { L"PauseTheGame",                     KA_GAME_PAUSED,                VK_PAUSE },
+    { L"GameSpeedUp",                      KA_GAME_SPEED_UP,              VK_F8 },
+    { L"GameSpeedDown",                    KA_GAME_SPEED_DOWN,            VK_F7 },
+    { L"GamePause",                        KA_GAME_PAUSED,                VK_PAUSE },
 
     { nullptr,                             -1,                            -1 }
 };
@@ -351,6 +353,9 @@ void CMatrixConfig::SetDefaults()
     g_ShadowsDrawDistance = 1024;
     g_ThinFogDrawDistance = 0.5f;
     g_DenseFogDrawDistance = 0.7f;
+
+    g_GameSpeedFactor = 1.0f; //Модификатор скорости игры (влияет на такты)
+
     g_PlayerRobotsAutoBoom = 0;
     g_EnableCheats = false;
     g_EnableFlyers = false;
@@ -1401,9 +1406,9 @@ void CMatrixConfig::ReadParams()
 
         m_TurretsConsts[i].structure = max(10.0f * bp->ParGet(L"Structure").GetFloat(), 10.0f);
         float rot_speed = bp->ParGet(L"RotationSpeed").GetFloat();
-        m_TurretsConsts[i].rotation_speed = GRAD2RAD(rot_speed > 0 ? rot_speed / (1000 / LOGIC_TACT_PERIOD) : 0.0f);
+        m_TurretsConsts[i].rotation_speed = GRAD2RAD(rot_speed > 0 ? rot_speed / (1000 / LOGIC_TACT_DIVIDER) : 0.0f);
         rot_speed = bp->ParGet(L"VerticalGuidanceSpeed").GetFloat();
-        m_TurretsConsts[i].vertical_speed = GRAD2RAD(rot_speed > 0 ? rot_speed / (1000 / LOGIC_TACT_PERIOD) : 0.0f);
+        m_TurretsConsts[i].vertical_speed = GRAD2RAD(rot_speed > 0 ? rot_speed / (1000 / LOGIC_TACT_DIVIDER) : 0.0f);
         m_TurretsConsts[i].highest_vertical_angle = GRAD2RAD(bp->ParGet(L"HighestVerticalBarrelAngle").GetFloat());
         m_TurretsConsts[i].lowest_vertical_angle = GRAD2RAD(bp->ParGet(L"LowestVerticalBarrelAngle").GetFloat());
         m_TurretsConsts[i].seek_target_range = bp->ParGet(L"SeekTargetRange").GetFloat();

@@ -119,7 +119,7 @@ public:
     static void PreloadBitmaps(void);
 
     static CMatrixHint* Build(int border, const CWStr& soundin, const CWStr& soundout, SHintElement* elems, CRect* otstup = nullptr);
-    static CMatrixHint* Build(const CWStr& templatename, const wchar* baserepl = nullptr);
+    static CMatrixHint* Build(const CWStr& templatename, const wchar* baserepl = nullptr, const wchar* add_text = L"");
     static CMatrixHint* Build(const CWStr& str, CBlockPar* repl, const wchar* baserepl = nullptr);
     void Release(void)
     {

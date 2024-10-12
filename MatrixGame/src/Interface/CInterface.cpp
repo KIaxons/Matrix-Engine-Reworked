@@ -4037,8 +4037,6 @@ void CIFaceList::DeleteWeaponDynamicStatics()
 
 void CIFaceList::CreateItemPrice(int* price, float multiplier)
 {
-DTRACE();
-
     DeleteItemPrice();
     CMatrixSideUnit* player_side = g_MatrixMap->GetPlayerSide();
     CInterface* interfaces = m_First;

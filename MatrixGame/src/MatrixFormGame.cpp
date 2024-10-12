@@ -1366,8 +1366,23 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
             return;
         }
 
+        //Увеличиваем скорость логической обработки игры (в том числе скорость движения роботов)
+        if(GetAsyncKeyState(g_Config.m_KeyActions[KA_GAME_SPEED_UP]))
+        {
+            if(g_GameSpeedFactor <= 0.1f) g_GameSpeedFactor = 0.5f;
+            else g_GameSpeedFactor = min(g_GameSpeedFactor + 0.5f, 2.0f);
+            return;
+        }
+
+        //Снижаем скорость логической обработки игры (в том числе скорость движения роботов)
+        if(GetAsyncKeyState(g_Config.m_KeyActions[KA_GAME_SPEED_DOWN]))
+        {
+            g_GameSpeedFactor = max(g_GameSpeedFactor - 0.5f, 0.1f);
+            return;
+        }
+
         //Выставляем паузу в игре, если она ещё не включена
-        if(GetAsyncKeyState(g_Config.m_KeyActions[KA_GAME_PAUSED])) //if(scan == KEY_PAUSE)
+        if(GetAsyncKeyState(g_Config.m_KeyActions[KA_GAME_PAUSED]))
         {
             g_MatrixMap->Pause(!g_MatrixMap->IsPaused());
             return;

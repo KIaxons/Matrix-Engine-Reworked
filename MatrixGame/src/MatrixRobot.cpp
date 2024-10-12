@@ -294,7 +294,7 @@ void CMatrixRobotAI::LogicTact(int ms)
 
     if(!g_MatrixMap->GetPlayerSide()->FindObjectInSelection(this)) UnSelect();
 
-    m_SyncMul = (float)ms / LOGIC_TACT_PERIOD;
+    m_SyncMul = (float)ms / LOGIC_TACT_DIVIDER;
     MoveSelection();
 
     //Обновление точки местоположения робота (но это не точно)
@@ -667,7 +667,7 @@ void CMatrixRobotAI::LogicTact(int ms)
     else if(m_CurrentState == ROBOT_BASE_MOVEOUT)
     {
         //Робот как бы "выталкивается" с базы, получая команду продвинутся вперёд
-        LowLevelMove(ms, m_ChassisForward * 100, true, false);
+        LowLevelMove(ms, m_ChassisForward * 100.0f, true, false);
         RChange(MR_Matrix | MR_ShadowProjGeom | MR_ShadowProjTex | MR_ShadowStencil);
 
         //Если породившая робота база всё ещё существует
@@ -1074,7 +1074,7 @@ void CMatrixRobotAI::LogicTact(int ms)
                         if(g_Config.m_WeaponsConsts[weap_type].is_repairer)
                         {
                             //Тип 2 означает, что выбранная для ведения огня цель дружественна стреляющему
-                            if(type == 2) m_RobotWeapons[nC].FireBegin(m_Velocity * (1.0f / LOGIC_TACT_PERIOD), this);
+                            if(type == 2) m_RobotWeapons[nC].FireBegin(m_Velocity * (1.0f / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor)), this);
                             else m_RobotWeapons[nC].FireEnd();
                         }
                         else if(weap_type == WEAPON_MORTAR)
@@ -1084,7 +1084,7 @@ void CMatrixRobotAI::LogicTact(int ms)
                         }
                         else
                         {
-                            if(!type) m_RobotWeapons[nC].FireBegin(m_Velocity * (1.0f / LOGIC_TACT_PERIOD), this);
+                            if(!type) m_RobotWeapons[nC].FireBegin(m_Velocity * (1.0f / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor)), this);
                             else m_RobotWeapons[nC].FireEnd();
                         }
                     }
@@ -1177,9 +1177,9 @@ void CMatrixRobotAI::LogicTact(int ms)
                         }
                         else if(building->m_State != BASE_OPENED) break;
 
-                        LowLevelMove(ms, D3DXVECTOR3(building->m_Pos.x, building->m_Pos.y, 0), true, false);
+                        LowLevelMove(ms, D3DXVECTOR3(building->m_Pos.x, building->m_Pos.y, 0.0f), true, false);
                     }
-                    else LowLevelMove(ms, D3DXVECTOR3(building->m_Pos.x, building->m_Pos.y, 0), true, true);
+                    else LowLevelMove(ms, D3DXVECTOR3(building->m_Pos.x, building->m_Pos.y, 0.0f), true, true);
 
                     //Робот дошёл до центра точки захвата здания (лифта для базы)
                     if(fabs((double)m_PosX - building->m_Pos.x) < 2.0f && fabs((double)m_PosY - building->m_Pos.y) < 2.0f)
@@ -1272,7 +1272,7 @@ void CMatrixRobotAI::LogicTact(int ms)
 
                     if(move_direction == 1)
                     {
-                        D3DXVECTOR3 dest(m_PosX, m_PosY, 0);
+                        D3DXVECTOR3 dest(m_PosX, m_PosY, 0.0f);
                         dest += m_ChassisForward * m_MaxSpeed;
                         RESETFLAG(m_ObjectFlags, ROBOT_FLAG_ROTATING);
                         LowLevelMove(ms, dest, true, true, false);
@@ -1281,7 +1281,7 @@ void CMatrixRobotAI::LogicTact(int ms)
                     {
                         m_ChassisCamForward = m_ChassisForward; //Обновляем привязку камеры на случай, если до этого игрок производил стрейф
 
-                        D3DXVECTOR3 dest(m_PosX, m_PosY, 0);
+                        D3DXVECTOR3 dest(m_PosX, m_PosY, 0.0f);
                         dest -= m_ChassisForward * m_MaxSpeed;
                         RESETFLAG(m_ObjectFlags, ROBOT_FLAG_ROTATING);
                         SETFLAG(m_ObjectFlags, ROBOT_FLAG_MOVING_BACK);
@@ -1478,7 +1478,7 @@ void CMatrixRobotAI::LogicTact(int ms)
                 }
                 else if(prim_weap_type == EFFECT_BOMB)
                 {
-                    //m_RobotWeapons[nC].m_Weapon->Modify(vPos, vDir, m_Velocity * (1.0f / LOGIC_TACT_PERIOD));				
+                    //m_RobotWeapons[nC].m_Weapon->Modify(vPos, vDir, m_Velocity * (1.0f / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor)));				
                     //m_RobotWeapons[nC].m_Weapon->Tact(float(ms));
 
                     //m_RobotWeapons[nC].m_Module->m_Graph->SetAnimByName(ANIMATION_NAME_FIRE, ANIM_LOOP_OFF);
@@ -1487,7 +1487,7 @@ void CMatrixRobotAI::LogicTact(int ms)
                 else if(prim_weap_type == EFFECT_ROCKET_LAUNCHER)
                 {
                     //Special homing_missile handler
-                    m_RobotWeapons[nC].Modify(vPos, vDir, m_Velocity * (1.0f / LOGIC_TACT_PERIOD));
+                    m_RobotWeapons[nC].Modify(vPos, vDir, m_Velocity * (1.0f / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor)));
                     m_RobotWeapons[nC].Tact(float(ms));
                     if(m_RobotWeapons[nC].IsFireWas())
                     {
@@ -1498,7 +1498,7 @@ void CMatrixRobotAI::LogicTact(int ms)
                 }
 
                 //Стандартный обработчик для всех прочих видов оружия
-                m_RobotWeapons[nC].Modify(vPos, vDir, m_Velocity * (1.0f / LOGIC_TACT_PERIOD));
+                m_RobotWeapons[nC].Modify(vPos, vDir, m_Velocity * (1.0f / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor)));
 
                 //Common weapons handler
                 //Angle checkride
@@ -2321,12 +2321,12 @@ void CMatrixRobotAI::SetHullTargetDirection(const D3DXVECTOR3& dest)
 
     if(fabs(angle3) >= GRAD2RAD(160))
     {
-        D3DXVECTOR3 temp = m_HullForward + Vec3Truncate((destDirN - m_HullForward), m_MaxHullSpeed * 3);
+        D3DXVECTOR3 temp = m_HullForward + Vec3Truncate((destDirN - m_HullForward), (m_MaxHullSpeed * g_GameSpeedFactor) * 3);
         D3DXVec3Normalize(&m_HullForward, &temp);
     }
     else
     {
-        D3DXVECTOR3 temp = m_HullForward + Vec3Truncate((destDirN - m_HullForward), m_MaxHullSpeed);
+        D3DXVECTOR3 temp = m_HullForward + Vec3Truncate((destDirN - m_HullForward), (m_MaxHullSpeed * g_GameSpeedFactor));
         D3DXVec3Normalize(&m_HullForward, &temp);
     }
 
@@ -2350,7 +2350,7 @@ bool CMatrixRobotAI::RotateRobotChassis(const D3DXVECTOR3& dest, byte rotate_cam
     D3DXVECTOR3 dest_dir = { 0.0f, 0.0f, 0.0f };
     D3DXVECTOR3 forward = { 0.0f, 0.0f, 0.0f };
 
-    float rot_speed = m_MaxRotationSpeed * m_SyncMul;
+    float rot_speed = (m_MaxRotationSpeed * m_SyncMul) * g_GameSpeedFactor;
 
     dest_dir = dest - D3DXVECTOR3(m_PosX, m_PosY, 0.0f);
     dest_dir.z = 0;
@@ -2583,9 +2583,9 @@ bool CMatrixRobotAI::Seek(
 //		accelerating = false;
 //    }
 //	
-//    m_GroupSpeed=m_MaxSpeed;
+//    m_GroupSpeed = m_MaxSpeed;
 //	
-//    desired_velocity *= /*m_MaxSpeed*/m_GroupSpeed;
+//    desired_velocity *= m_GroupSpeed;
 //    desired_velocity.z = 0;
 //
 //    D3DXVECTOR3 steering = desired_velocity - m_Velocity;
@@ -2596,9 +2596,12 @@ bool CMatrixRobotAI::Seek(
 //    float rangle=0.0f;
 //    
 //	m_Velocity.z = 0;
-//    if(m_CurrentState == ROBOT_BASE_MOVEOUT/* || RotateRobotChassis(destRot)*/){
-//        m_Velocity = Vec3Truncate(m_Velocity + accel, /*m_MaxSpeed*/m_GroupSpeed);
-//    }else{
+//    if(m_CurrentState == ROBOT_BASE_MOVEOUT/* || RotateRobotChassis(destRot)*/)
+//    {
+//        m_Velocity = Vec3Truncate(m_Velocity + accel, m_GroupSpeed);
+//    }
+//    else
+//    {
 //        float mspeed=m_GroupSpeed;
 //
 //        bool rot = false;
@@ -2626,7 +2629,7 @@ bool CMatrixRobotAI::Seek(
 //        }
 //
 //        if(rot){
-//            if(!end_path) m_Velocity = Vec3Truncate(m_Velocity + accel, /*m_MaxSpeed*/m_GroupSpeed);
+//            if(!end_path) m_Velocity = Vec3Truncate(m_Velocity + accel, m_GroupSpeed);
 //            else {
 ////if(rangle<-pi || rangle>pi) {
 ////    ASSERT(1);
@@ -4361,10 +4364,10 @@ void CMatrixRobotAI::CalcRobotParams(SRobotTemplate* robot_template)
         hp = max(hp, 10.0f);
 
         m_SelfRepair = bp->ParGetNE(L"SelfRepair").GetFloat();
-        if(m_SelfRepair) m_SelfRepair = m_SelfRepair / (1000.0f / LOGIC_TACT_PERIOD);
+        if(m_SelfRepair) m_SelfRepair = m_SelfRepair / (1000.0f / LOGIC_TACT_DIVIDER);
 
         m_SelfRepairPercent = min(bp->ParGetNE(L"SelfRepairPercent").GetFloat() * 0.01f, 1.0f);
-        if(m_SelfRepairPercent) m_SelfRepairPercent = (m_SelfRepairPercent * hp) / (1000.0f / LOGIC_TACT_PERIOD);
+        if(m_SelfRepairPercent) m_SelfRepairPercent = (m_SelfRepairPercent * hp) / (1000.0f / LOGIC_TACT_DIVIDER);
 
         float up = bp->ParGetNE(L"ChassisSpeed").GetFloat() / 100.0f;
         if(up < -1.0f) up = -1.0f;
@@ -4877,8 +4880,8 @@ void CMatrixRobotAI::DetonateTheBomb()
     {
         if(m_RobotWeapons[i].m_Module->m_ReadyToExplode) //if(m_Weapons[i].IsEffectPresent() && m_Weapons[i].GetWeaponNum() == WEAPON_BOMB)
         {
-            m_RobotWeapons[i].Modify(GetGeoCenter(), D3DXVECTOR3(m_PosX, m_PosY, 0.0f), m_Velocity * (1.0f / LOGIC_TACT_PERIOD));
-            m_RobotWeapons[i].FireBegin(m_Velocity * (1.0f / LOGIC_TACT_PERIOD), this);
+            m_RobotWeapons[i].Modify(GetGeoCenter(), D3DXVECTOR3(m_PosX, m_PosY, 0.0f), m_Velocity * (1.0f / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor)));
+            m_RobotWeapons[i].FireBegin(m_Velocity * (1.0f / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor)), this);
             m_RobotWeapons[i].Tact(1);
             ++bombs_count;
         }

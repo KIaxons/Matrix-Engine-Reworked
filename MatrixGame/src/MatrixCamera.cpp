@@ -45,6 +45,7 @@ void SAutoFlyData::Stat()
     {
         m_LastStatTime = g_MatrixMap->GetTime();
         SETFLAG(g_MatrixMap->m_Flags, MMFLAG_STAT_DIALOG_D);
+        return;
     }
 }
 
@@ -680,7 +681,7 @@ void CMatrixCamera::BeforeDraw()
     D3DXMatrixInverse(&m_MatViewInversed, nullptr, &m_MatView);
 
     float lz = g_MatrixMap->GetZ(m_MatViewInversed._41, m_MatViewInversed._42) + 10.0f;
-    if (m_MatViewInversed._43 < lz)
+    if(m_MatViewInversed._43 < lz)
     {
         m_MatViewInversed._43 = lz;
         D3DXMatrixInverse(&m_MatView, nullptr, &m_MatViewInversed);
@@ -934,7 +935,7 @@ void CMatrixCamera::Tact(float ms)
     if(FLAG(m_Flags, CAM_LINK_POINT_CHANGED))
     {
         // move camera from current pos to new lp
-        float mul = (float)(1.0 - pow(0.995, double(ms)));
+        float mul = (float)(1.0 - pow(0.995, double(ms)));// * PortionInDiapason(g_GameSpeedFactor, 0.1f, 2.0f, 2.0f, 0.1f);
 
         D3DXVECTOR3 dlp(newlp-m_LinkPoint);
         float daz = (float)AngleNorm(AngleDist(m_AngleZ, newangz));
