@@ -867,7 +867,7 @@ void CMatrixCamera::CalcLinkPoint(D3DXVECTOR3& lp, float& ang_z)
     }
 }
 
-void CMatrixCamera::Tact(float ms)
+void CMatrixCamera::Tact(float unused_ms)
 {
     if(FLAG(g_MatrixMap->m_Flags, MMFLAG_FLYCAM))
     //if(g_MatrixMap->m_KeyDown && g_MatrixMap->m_KeyScan == KEY_F2)
@@ -884,7 +884,7 @@ void CMatrixCamera::Tact(float ms)
             m_AFD->m_CurAngX = m_AngleX;
         }
 
-        m_AFD->Tact(ms);
+        m_AFD->Tact(g_PureGameTact);
 
         return;
     }
@@ -935,7 +935,7 @@ void CMatrixCamera::Tact(float ms)
     if(FLAG(m_Flags, CAM_LINK_POINT_CHANGED))
     {
         // move camera from current pos to new lp
-        float mul = (float)(1.0 - pow(0.995, double(ms)));// * PortionInDiapason(g_GameSpeedFactor, 0.1f, 2.0f, 2.0f, 0.1f);
+        float mul = (float)(1.0 - pow(0.995, double(g_PureGameTact)));
 
         D3DXVECTOR3 dlp(newlp-m_LinkPoint);
         float daz = (float)AngleNorm(AngleDist(m_AngleZ, newangz));
@@ -945,7 +945,7 @@ void CMatrixCamera::Tact(float ms)
         m_LinkPoint += dlp * mul;
         m_AngleZ += daz * mul;
 
-        m_Dist += dd * mul;
+        m_Dist += (dd * mul);
         m_AngleX += dax * mul;
 
         if(FLAG(m_Flags, CAM_XY_LERP_OFF))
@@ -957,7 +957,7 @@ void CMatrixCamera::Tact(float ms)
             m_LinkPoint.y = newlp.y;
         }
 
-        if(m_ModeIndex == CAMERA_STRATEGY && (D3DXVec3LengthSq(&dlp) < 0.25f) && (daz < GRAD2RAD(0.5f)) && (dax < GRAD2RAD(0.5f)) && (dd < 0.5f) )
+        if(m_ModeIndex == CAMERA_STRATEGY && (D3DXVec3LengthSq(&dlp) < 0.25f) && (daz < GRAD2RAD(0.5f)) && (dax < GRAD2RAD(0.5f)) && (dd < 0.5f))
         {
             RESETFLAG(m_Flags, CAM_LINK_POINT_CHANGED);
         }
@@ -982,7 +982,7 @@ void CMatrixCamera::Tact(float ms)
             D3DXVec2Normalize(&dir, &dir);
 
             float speed = FLAG(m_Flags, CAM_ACTION_SPEED_UP) ? g_Config.m_CamMoveSpeed + g_Config.m_CamMoveSpeedUp : g_Config.m_CamMoveSpeed;
-            dir *= speed * ms;
+            dir *= speed * g_PureGameTact;
 
             D3DXVECTOR2 lDir(dir.y, -dir.x);
             D3DXVECTOR2 rDir(-dir.y, dir.x);
@@ -1015,22 +1015,22 @@ void CMatrixCamera::Tact(float ms)
     if(FLAG(m_Flags, CAM_ACTION_ROT_LEFT))
     {
         ASSERT(m_ModeIndex == CAMERA_STRATEGY);
-        m_Ang_Strategy -= g_Config.m_CamParams[m_ModeIndex].m_CamRotSpeedZ * ms;
+        m_Ang_Strategy -= g_Config.m_CamParams[m_ModeIndex].m_CamRotSpeedZ * g_PureGameTact;
     }
     if(FLAG(m_Flags, CAM_ACTION_ROT_RIGHT))
     {
         ASSERT(m_ModeIndex == CAMERA_STRATEGY);
-        m_Ang_Strategy += g_Config.m_CamParams[m_ModeIndex].m_CamRotSpeedZ * ms;
+        m_Ang_Strategy += g_Config.m_CamParams[m_ModeIndex].m_CamRotSpeedZ * g_PureGameTact;
     }
 
     if(FLAG(m_Flags, CAM_ACTION_ROT_UP))
     {
-        m_AngleParam[m_ModeIndex] += g_Config.m_CamParams[m_ModeIndex].m_CamRotSpeedX * ms;
+        m_AngleParam[m_ModeIndex] += g_Config.m_CamParams[m_ModeIndex].m_CamRotSpeedX * g_PureGameTact;
         if(m_AngleParam[m_ModeIndex] > 1.0f)  m_AngleParam[m_ModeIndex] = 1.0f;
     }
     if(FLAG(m_Flags, CAM_ACTION_ROT_DOWN))
     {
-        m_AngleParam[m_ModeIndex] -= g_Config.m_CamParams[m_ModeIndex].m_CamRotSpeedX * ms;
+        m_AngleParam[m_ModeIndex] -= g_Config.m_CamParams[m_ModeIndex].m_CamRotSpeedX * g_PureGameTact;
         if(m_AngleParam[m_ModeIndex] < 0.0f)  m_AngleParam[m_ModeIndex] = 0.0f;
     }
 

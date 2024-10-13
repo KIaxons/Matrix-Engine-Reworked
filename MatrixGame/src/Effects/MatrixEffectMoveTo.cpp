@@ -23,7 +23,6 @@ void SPointMoveTo::Init(CMatrixEffectMoveto* host, int i)
 
 void SPointMoveTo::Change(CMatrixEffectMoveto* host, int i, float k)
 {
-
     float a = M_PI_MUL((i & (~1)) * INVERT(3.0));
 
     float s, c, d, z;
@@ -49,8 +48,8 @@ void SPointMoveTo::Draw(CMatrixEffectMoveto* host)
     CMatrixEffectBillboard::Draw(m, 0xFFFFFFFF, host->m_Tex, false);
 }
 
-CTextureManaged*       CMatrixEffectMoveto::m_Tex;
-int                    CMatrixEffectMoveto::m_RefCnt;
+CTextureManaged* CMatrixEffectMoveto::m_Tex;
+int              CMatrixEffectMoveto::m_RefCnt;
 
 CMatrixEffectMoveto::CMatrixEffectMoveto(const D3DXVECTOR3& pos, int type) : CMatrixEffect(), m_Pos(pos)
 {
@@ -100,18 +99,12 @@ CMatrixEffectMoveto::~CMatrixEffectMoveto()
     CMatrixEffectBillboard::ReleaseGeometry();
 }
 
-void CMatrixEffectMoveto::Tact(float step)
+void CMatrixEffectMoveto::Tact(float unused_ms)
 {
-DTRACE();
-
-    m_TTL -= step;
+    m_TTL -= float(g_PureGameTact);
     if(m_TTL < 0)
     {
-#ifdef _DEBUG
-        g_MatrixMap->SubEffect(DEBUG_CALL_INFO, this);
-#else
         g_MatrixMap->SubEffect(this);
-#endif
         return;
     }
 
@@ -122,10 +115,8 @@ DTRACE();
     }
 }
 
-void CMatrixEffectMoveto::Draw(void)
+void CMatrixEffectMoveto::Draw()
 {
-    DTRACE();
-
     if(!IS_VB(CMatrixEffectBillboard::m_VB)) return;
 
     RESETFLAG(m_Flags, MOVETOF_PREPARED);
@@ -136,14 +127,13 @@ void CMatrixEffectMoveto::Draw(void)
     }
 }
 
-void CMatrixEffectMoveto::Release(void)
+void CMatrixEffectMoveto::Release()
 {
-    DTRACE();
     SetDIP();
     HDelete(CMatrixEffectMoveto, this, m_Heap);
 }
 
-void CMatrixEffectMoveto::BeforeDraw(void)
+void CMatrixEffectMoveto::BeforeDraw()
 {
     CMatrixEffectBillboard::PrepareDX();
 

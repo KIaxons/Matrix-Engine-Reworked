@@ -354,6 +354,7 @@ void CMatrixConfig::SetDefaults()
     g_ThinFogDrawDistance = 0.5f;
     g_DenseFogDrawDistance = 0.7f;
 
+    g_PureGameTact = 0;       //Неизменённая g_GameSpeedFactor "чистая" тактовая частота игры
     g_GameSpeedFactor = 1.0f; //Модификатор скорости игры (влияет на такты)
 
     g_PlayerRobotsAutoBoom = 0;

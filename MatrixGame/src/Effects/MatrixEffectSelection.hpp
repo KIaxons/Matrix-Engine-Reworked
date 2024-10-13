@@ -52,7 +52,7 @@ public:
 
     virtual void BeforeDraw();
     virtual void Draw();
-    virtual void Tact(float step);
+    virtual void Tact(float unused_ms);
     virtual void Release();
 
     virtual int  Priority() { return MAX_EFFECT_PRIORITY; };

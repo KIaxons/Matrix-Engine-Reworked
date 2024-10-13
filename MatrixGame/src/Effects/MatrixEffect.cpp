@@ -789,17 +789,11 @@ void CMatrixEffect::CreateLandscapeSpot(
 
 void CMatrixEffect::CreateMovingObject(SEffectHandler* eh, const SMOProps& props, dword hitmask, CMatrixMapStatic* skip, FIRE_END_HANDLER handler, dword user)
 {
-DTRACE();
-
     CMatrixEffectMovingObject* e = HNew(m_Heap) CMatrixEffectMovingObject(props, hitmask, skip,  handler, user);
     if(!g_MatrixMap->AddEffect(e)) e = nullptr;
     if(eh && e)
     {
-#ifdef _DEBUG
-        eh->Release(DEBUG_CALL_INFO);
-#else
         eh->Release();
-#endif
         eh->effect = e;
         e->SetHandler(eh);
     }
@@ -808,15 +802,11 @@ DTRACE();
 //Упрощённый вызов функции отрисовки вейпоинта, отрисовывает данный эффект в текущей точке положения курсора
 void CMatrixEffect::CreateMoveToAnim(int type)
 {
-DTRACE();
-
     CreateMoveToAnim(g_MatrixMap->m_TraceStopPos, type);
 }
 //Непосредственный вызов отрисовки вейпоинта на поверхности (необходимо указывать точный вектор)
 void CMatrixEffect::CreateMoveToAnim(const D3DXVECTOR3 &pos, int type)
 {
-DTRACE();
-
     D3DXVECTOR3 tp = g_MatrixMap->m_Camera.GetFrustumCenter() - pos;
     D3DXVec3Normalize(&tp, &tp);
 
@@ -832,8 +822,6 @@ void CMatrixEffect::DeleteAllMoveto()
 
 void CMatrixEffect::CreateBuoy(SEffectHandler* eh, const D3DXVECTOR3& pos, EBuoyType bt)
 {
-DTRACE();
-
     SMOProps mo;
     memset(&mo, 0, sizeof(mo));
     mo.curpos = pos;
@@ -851,11 +839,7 @@ DTRACE();
     if(!g_MatrixMap->AddEffect(e)) e = nullptr;
     if(eh && e)
     {
-#ifdef _DEBUG
-        eh->Release(DEBUG_CALL_INFO);
-#else
         eh->Release();
-#endif
         eh->effect = e;
         e->SetHandler(eh);
     }
@@ -863,8 +847,6 @@ DTRACE();
 
 CMatrixEffect* CMatrixEffect::CreateSelection(const D3DXVECTOR3& pos, float r, dword color)
 {
-DTRACE();
-
     CMatrixEffectSelection* e = HNew(m_Heap) CMatrixEffectSelection(pos, r, color);
     return e;
 }
@@ -874,8 +856,6 @@ CMatrixEffect* CMatrixEffect::CreatePath(
     int cnt
 )
 {
-DTRACE();
-
     CMatrixEffectPath* e = HNew(m_Heap) CMatrixEffectPath(pos, cnt);
     return e;
 }
@@ -902,11 +882,7 @@ void CMatrixEffect::CreatePointLight(
     if(!g_MatrixMap->AddEffect(e)) e = nullptr;
     if(eh && e)
     {
-#ifdef _DEBUG
-        eh->Release(DEBUG_CALL_INFO);
-#else
         eh->Release();
-#endif
         eh->effect = e;
         e->SetHandler(eh);
     }

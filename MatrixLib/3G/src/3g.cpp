@@ -41,6 +41,7 @@ float g_DenseFogDrawDistance = 0.7;
 int g_DrawFPSCur = 0;
 int g_DrawFPSTime = 0;
 
+int   g_PureGameTact = 0;       //Неизменённая g_GameSpeedFactor "чистая" тактовая частота игры
 float g_GameSpeedFactor = 1.0f; //Модификатор скорости игры (влияет на такты)
 
 int g_TactTime = 0;
@@ -453,6 +454,7 @@ int L3GRun()
                 smooth[smp] = tt;
                 smp = (smp + 1) & (SMOOTH_COUNT - 1);
 
+                g_PureGameTact = tt;
                 tt = smooths / SMOOTH_COUNT * g_GameSpeedFactor;
 
                 SRemindCore::Tact(tt);

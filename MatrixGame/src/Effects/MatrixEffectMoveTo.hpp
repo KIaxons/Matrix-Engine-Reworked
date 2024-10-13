@@ -18,18 +18,18 @@ struct SPointMoveTo
 
 class CMatrixEffectMoveto: public CMatrixEffect
 {
-    D3DXVECTOR3 m_Pos;
+    D3DXVECTOR3 m_Pos = { 0.0f, 0.0f, 0.0f };
 
-    SPointMoveTo    m_Pts[6];
-    float           m_TTL;
+    SPointMoveTo m_Pts[6];
+    float        m_TTL = 0.0f;
 
-    static CTextureManaged*       m_Tex;
-    static int                    m_RefCnt;
+    static CTextureManaged* m_Tex;
+    static int              m_RefCnt;
 
     CMatrixEffectMoveto(const D3DXVECTOR3& center, int type);
     virtual ~CMatrixEffectMoveto();
 
-    static void StaticInit(void)
+    static void StaticInit()
     {
         m_Tex = nullptr;
         m_RefCnt = 0;
@@ -39,11 +39,11 @@ public:
     friend class CMatrixEffect;
     friend struct SPointMoveTo;
 
-    virtual void BeforeDraw(void);
-    virtual void Draw(void);
-    virtual void Tact(float);
-    virtual void Release(void);
-    virtual int  Priority(void) {return MAX_EFFECT_PRIORITY;};
+    virtual void BeforeDraw();
+    virtual void Draw();
+    virtual void Tact(float unused_ms);
+    virtual void Release();
+    virtual int  Priority() {return MAX_EFFECT_PRIORITY;};
 };
 
 

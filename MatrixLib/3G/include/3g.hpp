@@ -45,7 +45,8 @@ extern float g_ThinFogDrawDistance;
 extern float g_DenseFogDrawDistance;
 extern int g_AvailableTexMem;
 
-extern float g_GameSpeedFactor;
+extern int   g_PureGameTact;    //Неизменённая g_GameSpeedFactor "чистая" тактовая частота игры
+extern float g_GameSpeedFactor; //Модификатор скорости игры (влияет на такты)
 
 extern byte g_PlayerRobotsAutoBoom;
 extern bool g_EnableCheats;
@@ -60,35 +61,19 @@ extern D3DPRESENT_PARAMETERS g_D3Dpp;
 extern dword g_Flags;
 
 
-#ifdef _DEBUG
-    __inline int D3DDRef(void)
-    {
-        int ref = g_D3DD->AddRef();
-        ref = g_D3DD->Release();
-        return ref;
-    }
-#endif
-
-
-
 #ifdef DO_SMART_COLOROPS
 
 struct STextureStageOp
 {
-    D3DTEXTUREOP    op;
-    dword           p1;
-    dword           p2;
+    D3DTEXTUREOP op;
+    dword        p1 = 0;
+    dword        p2 = 0;
 };
 
-extern STextureStageOp     g_ColorOp[];
-extern STextureStageOp     g_AlphaOp[];
+extern STextureStageOp g_ColorOp[];
+extern STextureStageOp g_AlphaOp[];
 
-#ifdef _DEBUG
-//#define CHECKTSS(n,t,v) {dword vv; g_D3DD->GetTextureStageState(n,t,&vv); if (v!=vv) {_asm int 3}}
 #define CHECKTSS(n,t,v) {}
-#else
-#define CHECKTSS(n,t,v) {}
-#endif
 
 inline void SetColorOp(int stage, D3DTEXTUREOP op, dword p1, dword p2)
 {

@@ -390,7 +390,7 @@ public:
     float GetFrustPlaneMinDist(const D3DXVECTOR3& pos);
 
     void BeforeDraw();
-    void Tact(float ms);
+    void Tact(float unused_ms);
 };
 
 inline void CMatrixCamera::CalcPickVector(const CPoint& p, D3DXVECTOR3& vdir) const
@@ -404,7 +404,7 @@ inline void CMatrixCamera::CalcPickVector(const CPoint& p, D3DXVECTOR3& vdir) co
     vdir.x = v.x*m_MatViewInversed._11 - v.y*m_MatViewInversed._21 + m_MatViewInversed._31;
     vdir.y = v.x*m_MatViewInversed._12 - v.y*m_MatViewInversed._22 + m_MatViewInversed._32;
     vdir.z = v.x*m_MatViewInversed._13 - v.y*m_MatViewInversed._23 + m_MatViewInversed._33;
-    D3DXVec3Normalize(&vdir,&vdir);
+    D3DXVec3Normalize(&vdir, &vdir);
 }
 
 inline bool CMatrixCamera::IsInFrustum(const D3DXVECTOR3& p) const

@@ -82,15 +82,16 @@ void CMatrixEffectSelection::Draw()
         for(int j = 0; j < SEL_BLUR_CNT; ++j) m_Points[i].m_Blur[j].Sort(g_MatrixMap->m_Camera.GetViewMatrix());
     }
 }
-void CMatrixEffectSelection::Tact(float step)
+
+void CMatrixEffectSelection::Tact(float unused_ms)
 {
-    float dtime = (0.1f * step);
+    float dtime = (0.1f * float(g_PureGameTact));
     //if(dtime > 1) dtime = 1;
 
     if(m_ColorTime >= 0)
     {
         m_Color_current = LIC(m_ColorTo, m_ColorFrom, m_ColorTime * INVERT(SEL_COLOR_CHANGE_TIME));
-        m_ColorTime -= step;
+        m_ColorTime -= float(g_PureGameTact);
         if(m_ColorTime < 0)
         {
             m_Color_current = m_ColorTo;
