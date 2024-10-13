@@ -21,9 +21,9 @@ CIFaceElement::CIFaceElement()
 }
 CIFaceElement::~CIFaceElement()
 {
-    if(m_Animation)
+    if(m_IFAnimation)
     {
-        HDelete(CAnimation, m_Animation, Base::g_MatrixHeap);
+        HDelete(CAnimation, m_IFAnimation, Base::g_MatrixHeap);
     }
 }
 	
@@ -188,24 +188,22 @@ void CIFaceElement::Render(byte alpha)
         }
 
         CInstDraw::AddVerts(geom, m_StateImages[GetState()].pImage);
-
         CInstDraw::AddVerts(geom + 4, m_StateImages[GetState()].pImage);
-
     }
     else
     {
 
-#if defined _TRACE || defined _DEBUG
+#if defined _TRACE
     int st = GetState();
     if(st < 0 || st >= 5) _asm int 3
 #endif
 
-#if defined _TRACE || defined _DEBUG
+#if defined _TRACE
     try
     {
 #endif
         m_StateImages[GetState()].pImage->Prepare();
-#if defined _TRACE || defined _DEBUG
+#if defined _TRACE
     }
     catch(...)
     {
@@ -215,11 +213,11 @@ void CIFaceElement::Render(byte alpha)
 
         CInstDraw::AddVerts(m_StateImages[GetState()].m_Geom, m_StateImages[GetState()].pImage);
 
-        if(m_Animation)
+        if(m_IFAnimation)
         {
-            m_Animation->GetCurrentFrame()->m_StateImages[IFACE_NORMAL].pImage->Prepare();
-            CInstDraw::AddVerts(m_Animation->GetCurrentFrame()->m_StateImages[IFACE_NORMAL].m_Geom, 
-                                m_Animation->GetCurrentFrame()->m_StateImages[IFACE_NORMAL].pImage);
+            m_IFAnimation->GetCurrentFrame()->m_StateImages[IFACE_NORMAL].pImage->Prepare();
+            CInstDraw::AddVerts(m_IFAnimation->GetCurrentFrame()->m_StateImages[IFACE_NORMAL].m_Geom,
+                                m_IFAnimation->GetCurrentFrame()->m_StateImages[IFACE_NORMAL].pImage);
         }
     }
 	
@@ -347,7 +345,7 @@ void CIFaceElement::Action(EActions action)
 
 void CIFaceElement::LogicTact(int ms)
 {
-    if(m_Animation) m_Animation->LogicTact(ms);
+    if(m_IFAnimation) m_IFAnimation->LogicTact(g_PureGameTact);
 
     if(m_nId == GROUP_SELECTOR_ID)
     {
@@ -382,9 +380,9 @@ void CIFaceElement::RecalcPos(
     bool ichanged
 )
 {
-    if(m_Animation && ichanged)
+    if(m_IFAnimation && ichanged)
     {
-        m_Animation->RecalcPos(x, y);
+        m_IFAnimation->RecalcPos(x, y);
     }
     
     float i_x = x;

@@ -32,7 +32,7 @@ class CIFaceElement : public CMain {
 public:
     CRect             m_ClearRect = { 0, 0, 0, 0 };    // rect for clearing Z buffer
     SElementHint      m_Hint;
-    CAnimation*       m_Animation = nullptr;
+    CAnimation*       m_IFAnimation = nullptr;
     byte              m_VisibleAlpha = 255; //IS_VISIBLE
     SStateImages      m_StateImages[MAX_STATES];
 	CWStr             m_strName = (CWStr)L"";
@@ -66,7 +66,6 @@ public:
     IFaceElementState m_CurState = IFACE_NORMAL;
 	IFaceElementState m_DefState = IFACE_NORMAL;
 	
-
     CIFaceElement();
     ~CIFaceElement();
 

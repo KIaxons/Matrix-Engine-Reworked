@@ -509,10 +509,10 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
             
             //Animation
             CBlockPar* animation = nullptr;
-            animation = pbp2->BlockGetNE(L"Animation");
+            animation = pbp2->BlockGetNE(IF_ANIMATION);
             if(animation)
             {
-                CWStr par = animation->Par(L"Frames");
+                CWStr par = animation->Par(IF_ANIMATION_FRAMES);
                 if(par.GetLen())
                 {
                     int frames_cnt = par.GetIntPar(0, L",");
@@ -520,7 +520,7 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
                     int width = par.GetIntPar(2, L",");
                     int height = par.GetIntPar(3, L",");
 
-                    pButton->m_Animation = HNew(Base::g_MatrixHeap) CAnimation(frames_cnt, period);
+                    pButton->m_IFAnimation = HNew(Base::g_MatrixHeap) CAnimation(frames_cnt, period);
                     SFrame frame;
                     //frame.name = pButton->m_strName;
                     frame.height = height;
@@ -541,7 +541,7 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
                         frame.tex_pos_x = x;
                         frame.tex_pos_y = y;
                         //Load Next Frame here
-                        pButton->m_Animation->LoadNextFrame(&frame);
+                        pButton->m_IFAnimation->LoadNextFrame(&frame);
                     }
                 }
             }
