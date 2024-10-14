@@ -1369,15 +1369,15 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
         //Увеличиваем скорость логической обработки игры (в том числе скорость движения роботов)
         if(GetAsyncKeyState(g_Config.m_KeyActions[KA_GAME_SPEED_UP]))
         {
-            if(g_GameSpeedFactor <= 0.1f) g_GameSpeedFactor = 0.5f;
-            else g_GameSpeedFactor = min(g_GameSpeedFactor + 0.5f, 2.0f);
+            if(g_GameSpeedFactor <= 0.1f) g_GameSpeedFactor = 0.25f;
+            else g_GameSpeedFactor = min(g_GameSpeedFactor + 0.25f, 2.0f);
             return;
         }
 
         //Снижаем скорость логической обработки игры (в том числе скорость движения роботов)
         if(GetAsyncKeyState(g_Config.m_KeyActions[KA_GAME_SPEED_DOWN]))
         {
-            g_GameSpeedFactor = max(g_GameSpeedFactor - 0.5f, 0.1f);
+            g_GameSpeedFactor = max(g_GameSpeedFactor - 0.25f, 0.1f);
             return;
         }
 
