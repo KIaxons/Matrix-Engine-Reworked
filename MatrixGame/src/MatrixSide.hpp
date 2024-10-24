@@ -364,7 +364,7 @@ private:
     //int m_PlasmaCnt = 300;
 
     int m_BaseResForce = 0;
-    int m_Resources[MAX_RESOURCES] = { 0 };
+    int m_SideResources[MAX_RESOURCES] = { 0 };
     int m_CurSelNum = 0;
 
     int m_Statistic[MAX_STATISTICS] = { 0 };
@@ -428,7 +428,7 @@ public:
 
     SMatrixTeam m_Team[MAX_TEAM_CNT];
 
-    int m_Id = 0;
+    int   m_Id = NEUTRAL_SIDE;
     CWStr m_Name = CWStr(L"");
 
     dword     m_Color = 0;
@@ -462,24 +462,24 @@ public:
     void SetStatus(ESideStatus s) { m_SideStatus = s; }
     ESideStatus GetStatus() const { return m_SideStatus; }
 
-    void ClearStatistics() { memset(m_Statistic, 0, sizeof(m_Statistic)); }
-    int  GetStatValue(EStat stat) const { return m_Statistic[stat]; }
-    void SetStatValue(EStat stat, int v) { m_Statistic[stat] = v; }
+    void ClearStatistics()                   { memset(m_Statistic, 0, sizeof(m_Statistic)); }
+    int  GetStatValue(EStat stat) const      { return m_Statistic[stat]; }
+    void SetStatValue(EStat stat, int v)     { m_Statistic[stat] = v; }
     void IncStatValue(EStat stat, int v = 1) { m_Statistic[stat] += v; }
 
     int GetRobotsInQueue();
-    int GetAlphaCnt() { return m_Team[0].m_RobotCnt; }
-    int GetBravoCnt() { return m_Team[1].m_RobotCnt; }
+    int GetAlphaCnt()   { return m_Team[0].m_RobotCnt; }
+    int GetBravoCnt()   { return m_Team[1].m_RobotCnt; }
     int GetCharlieCnt() { return m_Team[2].m_RobotCnt; }
-    int GetRobotsCnt() { return m_RobotsCnt; }
+    int GetRobotsCnt()  { return m_RobotsCnt; }
 
-    int  GetResourcesAmount(ERes res) const { return m_Resources[res]; }
-    void AddResourceAmount(ERes res, int amount) { m_Resources[res] += amount; if(m_Resources[res] > 9000) m_Resources[res] = 9000; if(m_Resources[res] < 0) m_Resources[res] = 0; }
-    void SetResourceAmount(ERes res, int amount) { m_Resources[res] = amount; }
-    void SetResourceForceUp(int fu) { m_BaseResForce = fu; }
-    int  GetResourceForceUp() { return m_BaseResForce; }
-    bool IsEnoughResources(const int* resources) { if(m_Resources[0] >= resources[0] && m_Resources[1] >= resources[1] && m_Resources[2] >= resources[2] && m_Resources[3] >= resources[3]) return true; else return false; }
-    bool IsEnoughResourcesForTurret(const STurretsConsts* resources) { if(m_Resources[0] >= resources->cost_titan && m_Resources[1] >= resources->cost_electronics && m_Resources[2] >= resources->cost_energy && m_Resources[3] >= resources->cost_plasma) return true; else return false; }
+    int  GetResourceAmount(ERes res) const       { if(g_Config.m_InfinityResources && m_Id == PLAYER_SIDE) return 999999; return m_SideResources[res]; }
+    void AddResourceAmount(ERes res, int amount) { m_SideResources[res] = min(max(m_SideResources[res] + amount, 0), 9000); }
+    void SetResourceAmount(ERes res, int amount) { m_SideResources[res] = amount; }
+    void SetResourceForceUp(int fu)              { m_BaseResForce = fu; }
+    int  GetResourceForceUp()                    { return m_BaseResForce; }
+    bool IsEnoughResources(const int* resources) { if(g_Config.m_InfinityResources && m_Id == PLAYER_SIDE) return true; if(m_SideResources[TITAN] >= resources[TITAN] && m_SideResources[ELECTRONICS] >= resources[ELECTRONICS] && m_SideResources[ENERGY] >= resources[ENERGY] && m_SideResources[PLASMA] >= resources[PLASMA]) return true; else return false; }
+    bool IsEnoughResourcesForTurret(const STurretsConsts* resources) { if(g_Config.m_InfinityResources && m_Id == PLAYER_SIDE) return true; if(m_SideResources[TITAN] >= resources->cost_titan && m_SideResources[ELECTRONICS] >= resources->cost_electronics && m_SideResources[ENERGY] >= resources->cost_energy && m_SideResources[PLASMA] >= resources->cost_plasma) return true; else return false; }
 
     void GetResourceIncome(int& base_i, int& fa_i, ERes resource_type);
     int  GetIncomePerTime(int building, int ms);

@@ -3609,10 +3609,10 @@ void CMatrixMapLogic::DumpLogic()
         fprintf(fi, "=== Side(%d)    Id(%d) ==========================================\n", is, m_Side[is].m_Id);
         fprintf(fi, "    m_RobotsCnt=%d\n", m_Side[is].GetRobotsCnt());
 
-        fprintf(fi, "    m_TitanCnt=%d\n", m_Side[is].GetResourcesAmount(TITAN));
-        fprintf(fi, "    m_PlasmaCnt=%d\n", m_Side[is].GetResourcesAmount(PLASMA));
-        fprintf(fi, "    m_ElectronicCnt=%d\n", m_Side[is].GetResourcesAmount(ELECTRONICS));
-        fprintf(fi, "    m_EnergyCnt=%d\n", m_Side[is].GetResourcesAmount(ENERGY));
+        fprintf(fi, "    m_TitanCnt=%d\n", m_Side[is].GetResourceAmount(TITAN));
+        fprintf(fi, "    m_PlasmaCnt=%d\n", m_Side[is].GetResourceAmount(PLASMA));
+        fprintf(fi, "    m_ElectronicCnt=%d\n", m_Side[is].GetResourceAmount(ELECTRONICS));
+        fprintf(fi, "    m_EnergyCnt=%d\n", m_Side[is].GetResourceAmount(ENERGY));
         fprintf(fi, "\n");
 
         for(int it = 0; it < m_Side[is].m_TeamCnt; ++it)

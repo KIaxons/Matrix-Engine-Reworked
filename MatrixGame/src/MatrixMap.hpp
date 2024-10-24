@@ -704,14 +704,6 @@ class CMatrixTacticsList;
 
 inline bool CMatrixMap::AddEffect(CMatrixEffect* ef)
 {
-#ifdef _DEBUG
-    if(ef->GetType() == EFFECT_UNDEFINED)
-    {
-        //int a = 1;
-        ERROR_S(L"Undefined effect!");
-    }
-#endif
-
     if(m_EffectsCnt >= g_MaxEffectsCount)
     {
         CMatrixEffect* ef2del = nullptr;
@@ -743,12 +735,9 @@ inline bool CMatrixMap::AddEffect(CMatrixEffect* ef)
 
     LIST_ADD(ef, m_EffectsFirst, m_EffectsLast, m_Prev, m_Next);
     ++m_EffectsCnt;
-#ifdef _DEBUG
-    CDText::T("E", CStr(m_EffectsCnt));
-#endif
+
     return true;
 }
-
 
 inline CMatrixSideUnit* CMatrixMap::GetSideById(int id)
 {
@@ -772,37 +761,48 @@ inline dword CMatrixMap::GetSideColorMM(int id)
     return GetSideById(id)->m_ColorMM;
 }
 
-inline CTexture * CMatrixMap::GetSideColorTexture(int id)
+inline CTexture* CMatrixMap::GetSideColorTexture(int id)
 {
     if(!id) return m_NeutralSideColorTexture;
     return GetSideById(id)->m_ColorTexture;
 }
 
-inline  float CMatrixMap::GetGroupMaxZLand(int x, int y)
+inline float CMatrixMap::GetGroupMaxZLand(int x, int y)
 {
     if(x < 0 || x >= m_GroupSize.x || y < 0 || y >= m_GroupSize.y) return 0;
+
     CMatrixMapGroup* g = GetGroupByIndex(x, y);
     if(g == nullptr) return 0;
+
     float z = GetGroupByIndex(x, y)->GetMaxZLand();
     if(z < 0) return 0;
+
     return z;
 }
-inline  float CMatrixMap::GetGroupMaxZObj(int x, int y)
+
+inline float CMatrixMap::GetGroupMaxZObj(int x, int y)
 {
     if(x < 0 || x >= m_GroupSize.x || y < 0 || y >= m_GroupSize.y) return 0;
+
     CMatrixMapGroup* g = GetGroupByIndex(x, y);
     if(g == nullptr) return 0;
+
     float z = GetGroupByIndex(x, y)->GetMaxZObj();
     if(z < 0) return 0;
+
     return z;
 }
+
 inline float CMatrixMap::GetGroupMaxZObjRobots(int x, int y)
 {
     if(x < 0 || x >= m_GroupSize.x || y < 0 || y >= m_GroupSize.y) return 0;
+
     CMatrixMapGroup* g = GetGroupByIndex(x, y);
     if(g == nullptr) return 0;
+
     float z = GetGroupByIndex(x, y)->GetMaxZObjRobots();
     if(z < 0) return 0;
+
     return z;
 }
 

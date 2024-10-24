@@ -193,7 +193,7 @@ CMatrixSideUnit::CMatrixSideUnit() : CMain()
 
     for(int i = 0; i < MAX_RESOURCES; ++i)
     {
-        m_Resources[i] = 300;
+        SetResourceAmount((ERes)i, 300);
     }
 }
 CMatrixSideUnit::~CMatrixSideUnit()
@@ -404,11 +404,18 @@ void CMatrixSideUnit::LogicTact(int ms)
     {
         switch(m_Id)
         {
-            case PLAYER_SIDE: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Player Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get()); break;
-            case BLAZER_SIDE: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Blazer Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get()); break;
-            case KELLER_SIDE: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Keller Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get()); break;
-            case TERRON_SIDE: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Terron Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get()); break;
-            default: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Side ") + CWStr(m_Id) + CWStr(L":"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_Resources[TITAN], m_Resources[ELECTRONICS], m_Resources[ENERGY], m_Resources[PLASMA]).Get()); break;
+            case PLAYER_SIDE:
+            {
+                //if(!g_Config.m_InfinityResources)
+                //А к чему скрывать реальную статистику?
+                g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Player Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_SideResources[TITAN], m_SideResources[ELECTRONICS], m_SideResources[ENERGY], m_SideResources[PLASMA]).Get());
+                //else g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Player Side:"), L"Titan $$$$, Electronics $$$$, Energy $$$$, Plasma $$$$");
+                break;
+            }
+            case BLAZER_SIDE: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Blazer Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_SideResources[TITAN], m_SideResources[ELECTRONICS], m_SideResources[ENERGY], m_SideResources[PLASMA]).Get()); break;
+            case KELLER_SIDE: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Keller Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_SideResources[TITAN], m_SideResources[ELECTRONICS], m_SideResources[ENERGY], m_SideResources[PLASMA]).Get()); break;
+            case TERRON_SIDE: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Terron Side:"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_SideResources[TITAN], m_SideResources[ELECTRONICS], m_SideResources[ENERGY], m_SideResources[PLASMA]).Get()); break;
+            default: g_MatrixMap->m_DI.ShowScreenText(CWStr(L"Side ") + CWStr(m_Id) + CWStr(L":"), CWStr().Format(L"Titan <i>, Electronics <i>, Energy <i>, Plasma <i>", m_SideResources[TITAN], m_SideResources[ELECTRONICS], m_SideResources[ENERGY], m_SideResources[PLASMA]).Get()); break;
         }
     }
 
@@ -2105,7 +2112,7 @@ void CMatrixSideUnit::CalcStrength()
     }
 
     int res = 0;
-    for(int r = 0; r < MAX_RESOURCES; ++r) res += min(1000, m_Resources[r]);
+    for(int r = 0; r < MAX_RESOURCES; ++r) res += min(1000, GetResourceAmount((ERes)r));
     res /= MAX_RESOURCES;
 
     m_Strength = 5.0f * c_base
@@ -7090,7 +7097,7 @@ void CMatrixSideUnit::ChooseAndBuildAIRobot(int cur_side)
     int min_income = 2000000000;
     for(int res = 0; res < MAX_RESOURCES; ++res)
     {
-        int overrated_reserve = int(roundf((float)pow(m_Resources[res], 1.1)));
+        int overrated_reserve = int(roundf((float)pow(GetResourceAmount((ERes)res), 1.1)));
         if(overrated_reserve < min_overrated_reserve) min_overrated_reserve = overrated_reserve;
 
         int income = (RESOURCES_INCOME_FROM_FACTORY * int(res_sufficiency[res]) + (RESOURCES_INCOME_FROM_BASE * GetResourceForceUp() / 100 * bases_cnt));
@@ -7193,10 +7200,10 @@ void CMatrixSideUnit::ChooseAndBuildAIRobot(int cur_side)
             i == m_LastBuildedRobot3 ||
             */
 
-            m_Resources[TITAN] < cur_template->m_Resources[TITAN] ||
-            m_Resources[ELECTRONICS] < cur_template->m_Resources[ELECTRONICS] ||
-            m_Resources[ENERGY] < cur_template->m_Resources[ENERGY] ||
-            m_Resources[PLASMA] < cur_template->m_Resources[PLASMA] ||
+            GetResourceAmount(TITAN) < cur_template->m_Resources[TITAN] ||
+            GetResourceAmount(ELECTRONICS) < cur_template->m_Resources[ELECTRONICS] ||
+            GetResourceAmount(ENERGY) < cur_template->m_Resources[ENERGY] ||
+            GetResourceAmount(PLASMA) < cur_template->m_Resources[PLASMA] ||
 
             (!enough_repairers && !cur_template->m_HaveRepair && base_in_danger <= 1.0f) || //Если база под атакой, но ситуация держится под контролем
             (cur_template->m_HaveRepair && base_in_danger > 2.0f) ||                        //Если база под серьёзной атакой, полностью запрещаем спавн ремонтников
@@ -7304,7 +7311,7 @@ void CMatrixSideUnit::ChooseAndBuildAIRobot(int cur_side)
             //else if(i == ENERGY) SFT(CStr("Current Bats: ") + m_Resources[i] + CStr(" / Cost Bats: ") + SRobotTemplate::m_AIRobotTypesList[cur_side][list[i]].m_Resources[i]);
             //else if(i == PLASMA) SFT(CStr("Current Plasma: ") + m_Resources[i] + CStr(" / Cost Plasma: ") + SRobotTemplate::m_AIRobotTypesList[cur_side][list[i]].m_Resources[i]);
 
-            m_Resources[i] = max(0, m_Resources[i] - SRobotTemplate::m_AIRobotTypesList[cur_side][template_num].m_Resources[i]);
+            SetResourceAmount((ERes)i, max(0, GetResourceAmount((ERes)i) - SRobotTemplate::m_AIRobotTypesList[cur_side][template_num].m_Resources[i]));
         }
 
         if(SRobotTemplate::m_AIRobotTypesList[cur_side][template_num].m_HaveBomb) m_TimeLastBomb = g_MatrixMap->GetTime(); //Запоминаем время постройки робота с бомбой для ограничения частоты постройки бомберов
@@ -7705,10 +7712,10 @@ void CMatrixSideUnit::ChooseAndBuildAICannon()
 
     //Если не хватает ресурсов на выбранную турель
     STurretsConsts* turret_data = &g_Config.m_TurretsConsts[cur_type];
-    if(turret_data->cost_titan > m_Resources[TITAN]) return;
-    if(turret_data->cost_electronics > m_Resources[ELECTRONICS]) return;
-    if(turret_data->cost_energy > m_Resources[ENERGY]) return;
-    if(turret_data->cost_plasma > m_Resources[PLASMA]) return;
+    if(turret_data->cost_titan > GetResourceAmount(TITAN)) return;
+    if(turret_data->cost_electronics > GetResourceAmount(ELECTRONICS)) return;
+    if(turret_data->cost_energy > GetResourceAmount(ENERGY)) return;
+    if(turret_data->cost_plasma > GetResourceAmount(PLASMA)) return;
 
     if(building->m_BuildingQueue.GetItemsCnt() > 0) return; //Если уже что-то строится, то не строим
 
@@ -7717,10 +7724,10 @@ void CMatrixSideUnit::ChooseAndBuildAICannon()
     if(!place_list_cnt) return;
 
     //Списываем ресурсы за постройку
-    m_Resources[TITAN] -= turret_data->cost_titan;
-    m_Resources[ELECTRONICS] -= turret_data->cost_electronics;
-    m_Resources[ENERGY] -= turret_data->cost_energy;
-    m_Resources[PLASMA] -= turret_data->cost_plasma;
+    AddResourceAmount(TITAN, -turret_data->cost_titan);
+    AddResourceAmount(ELECTRONICS, -turret_data->cost_electronics);
+    AddResourceAmount(ENERGY, -turret_data->cost_energy);
+    AddResourceAmount(PLASMA, -turret_data->cost_plasma);
 
     CPoint place_cannon = place_list[g_MatrixMap->Rnd(0, place_list_cnt - 1)];
     CMatrixTurret* cannon = g_MatrixMap->StaticAdd<CMatrixTurret>(true);

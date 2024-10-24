@@ -772,6 +772,8 @@ public:
     EShadowType m_BuildingShadows = SHADOW_STENCIL;
     EShadowType m_ObjectShadows = SHADOW_PROJ_DYNAMIC;
 
+    bool m_InfinityResources = false; //Если true, то ресурсы игрока становятся неограниченными
+
     CMatrixConfig() = default;
     ~CMatrixConfig() = default;
 

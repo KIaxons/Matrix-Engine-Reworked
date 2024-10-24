@@ -1194,7 +1194,7 @@ bool CConstructorPanel::IsEnoughResourcesForThisModule(
     //Если количество доступных ресурсов ниже необходимого для постройки количества, и при этом выбираемый предмет хотя бы чего-то стоит
     for(int i = 0; i < MAX_RESOURCES; ++i)
     {
-        if(ps->GetResourcesAmount((ERes)i) < total_res_needed[i] && item_res[i]) return false;
+        if(ps->GetResourceAmount((ERes)i) < total_res_needed[i] && item_res[i]) return false;
     }
 
     return true;

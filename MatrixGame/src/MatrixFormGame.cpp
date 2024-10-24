@@ -1066,6 +1066,28 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                                             return;
                                         }
 
+            if(m_LastScans[MAX_SCANS - 11].scan == KEY_R)
+                if(m_LastScans[MAX_SCANS - 10].scan == KEY_O)
+                    if(m_LastScans[MAX_SCANS - 9].scan == KEY_C)
+                        if(m_LastScans[MAX_SCANS - 8].scan == KEY_K)
+                            if(m_LastScans[MAX_SCANS - 7].scan == KEY_E)
+                                if(m_LastScans[MAX_SCANS - 6].scan == KEY_F)
+                                    if(m_LastScans[MAX_SCANS - 5].scan == KEY_E)
+                                        if(m_LastScans[MAX_SCANS - 4].scan == KEY_L)
+                                            if(m_LastScans[MAX_SCANS - 3].scan == KEY_L)
+                                                if(m_LastScans[MAX_SCANS - 2].scan == KEY_E)
+                                                    if(m_LastScans[MAX_SCANS - 1].scan == KEY_R)
+                                                    {
+                                                        if(!g_Config.m_InfinityResources) g_Config.m_InfinityResources = true;
+                                                        else g_Config.m_InfinityResources = false;
+
+                                                        //CMatrixSideUnit* player_side = g_MatrixMap->GetPlayerSide();
+                                                        //for(int i = 0; i < MAX_RESOURCES; ++i)
+                                                        //{
+                                                        //    player_side->SetResourceAmount((ERes)i, 99999);
+                                                        //}
+                                                    }
+
             if(m_LastScans[MAX_SCANS - 5].scan == KEY_S)
                 if(m_LastScans[MAX_SCANS - 4].scan == KEY_T)
                     if(m_LastScans[MAX_SCANS - 3].scan == KEY_A)

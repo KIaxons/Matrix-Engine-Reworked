@@ -82,6 +82,7 @@ void CTransition::BuildTexture()
             x_offset = (m_ScreenX - m_ScreenY / 0.75) / 2;
             native_aspect_res = m_ScreenX - (m_ScreenX - m_ScreenY / 0.75);
         }
+
         coord_mod = m_ScreenY / 768.0;
     }
 
@@ -114,9 +115,9 @@ void CTransition::BuildTexture()
 
         int x_check = da.GetStrPar(0, L"|").GetIntPar(0, L",");
         if(!x_check) m_Geom[i].verts[0].p.x = 0;
-        else if(x_check == 1024) m_Geom[i].verts[0].p.x = m_ScreenX;
-        else m_Geom[i].verts[0].p.x = da.GetStrPar(0, L"|").GetFloatPar(0, L",") * coord_mod + x_offset;
-        m_Geom[i].verts[0].p.y = da.GetStrPar(0, L"|").GetFloatPar(1, L",") * coord_mod;
+        else if(x_check == 1024) m_Geom[i].verts[0].p.x = float(m_ScreenX);
+        else m_Geom[i].verts[0].p.x = da.GetStrPar(0, L"|").GetDoublePar(0, L",") * coord_mod + x_offset;
+        m_Geom[i].verts[0].p.y = da.GetStrPar(0, L"|").GetDoublePar(1, L",") * coord_mod;
         m_Geom[i].verts[0].p.z = 0;
         m_Geom[i].verts[0].p.w = 1;
         m_Geom[i].verts[0].tu = m_Geom[i].verts[0].p.x / float(bmout.SizeX());
@@ -124,9 +125,9 @@ void CTransition::BuildTexture()
 
         x_check = da.GetStrPar(1, L"|").GetIntPar(0, L",");
         if(!x_check) m_Geom[i].verts[1].p.x = 0;
-        else if(x_check == 1024) m_Geom[i].verts[1].p.x = m_ScreenX;
-        else m_Geom[i].verts[1].p.x = da.GetStrPar(1, L"|").GetFloatPar(0, L",") * coord_mod + x_offset;
-        m_Geom[i].verts[1].p.y = da.GetStrPar(1, L"|").GetFloatPar(1, L",") * coord_mod;
+        else if(x_check == 1024) m_Geom[i].verts[1].p.x = float(m_ScreenX);
+        else m_Geom[i].verts[1].p.x = da.GetStrPar(1, L"|").GetDoublePar(0, L",") * coord_mod + x_offset;
+        m_Geom[i].verts[1].p.y = da.GetStrPar(1, L"|").GetDoublePar(1, L",") * coord_mod;
         m_Geom[i].verts[1].p.z = 0;
         m_Geom[i].verts[1].p.w = 1;
         m_Geom[i].verts[1].tu = m_Geom[i].verts[1].p.x / float(bmout.SizeX());
@@ -134,9 +135,9 @@ void CTransition::BuildTexture()
 
         x_check = da.GetStrPar(3, L"|").GetIntPar(0, L",");
         if(!x_check) m_Geom[i].verts[2].p.x = 0;
-        else if(x_check == 1024) m_Geom[i].verts[2].p.x = m_ScreenX;
-        else m_Geom[i].verts[2].p.x = da.GetStrPar(3, L"|").GetFloatPar(0, L",") * coord_mod + x_offset;
-        m_Geom[i].verts[2].p.y = da.GetStrPar(3, L"|").GetFloatPar(1, L",") * coord_mod;
+        else if(x_check == 1024) m_Geom[i].verts[2].p.x = float(m_ScreenX);
+        else m_Geom[i].verts[2].p.x = da.GetStrPar(3, L"|").GetDoublePar(0, L",") * coord_mod + x_offset;
+        m_Geom[i].verts[2].p.y = da.GetStrPar(3, L"|").GetDoublePar(1, L",") * coord_mod;
         m_Geom[i].verts[2].p.z = 0;
         m_Geom[i].verts[2].p.w = 1;
         m_Geom[i].verts[2].tu = m_Geom[i].verts[2].p.x / float(bmout.SizeX());
@@ -144,9 +145,9 @@ void CTransition::BuildTexture()
 
         x_check = da.GetStrPar(2, L"|").GetIntPar(0, L",");
         if(!x_check) m_Geom[i].verts[3].p.x = 0;
-        else if(x_check == 1024) m_Geom[i].verts[3].p.x = m_ScreenX;
-        else m_Geom[i].verts[3].p.x = da.GetStrPar(2, L"|").GetFloatPar(0, L",") * coord_mod + x_offset;
-        m_Geom[i].verts[3].p.y = da.GetStrPar(2, L"|").GetFloatPar(1, L",") * coord_mod;
+        else if(x_check == 1024) m_Geom[i].verts[3].p.x = float(m_ScreenX);
+        else m_Geom[i].verts[3].p.x = da.GetStrPar(2, L"|").GetDoublePar(0, L",") * coord_mod + x_offset;
+        m_Geom[i].verts[3].p.y = da.GetStrPar(2, L"|").GetDoublePar(1, L",") * coord_mod;
         m_Geom[i].verts[3].p.z = 0;
         m_Geom[i].verts[3].p.w = 1;
         m_Geom[i].verts[3].tu = m_Geom[i].verts[3].p.x / float(bmout.SizeX());

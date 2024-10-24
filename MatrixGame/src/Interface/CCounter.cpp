@@ -42,6 +42,7 @@ void CIFaceCounter::ManageButtons()
 void CIFaceCounter::MulRes()
 {
     g_IFaceList->CreateSummPrice(m_Counter);
+
     //CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
     //SPrice price;
     //ps->m_ConstructPanel->m_Configs[ps->m_ConstructPanel->m_CurrentConfig].CalcConfigPrice(&price);

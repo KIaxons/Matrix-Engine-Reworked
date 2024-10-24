@@ -2295,36 +2295,56 @@ void CInterface::Init(void)
                 pElement->SetVisibility(true);
                 if(pElement->m_strName == IF_TITAN_LABEL)
                 {
-                    if(prev_titan != player_side->GetResourcesAmount(TITAN))
+                    if(g_Config.m_InfinityResources)
                     {
-                        prev_titan = player_side->GetResourcesAmount(TITAN);
+                        pElement->m_StateImages[IFACE_NORMAL].m_Caption.Set(L"$$$$");
+                        pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
+                    }
+                    else if(prev_titan != player_side->GetResourceAmount(TITAN))
+                    {
+                        prev_titan = player_side->GetResourceAmount(TITAN);
                         pElement->m_StateImages[IFACE_NORMAL].m_Caption.Set(prev_titan);
                         pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
                     }
                 }
                 else if(pElement->m_strName == IF_ELECTRO_LABEL)
                 {
-                    if(prev_electro != player_side->GetResourcesAmount(ELECTRONICS))
+                    if(g_Config.m_InfinityResources)
                     {
-                        prev_electro = player_side->GetResourcesAmount(ELECTRONICS);
+                        pElement->m_StateImages[IFACE_NORMAL].m_Caption.Set(L"$$$$");
+                        pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
+                    }
+                    else if(prev_electro != player_side->GetResourceAmount(ELECTRONICS))
+                    {
+                        prev_electro = player_side->GetResourceAmount(ELECTRONICS);
                         pElement->m_StateImages[IFACE_NORMAL].m_Caption.Set(prev_electro);
                         pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
                     }
                 }
                 else if(pElement->m_strName == IF_ENERGY_LABEL)
                 {
-                    if(prev_energy != player_side->GetResourcesAmount(ENERGY))
+                    if(g_Config.m_InfinityResources)
                     {
-                        prev_energy = player_side->GetResourcesAmount(ENERGY);
+                        pElement->m_StateImages[IFACE_NORMAL].m_Caption.Set(L"$$$$");
+                        pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
+                    }
+                    else if(prev_energy != player_side->GetResourceAmount(ENERGY))
+                    {
+                        prev_energy = player_side->GetResourceAmount(ENERGY);
                         pElement->m_StateImages[IFACE_NORMAL].m_Caption.Set(prev_energy);
                         pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
                     }
                 }
                 else if(pElement->m_strName == IF_PLASMA_LABEL)
                 {
-                    if(prev_plasma != player_side->GetResourcesAmount(PLASMA))
+                    if(g_Config.m_InfinityResources)
                     {
-                        prev_plasma = player_side->GetResourcesAmount(PLASMA);
+                        pElement->m_StateImages[IFACE_NORMAL].m_Caption.Set(L"$$$$");
+                        pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
+                    }
+                    else if(prev_plasma != player_side->GetResourceAmount(PLASMA))
+                    {
+                        prev_plasma = player_side->GetResourceAmount(PLASMA);
                         pElement->m_StateImages[IFACE_NORMAL].m_Caption.Set(prev_plasma);
                         pElement->m_StateImages[IFACE_NORMAL].SetStateText(true);
                     }
@@ -2376,7 +2396,7 @@ void CInterface::Init(void)
 
                 if(player_side->m_ConstructPanel->IsActive())
                 {
-                    if((pElement->m_strName == L"counthz" || pElement->m_strName == IF_BASE_CONSTRUCTION_LEFT || pElement->m_strName == IF_BASE_CONSTRUCTION_RIGHT || pElement->m_strName == IF_BASE_CONSTRUCTION_FOOT))
+                    if((pElement->m_strName == IF_BASE_COUNTHZ || pElement->m_strName == IF_BASE_CONSTRUCTION_LEFT || pElement->m_strName == IF_BASE_CONSTRUCTION_RIGHT || pElement->m_strName == IF_BASE_CONSTRUCTION_FOOT))
                     {
                         pElement->SetVisibility(true);
                     }
@@ -2408,7 +2428,7 @@ void CInterface::Init(void)
                         if(dw < 4)
                         {
                             ERes r = ERes(dw);
-                            if(player_side->GetResourcesAmount(r) < res[r])
+                            if(player_side->GetResourceAmount(r) < res[r])
                             {
                                 pElement->SetVisibility(true);
                             }
@@ -2426,7 +2446,7 @@ void CInterface::Init(void)
                         bool men = false;
                         for(int i = 0; !men && i < MAX_RESOURCES; ++i)
                         {
-                            men |= player_side->GetResourcesAmount(ERes(i)) < res[i];
+                            men |= player_side->GetResourceAmount(ERes(i)) < res[i];
                         }
 
                         if(!bld || men || player_side->GetRobotsCnt() + player_side->GetRobotsInQueue() >= player_side->GetMaxSideRobots())
@@ -2481,10 +2501,10 @@ void CInterface::Init(void)
                             if(pElement->m_Param2)
                             {
                                 int kind = Float2Int(pElement->m_Param2);
-                                if(player_side->GetResourcesAmount(TITAN) < res[TITAN] && g_Config.m_RobotHullsConsts[kind].cost_titan) its_critical = true;
-                                if(player_side->GetResourcesAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotHullsConsts[kind].cost_electronics) its_critical = true;
-                                if(player_side->GetResourcesAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotHullsConsts[kind].cost_energy) its_critical = true;
-                                if(player_side->GetResourcesAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotHullsConsts[kind].cost_plasma) its_critical = true;
+                                if(player_side->GetResourceAmount(TITAN) < res[TITAN] && g_Config.m_RobotHullsConsts[kind].cost_titan) its_critical = true;
+                                if(player_side->GetResourceAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotHullsConsts[kind].cost_electronics) its_critical = true;
+                                if(player_side->GetResourceAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotHullsConsts[kind].cost_energy) its_critical = true;
+                                if(player_side->GetResourceAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotHullsConsts[kind].cost_plasma) its_critical = true;
                             }
 
                             if(its_critical)
@@ -2514,10 +2534,10 @@ void CInterface::Init(void)
                             if(pElement->m_Param2)
                             {
                                 int kind = Float2Int(pElement->m_Param2);
-                                if(player_side->GetResourcesAmount(TITAN) < res[TITAN] && g_Config.m_RobotChassisConsts[kind].cost_titan) its_critical = true;
-                                if(player_side->GetResourcesAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotChassisConsts[kind].cost_electronics) its_critical = true;
-                                if(player_side->GetResourcesAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotChassisConsts[kind].cost_energy) its_critical = true;
-                                if(player_side->GetResourcesAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotChassisConsts[kind].cost_plasma) its_critical = true;
+                                if(player_side->GetResourceAmount(TITAN) < res[TITAN] && g_Config.m_RobotChassisConsts[kind].cost_titan) its_critical = true;
+                                if(player_side->GetResourceAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotChassisConsts[kind].cost_electronics) its_critical = true;
+                                if(player_side->GetResourceAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotChassisConsts[kind].cost_energy) its_critical = true;
+                                if(player_side->GetResourceAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotChassisConsts[kind].cost_plasma) its_critical = true;
                             }
 
                             if(its_critical)
@@ -2547,10 +2567,10 @@ void CInterface::Init(void)
                             if(pElement->m_Param2)
                             {
                                 int kind = Float2Int(pElement->m_Param2);
-                                if(player_side->GetResourcesAmount(TITAN) < res[TITAN] && g_Config.m_RobotHeadsConsts[kind].cost_titan) its_critical = true;
-                                if(player_side->GetResourcesAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotHeadsConsts[kind].cost_electronics) its_critical = true;
-                                if(player_side->GetResourcesAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotHeadsConsts[kind].cost_energy) its_critical = true;
-                                if(player_side->GetResourcesAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotHeadsConsts[kind].cost_plasma) its_critical = true;
+                                if(player_side->GetResourceAmount(TITAN) < res[TITAN] && g_Config.m_RobotHeadsConsts[kind].cost_titan) its_critical = true;
+                                if(player_side->GetResourceAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotHeadsConsts[kind].cost_electronics) its_critical = true;
+                                if(player_side->GetResourceAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotHeadsConsts[kind].cost_energy) its_critical = true;
+                                if(player_side->GetResourceAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotHeadsConsts[kind].cost_plasma) its_critical = true;
                             }
 
                             if(its_critical)
@@ -2582,10 +2602,10 @@ void CInterface::Init(void)
                                 if(pElement->m_Param2)
                                 {
                                     int kind = Float2Int(pElement->m_Param2);
-                                    if(player_side->GetResourcesAmount(TITAN) < res[TITAN] && g_Config.m_RobotWeaponsConsts[kind].cost_titan) its_critical = true;
-                                    if(player_side->GetResourcesAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotWeaponsConsts[kind].cost_electronics) its_critical = true;
-                                    if(player_side->GetResourcesAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotWeaponsConsts[kind].cost_energy) its_critical = true;
-                                    if(player_side->GetResourcesAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotWeaponsConsts[kind].cost_plasma) its_critical = true;
+                                    if(player_side->GetResourceAmount(TITAN) < res[TITAN] && g_Config.m_RobotWeaponsConsts[kind].cost_titan) its_critical = true;
+                                    if(player_side->GetResourceAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotWeaponsConsts[kind].cost_electronics) its_critical = true;
+                                    if(player_side->GetResourceAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotWeaponsConsts[kind].cost_energy) its_critical = true;
+                                    if(player_side->GetResourceAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotWeaponsConsts[kind].cost_plasma) its_critical = true;
                                 }
 
                                 if(its_critical)
@@ -2617,10 +2637,10 @@ void CInterface::Init(void)
                                 if(pElement->m_Param2)
                                 {
                                     int kind = Float2Int(pElement->m_Param2);
-                                    if(player_side->GetResourcesAmount(TITAN) < res[TITAN] && g_Config.m_RobotWeaponsConsts[kind].cost_titan) its_critical = true;
-                                    if(player_side->GetResourcesAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotWeaponsConsts[kind].cost_electronics) its_critical = true;
-                                    if(player_side->GetResourcesAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotWeaponsConsts[kind].cost_energy) its_critical = true;
-                                    if(player_side->GetResourcesAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotWeaponsConsts[kind].cost_plasma) its_critical = true;
+                                    if(player_side->GetResourceAmount(TITAN) < res[TITAN] && g_Config.m_RobotWeaponsConsts[kind].cost_titan) its_critical = true;
+                                    if(player_side->GetResourceAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotWeaponsConsts[kind].cost_electronics) its_critical = true;
+                                    if(player_side->GetResourceAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotWeaponsConsts[kind].cost_energy) its_critical = true;
+                                    if(player_side->GetResourceAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotWeaponsConsts[kind].cost_plasma) its_critical = true;
                                 }
 
                                 if(its_critical)
@@ -2652,10 +2672,10 @@ void CInterface::Init(void)
                                 if(pElement->m_Param2)
                                 {
                                     int kind = Float2Int(pElement->m_Param2);
-                                    if(player_side->GetResourcesAmount(TITAN) < res[TITAN] && g_Config.m_RobotWeaponsConsts[kind].cost_titan) its_critical = true;
-                                    if(player_side->GetResourcesAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotWeaponsConsts[kind].cost_electronics) its_critical = true;
-                                    if(player_side->GetResourcesAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotWeaponsConsts[kind].cost_energy) its_critical = true;
-                                    if(player_side->GetResourcesAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotWeaponsConsts[kind].cost_plasma) its_critical = true;
+                                    if(player_side->GetResourceAmount(TITAN) < res[TITAN] && g_Config.m_RobotWeaponsConsts[kind].cost_titan) its_critical = true;
+                                    if(player_side->GetResourceAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotWeaponsConsts[kind].cost_electronics) its_critical = true;
+                                    if(player_side->GetResourceAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotWeaponsConsts[kind].cost_energy) its_critical = true;
+                                    if(player_side->GetResourceAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotWeaponsConsts[kind].cost_plasma) its_critical = true;
                                 }
 
                                 if(its_critical)
@@ -2687,10 +2707,10 @@ void CInterface::Init(void)
                                 if(pElement->m_Param2)
                                 {
                                     int kind = Float2Int(pElement->m_Param2);
-                                    if(player_side->GetResourcesAmount(TITAN) < res[TITAN] && g_Config.m_RobotWeaponsConsts[kind].cost_titan) its_critical = true;
-                                    if(player_side->GetResourcesAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotWeaponsConsts[kind].cost_electronics) its_critical = true;
-                                    if(player_side->GetResourcesAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotWeaponsConsts[kind].cost_energy) its_critical = true;
-                                    if(player_side->GetResourcesAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotWeaponsConsts[kind].cost_plasma) its_critical = true;
+                                    if(player_side->GetResourceAmount(TITAN) < res[TITAN] && g_Config.m_RobotWeaponsConsts[kind].cost_titan) its_critical = true;
+                                    if(player_side->GetResourceAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotWeaponsConsts[kind].cost_electronics) its_critical = true;
+                                    if(player_side->GetResourceAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotWeaponsConsts[kind].cost_energy) its_critical = true;
+                                    if(player_side->GetResourceAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotWeaponsConsts[kind].cost_plasma) its_critical = true;
                                 }
 
                                 if(its_critical)
@@ -2722,10 +2742,10 @@ void CInterface::Init(void)
                                 if(pElement->m_Param2)
                                 {
                                     int kind = Float2Int(pElement->m_Param2);
-                                    if(player_side->GetResourcesAmount(TITAN) < res[TITAN] && g_Config.m_RobotWeaponsConsts[kind].cost_titan) its_critical = true;
-                                    if(player_side->GetResourcesAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotWeaponsConsts[kind].cost_electronics) its_critical = true;
-                                    if(player_side->GetResourcesAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotWeaponsConsts[kind].cost_energy) its_critical = true;
-                                    if(player_side->GetResourcesAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotWeaponsConsts[kind].cost_plasma) its_critical = true;
+                                    if(player_side->GetResourceAmount(TITAN) < res[TITAN] && g_Config.m_RobotWeaponsConsts[kind].cost_titan) its_critical = true;
+                                    if(player_side->GetResourceAmount(ELECTRONICS) < res[ELECTRONICS] && g_Config.m_RobotWeaponsConsts[kind].cost_electronics) its_critical = true;
+                                    if(player_side->GetResourceAmount(ENERGY) < res[ENERGY] && g_Config.m_RobotWeaponsConsts[kind].cost_energy) its_critical = true;
+                                    if(player_side->GetResourceAmount(PLASMA) < res[PLASMA] && g_Config.m_RobotWeaponsConsts[kind].cost_plasma) its_critical = true;
                                 }
 
                                 if(its_critical)
@@ -2794,12 +2814,12 @@ void CInterface::Init(void)
                         pElement->SetVisibility(true);
 
                         bool tit_color_upd = false;
-                        if((player_side->GetResourcesAmount(TITAN) < titan_summ) && titan_color != 0xFFFF0000)
+                        if((player_side->GetResourceAmount(TITAN) < titan_summ) && titan_color != 0xFFFF0000)
                         {
                             titan_color = 0xFFFF0000;
                             tit_color_upd = true;
                         }
-                        else if((player_side->GetResourcesAmount(TITAN) >= titan_summ) && titan_color != 0xFFF6c000)
+                        else if((player_side->GetResourceAmount(TITAN) >= titan_summ) && titan_color != 0xFFF6c000)
                         {
                             titan_color = 0xFFF6c000;
                             tit_color_upd = true;
@@ -2814,12 +2834,12 @@ void CInterface::Init(void)
                         }
 
                         bool elec_color_upd = false;
-                        if((player_side->GetResourcesAmount(ELECTRONICS) < electronics_summ) && electronics_color != 0xFFFF0000)
+                        if((player_side->GetResourceAmount(ELECTRONICS) < electronics_summ) && electronics_color != 0xFFFF0000)
                         {
                             electronics_color = 0xFFFF0000;
                             elec_color_upd = true;
                         }
-                        else if((player_side->GetResourcesAmount(ELECTRONICS) >= electronics_summ) && electronics_color != 0xFFF6c000)
+                        else if((player_side->GetResourceAmount(ELECTRONICS) >= electronics_summ) && electronics_color != 0xFFF6c000)
                         {
                             electronics_color = 0xFFF6c000;
                             elec_color_upd = true;
@@ -2834,12 +2854,12 @@ void CInterface::Init(void)
                         }
 
                         bool ener_color_upd = false;
-                        if((player_side->GetResourcesAmount(ENERGY) < energy_summ) && energy_color != 0xFFFF0000)
+                        if((player_side->GetResourceAmount(ENERGY) < energy_summ) && energy_color != 0xFFFF0000)
                         {
                             energy_color = 0xFFFF0000;
                             ener_color_upd = true;
                         }
-                        else if((player_side->GetResourcesAmount(ENERGY) >= energy_summ) && energy_color != 0xFFF6c000)
+                        else if((player_side->GetResourceAmount(ENERGY) >= energy_summ) && energy_color != 0xFFF6c000)
                         {
                             energy_color = 0xFFF6c000;
                             ener_color_upd = true;
@@ -2854,12 +2874,12 @@ void CInterface::Init(void)
                         }
 
                         bool plas_color_upd = false;
-                        if((player_side->GetResourcesAmount(PLASMA) < plasma_summ) && plasm_color != 0xFFFF0000)
+                        if((player_side->GetResourceAmount(PLASMA) < plasma_summ) && plasm_color != 0xFFFF0000)
                         {
                             plasm_color = 0xFFFF0000;
                             plas_color_upd = true;
                         }
-                        else if((player_side->GetResourcesAmount(PLASMA) > plasma_summ) && plasm_color != 0xFFF6c000)
+                        else if((player_side->GetResourceAmount(PLASMA) > plasma_summ) && plasm_color != 0xFFF6c000)
                         {
                             plasm_color = 0xFFF6c000;
                             plas_color_upd = true;
@@ -2882,7 +2902,7 @@ void CInterface::Init(void)
 
                             if(titan_summ != 0)
                             {
-                                if(player_side->GetResourcesAmount(TITAN) < titan_summ)
+                                if(player_side->GetResourceAmount(TITAN) < titan_summ)
                                 {
                                     titan_color = 0xFFFF0000;
                                 }
@@ -2894,7 +2914,7 @@ void CInterface::Init(void)
 
                             if(electronics_summ != 0)
                             {
-                                if(player_side->GetResourcesAmount(ELECTRONICS) < electronics_summ)
+                                if(player_side->GetResourceAmount(ELECTRONICS) < electronics_summ)
                                 {
                                     electronics_color = 0xFFFF0000;
                                 }
@@ -2907,7 +2927,7 @@ void CInterface::Init(void)
 
                             if(energy_summ != 0)
                             {
-                                if(player_side->GetResourcesAmount(ENERGY) < energy_summ)
+                                if(player_side->GetResourceAmount(ENERGY) < energy_summ)
                                 {
                                     energy_color = 0xFFFF0000;
                                 }
@@ -2919,7 +2939,7 @@ void CInterface::Init(void)
 
                             if(plasma_summ != 0)
                             {
-                                if(player_side->GetResourcesAmount(PLASMA) < plasma_summ)
+                                if(player_side->GetResourceAmount(PLASMA) < plasma_summ)
                                 {
                                     plasm_color = 0xFFFF0000;
                                 }
@@ -2970,12 +2990,12 @@ void CInterface::Init(void)
                         else if(module_type == MRT_WEAPON) unit_res = &g_Config.m_RobotWeaponsConsts[kind].cost_titan;
 
                         bool tit_color_upd = false;
-                        if((player_side->GetResourcesAmount(TITAN) < total_res[TITAN]) && titan_unit_color != 0xFFFF0000)
+                        if((player_side->GetResourceAmount(TITAN) < total_res[TITAN]) && titan_unit_color != 0xFFFF0000)
                         {
                             titan_unit_color = 0xFFFF0000;
                             tit_color_upd = true;
                         }
-                        else if((player_side->GetResourcesAmount(TITAN) >= total_res[TITAN]) && titan_unit_color != 0xFFF6c000)
+                        else if((player_side->GetResourceAmount(TITAN) >= total_res[TITAN]) && titan_unit_color != 0xFFF6c000)
                         {
                             titan_unit_color = 0xFFF6c000;
                             tit_color_upd = true;
@@ -2990,12 +3010,12 @@ void CInterface::Init(void)
                         }
 
                         bool elec_color_upd = false;
-                        if((player_side->GetResourcesAmount(ELECTRONICS) < total_res[ELECTRONICS]) && electronics_unit_color != 0xFFFF0000)
+                        if((player_side->GetResourceAmount(ELECTRONICS) < total_res[ELECTRONICS]) && electronics_unit_color != 0xFFFF0000)
                         {
                             electronics_unit_color = 0xFFFF0000;
                             elec_color_upd = true;
                         }
-                        else if((player_side->GetResourcesAmount(ELECTRONICS) >= total_res[ELECTRONICS]) && electronics_unit_color != 0xFFF6c000)
+                        else if((player_side->GetResourceAmount(ELECTRONICS) >= total_res[ELECTRONICS]) && electronics_unit_color != 0xFFF6c000)
                         {
                             electronics_unit_color = 0xFFF6c000;
                             elec_color_upd = true;
@@ -3010,12 +3030,12 @@ void CInterface::Init(void)
                         }
 
                         bool ener_color_upd = false;
-                        if((player_side->GetResourcesAmount(ENERGY) < total_res[ENERGY]) && energy_unit_color != 0xFFFF0000)
+                        if((player_side->GetResourceAmount(ENERGY) < total_res[ENERGY]) && energy_unit_color != 0xFFFF0000)
                         {
                             energy_unit_color = 0xFFFF0000;
                             ener_color_upd = true;
                         }
-                        else if((player_side->GetResourcesAmount(ENERGY) >= total_res[ENERGY]) && energy_unit_color != 0xFFF6c000)
+                        else if((player_side->GetResourceAmount(ENERGY) >= total_res[ENERGY]) && energy_unit_color != 0xFFF6c000)
                         {
                             energy_unit_color = 0xFFF6c000;
                             ener_color_upd = true;
@@ -3030,12 +3050,12 @@ void CInterface::Init(void)
                         }
 
                         bool plas_color_upd = false;
-                        if((player_side->GetResourcesAmount(PLASMA) < total_res[PLASMA]) && plasm_unit_color != 0xFFFF0000)
+                        if((player_side->GetResourceAmount(PLASMA) < total_res[PLASMA]) && plasm_unit_color != 0xFFFF0000)
                         {
                             plasm_unit_color = 0xFFFF0000;
                             plas_color_upd = true;
                         }
-                        else if((player_side->GetResourcesAmount(PLASMA) > total_res[PLASMA]) && plasm_unit_color != 0xFFF6c000)
+                        else if((player_side->GetResourceAmount(PLASMA) > total_res[PLASMA]) && plasm_unit_color != 0xFFF6c000)
                         {
                             plasm_unit_color = 0xFFF6c000;
                             plas_color_upd = true;
@@ -4043,9 +4063,6 @@ void CIFaceList::CreateItemPrice(int* price, float multiplier)
 
     int res[MAX_RESOURCES] = { price[0], price[1], price[2], price[3] };
 
-    //player_side->m_ConstructPanel->m_FocusedPrice.ResetPrice();
-    //memcpy(player_side->m_ConstructPanel->m_FocusedPrice.m_Resources, price.m_Resources, sizeof(player_side->m_ConstructPanel->m_FocusedPrice.m_Resources));
-    
     while(interfaces)
     {
         if(interfaces->m_strName == IF_BASE)
@@ -4172,8 +4189,7 @@ void CIFaceList::CreateSummPrice(float multiplier)
     CInterface* interfaces = m_First;
 
     int cfg_num = player_side->m_ConstructPanel->m_CurrentConfig;
-    int res[MAX_RESOURCES];
-    ZeroMemory(res, sizeof(res));
+    int res[MAX_RESOURCES] = { 0 };
 
     player_side->m_Constructor->GetConstructionPrice(res);
 
@@ -4284,7 +4300,9 @@ void CIFaceList::DeleteSummPrice()
             CIFaceElement* elements = interfaces->m_FirstElement;
             while(elements)
             {
-/*                if(elements->m_strName == IF_BASE_SUMM_PANEL){
+                /*
+                if(elements->m_strName == IF_BASE_SUMM_PANEL)
+`               {
                     elements->m_StateImages[IFACE_NORMAL].m_Caption = CWStr(L"");
                     elements->m_StateImages[IFACE_NORMAL].SetStateText(true);
                 }
@@ -4296,9 +4314,11 @@ void CIFaceList::DeleteSummPrice()
                 }
                 elements = elements->m_NextElement;
             }
+
             interfaces->SortElementsByZ();
             break;
         }
+
         interfaces = interfaces->m_NextInterface;
     }
 }
