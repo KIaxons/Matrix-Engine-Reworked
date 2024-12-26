@@ -70,7 +70,10 @@ void CMatrixRobot::ModuleInsert(int before_module, ERobotModuleType type, ERobot
         }
         m_ChassisData.m_MovingAnimSpeed = g_Config.m_RobotChassisConsts[kind].anim_move_speed;
     }
-    else if(type == MRT_HULL) m_HullModule = &m_Module[before_module];
+    else if(type == MRT_HULL)
+    {
+        m_HullModule = &m_Module[before_module];
+    }
 }
 
 //Непосредственное подключение модели указанного оружия к общей модели робота
@@ -250,6 +253,7 @@ float CMatrixRobot::GetHullHeight() const
         const D3DXMATRIX* tm = m_HullModule->m_Graph->GetMatrix(j);
         if(tm->_43 > max_height) max_height = tm->_43;
     }
+
     return max_height;
 }
 
@@ -263,7 +267,7 @@ float CMatrixRobot::Z_From_Pos()
         //Роботы на парящих шасси провалиться под воду не могут
         if(IsHoveringChassis()) robot_z = WATER_LEVEL;
 
-        if(robot_z < WATER_LEVEL - 100)
+        if(robot_z < WATER_LEVEL - 100.0f)
         {
             //Робот утонул (упал под карту)
             MustDie();

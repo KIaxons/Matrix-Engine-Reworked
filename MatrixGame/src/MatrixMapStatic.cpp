@@ -74,6 +74,7 @@ CMatrixMapStatic::~CMatrixMapStatic()
 
     g_MatrixMap->RemoveFromAD(this);
 
+    m_Core->m_Type = OBJECT_TYPE_EMPTY;
     m_Core->m_Object = nullptr;
     m_Core->Release();
 }

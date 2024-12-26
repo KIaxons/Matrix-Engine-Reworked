@@ -156,7 +156,7 @@ struct SObjectCore
     float        m_Radius = 0.0f;
     D3DXVECTOR3  m_GeoCenter = { 0.0f, 0.0f, 0.0f };
     EObjectType  m_Type = OBJECT_TYPE_EMPTY; // 0 - empty, 2 - CMatrixMapObject, 3 - CMatrixRobotAI, 4 - CMatrixBuilding, 5 - CMatrixTurret
-    dword        m_TerrainColor = 0;
+    dword        m_TerrainColor = 0xFFFFFFFF;
     int          m_Ref = 0;
 
     CMatrixMapStatic* m_Object = nullptr;
@@ -331,9 +331,6 @@ public:
     CMatrixMapStatic() : m_RemindCore(FreeObjResources, (dword)this)
     {
         m_Core = SObjectCore::Create(this);
-
-        m_Core->m_TerrainColor = 0xFFFFFFFF;
-        m_Core->m_Type = OBJECT_TYPE_EMPTY;
     }
 #pragma warning (default : 4355)
 

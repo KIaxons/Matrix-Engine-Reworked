@@ -566,14 +566,14 @@ public:
     void CalcStrength();
     void Regroup();
     void ClearTeam(int team);
-    int ClacSpawnTeam(int region, int nsh);
+    int  ClacSpawnTeam(int region, int nsh);
     void EscapeFromBomb();
     void GroupNoTeamRobot();
     void CalcMaxSpeed();
     void TactSideLogic();
-    int FindNearRegionWithUTR(int from, int* exclude_list, int exclude_cnt, dword flags); // 1-our 2-netral 4-enemy 8-base 16-building 32-robot 64-cannon
-    int CompareRegionForward(int team, int r1, int r2);
-    int CompareAction(int team, SMatrixLogicAction* a1, SMatrixLogicAction* a2);
+    int  FindNearRegionWithUTR(int from, int* exclude_list, int exclude_cnt, dword flags); // 1-our 2-netral 4-enemy 8-base 16-building 32-robot 64-cannon
+    int  CompareRegionForward(int team, int r1, int r2);
+    int  CompareAction(int team, SMatrixLogicAction* a1, SMatrixLogicAction* a2);
     void BestAction(int team);
     void LiveAction(int team);
     void ChooseAndBuildAIRobot(int cur_side = NEUTRAL_SIDE);
@@ -602,8 +602,8 @@ public:
     bool FirePL(int group);
     void WarPL(int group);    //Отработка логики раздачи приказов ведения боевых действий роботам игрока
     void RepairPL(int group); //Отработка логики раздачи приказов ремонта роботам игрока
-    int SelGroupToLogicGroup();
-    int RobotToLogicGroup(CMatrixRobotAI* robot);
+    int  SelGroupToLogicGroup();
+    int  RobotToLogicGroup(CMatrixRobotAI* robot);
     void PGOrderStop(int no);
     void PGOrderMoveTo(int no, const CPoint& tp);
     void PGOrderCapture(int no, CMatrixBuilding* building);

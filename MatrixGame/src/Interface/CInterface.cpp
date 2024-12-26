@@ -2413,7 +2413,10 @@ void CInterface::Init(void)
                     else if((pElement->m_strName == IF_BASE_WARNING1 || pElement->m_strName == IF_BASE_WARNING_LABEL))
                     {
                         CMatrixSideUnit* ps = g_MatrixMap->GetPlayerSide();
-                        if(ps->GetRobotsCnt() + ps->GetRobotsInQueue() >= ps->GetMaxSideRobots()) pElement->SetVisibility(true);
+                        if(ps->GetRobotsCnt() + ps->GetRobotsInQueue() >= ps->GetMaxSideRobots())
+                        {
+                            pElement->SetVisibility(true);
+                        }
                     }
                     else if(IS_DYNAMIC_WARNING(pElement->m_nId))
                     {
@@ -2461,6 +2464,7 @@ void CInterface::Init(void)
                             pElement->m_CurState = IFACE_NORMAL;
                             g_IFaceList->m_RCountControl->Enable();
                         }
+
                         pElement->SetVisibility(true);
                     }
                     else if(pElement->m_strName == IF_BASE_ITEM_LABEL1)
