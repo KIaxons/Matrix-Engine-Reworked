@@ -13,13 +13,14 @@
 
 class CMatrixFlyer;
 
-#define CARRYING_DISTANCE       20.0f
-#define CARRYING_SPEED          0.996
+#define CARRYING_DISTANCE        20.0f
+#define CARRYING_SPEED           0.996
 
-#define KEELWATER_SPAWN_FACTOR  0.01f
-#define DUST_SPAWN_FACTOR       0.007f
+#define KEELWATER_SPAWN_FACTOR   0.01f
+#define DUST_SPAWN_FACTOR        0.007f
 
-#define MR_MAX_MODULES		    9
+#define MR_MAX_MODULES		     9
+#define MR_HEAD_MODULE_MATRIX_ID 1
 
 struct SMatrixRobotModule;
 struct SRobotWeapon;

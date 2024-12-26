@@ -239,7 +239,7 @@ float CMatrixRobot::GetEyeHeight(bool from_the_floor) const
     if(from_the_floor) eye_level += GetChassisHeight();
 
     // 1st matrix, ConnectUp, head connector
-    const D3DXMATRIX* tm = m_HullModule->m_Graph->GetMatrixById(1);
+    const D3DXMATRIX* tm = m_HullModule->m_Graph->GetMatrixById(MR_HEAD_MODULE_MATRIX_ID);
     // get z coord from matrix, add to chassis height
     return eye_level += tm->_43;
 }
@@ -459,7 +459,7 @@ skip_matrix:
 
                 if(!www && g_Config.m_RobotWeaponsConsts[m_Module[i].m_Kind].is_module_repairer) www = true;
 
-                tm = m_Module[hull_num].m_Graph->GetMatrixById(m_Module[i].m_LinkMatrix);
+                tm = m_HullModule[hull_num].m_Graph->GetMatrixById(m_Module[i].m_LinkMatrix);
                 m_Module[i].m_Matrix = (*tm) * m_Module[hull_num].m_Matrix;
                 
                 if(m_Module[i].m_Invert)
