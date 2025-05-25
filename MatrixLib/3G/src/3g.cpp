@@ -28,7 +28,7 @@ D3DPRESENT_PARAMETERS g_D3Dpp;
 
 dword g_Flags = 0;
 
-float g_CamFieldOfView = 60.0;
+float g_CamFieldOfView = 60.0f;
 int g_DrawFPS = 0;
 double g_DrawFPSMax_Period = (1000.0 / 50000.0);
 int g_MaxFPS = 1000;
@@ -36,8 +36,8 @@ float g_MaxViewDistance = 4000.0f;
 int g_MaxObjectsPerScreen = 2560;
 int g_MaxEffectsCount = 1280;
 int g_ShadowsDrawDistance = 1024;
-float g_ThinFogDrawDistance = 0.5;
-float g_DenseFogDrawDistance = 0.7;
+float g_ThinFogDrawDistance = 0.5f;
+float g_DenseFogDrawDistance = 0.7f;
 int g_DrawFPSCur = 0;
 int g_DrawFPSTime = 0;
 
@@ -455,7 +455,7 @@ int L3GRun()
                 smp = (smp + 1) & (SMOOTH_COUNT - 1);
 
                 g_PureGameTact = tt;
-                tt = smooths / SMOOTH_COUNT * g_GameSpeedFactor;
+                tt = smooths / int(SMOOTH_COUNT * g_GameSpeedFactor);
 
                 SRemindCore::Tact(tt);
 				g_FormCur->Tact(tt); //√лавный тактовый логический исполнитель игры

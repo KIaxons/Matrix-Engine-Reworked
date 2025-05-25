@@ -18,7 +18,7 @@ enum EMapObjectBehaviorOnDamage
     BEHF_SENS,         // чувствительность к приближению роботов
     BEHF_SPAWNER,      // робот - spawner
     BEHF_TERRON,       // босс
-    BEHF_PORTRET       //Видимо, для пасхалки в тайной комнате (в коде не использовано)
+    BEHF_PORTRET       // Видимо, для пасхалки в тайной комнате (в коде не использовано)
 };
 
 struct SMatrixSkin;

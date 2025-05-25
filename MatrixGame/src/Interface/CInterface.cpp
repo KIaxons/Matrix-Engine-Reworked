@@ -379,7 +379,7 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
                 if(pButton->m_strName == g_Config.m_RobotHullsConsts[i].constructor_button_name)
                 {
                     g_IFaceList->m_Hull[i - 1] = pButton; //-1, т.к. у корпуса не может быть пустого слота
-                    pButton->m_Param2 = i;
+                    pButton->m_Param2 = (float)i;
                 }
             }
 
@@ -389,7 +389,7 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
                 if(pButton->m_strName == g_Config.m_RobotChassisConsts[i].constructor_button_name)
                 {
                     g_IFaceList->m_Chassis[i - 1] = pButton; //-1, т.к. у шасси не может быть пустого слота
-                    pButton->m_Param2 = i;
+                    pButton->m_Param2 = (float)i;
                 }
             }
 
@@ -399,7 +399,7 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
                 if(pButton->m_strName == g_Config.m_RobotHeadsConsts[i].constructor_button_name)
                 {
                     g_IFaceList->m_Head[i] = pButton;
-                    pButton->m_Param2 = i;
+                    pButton->m_Param2 = (float)i;
                 }
             }
 
@@ -409,7 +409,7 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
                 if(pButton->m_strName == g_Config.m_RobotWeaponsConsts[i].constructor_button_name)
                 {
                     g_IFaceList->m_Weapon[i] = pButton;
-                    pButton->m_Param2 = i;
+                    pButton->m_Param2 = (float)i;
                 }
             }
 
@@ -523,8 +523,8 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
                     pButton->m_IFAnimation = HNew(Base::g_MatrixHeap) CAnimation(frames_cnt, period);
                     SFrame frame;
                     //frame.name = pButton->m_strName;
-                    frame.height = height;
-                    frame.width = width;
+                    frame.height = (float)height;
+                    frame.width = (float)width;
                     frame.pos_x = pButton->m_xPos + 1;
                     frame.pos_y = pButton->m_yPos;
                     //frame.pos_z = pButton->m_zPos;
@@ -538,8 +538,8 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
                     {
                         int x = par.GetIntPar(3 + 1 + i, L",");
                         int y = par.GetIntPar(3 + 1 + i + 1, L",");
-                        frame.tex_pos_x = x;
-                        frame.tex_pos_y = y;
+                        frame.tex_pos_x = (float)x;
+                        frame.tex_pos_y = (float)y;
                         //Load Next Frame here
                         pButton->m_IFAnimation->LoadNextFrame(&frame);
                     }
@@ -695,12 +695,12 @@ bool CInterface::Load(CBlockPar& bp, const wchar* name)
 
             image->m_Image = (CTextureManaged*)g_Cache->Get(cc_TextureManaged, g_CacheData->ParPathGet(pbp2->Par(L"TextureFile")).Get());
 
-            image->m_xTexPos   = pbp2->Par(L"TexPosX").GetDouble();
-            image->m_yTexPos   = pbp2->Par(L"TexPosY").GetDouble();
-            image->m_TexWidth  = pbp2->Par(L"TextureWidth").GetDouble();
-            image->m_TexHeight = pbp2->Par(L"TextureHeight").GetDouble();
-            image->m_Width     = pbp2->Par(L"Width").GetDouble();
-            image->m_Height    = pbp2->Par(L"Height").GetDouble();
+            image->m_xTexPos   = pbp2->Par(L"TexPosX").GetFloat();
+            image->m_yTexPos   = pbp2->Par(L"TexPosY").GetFloat();
+            image->m_TexWidth  = pbp2->Par(L"TextureWidth").GetFloat();
+            image->m_TexHeight = pbp2->Par(L"TextureHeight").GetFloat();
+            image->m_Width     = pbp2->Par(L"Width").GetFloat();
+            image->m_Height    = pbp2->Par(L"Height").GetFloat();
 
             LIST_ADD(image, m_FirstImage, m_LastImage, m_PrevImage, m_NextImage);
             ++nElementNum;
@@ -2975,7 +2975,7 @@ void CInterface::Init(void)
                                 {
                                     if(bp->ParGetName(i) == L"CostModifyPercent")
                                     {
-                                        cost_mod += max(bp->ParGet(i).GetDouble() * 0.01f, -1.0f);
+                                        cost_mod += max(bp->ParGet(i).GetFloat() * 0.01f, -1.0f);
                                         break;
                                     }
                                 }
@@ -4016,7 +4016,7 @@ void CIFaceList::CreateWeaponDynamicStatics()
                     s->m_nId = DYNAMIC_WEAPON_ON_ID;
                 
                     s = interfaces->CreateStaticFromImage(g_IFaceList->m_DWeaponX[pos], g_IFaceList->m_DWeaponY[pos], 0.000001f, overheat_image);
-                    s->m_Param1 = i;
+                    s->m_Param1 = (float)i;
                 }
             }
 
@@ -4097,7 +4097,7 @@ void CIFaceList::CreateItemPrice(int* price, float multiplier)
             {
                 if(res[cnt])
                 {
-                    res[cnt] *= multiplier;
+                    res[cnt] = int(res[cnt] * multiplier);
                     CIFaceStatic* s = nullptr;
                     if(cnt == TITAN)
                     {
@@ -4202,7 +4202,7 @@ void CIFaceList::CreateSummPrice(float multiplier)
     {
         if(res[i])
         {
-            if(multiplier) res[i] *= multiplier;
+            if(multiplier) res[i] = int(res[i] * multiplier);
             ++fuck;
         }
     }

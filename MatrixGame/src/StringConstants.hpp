@@ -32,13 +32,7 @@
 
 #define TEXTURE_PATH_DUST                       L"Matrix\\Textures\\Billboard\\Dust"
 
-#define TEXTURE_PATH_BIGBOOM                    L"Matrix\\Textures\\Effects\\bigboom"
-
-
-#define TEXTURE_PATH_GUN_FIRE                   L"Matrix\\Textures\\Effects\\gun_fire"
-#define TEXTURE_PATH_GUN_BULLETS1               L"Matrix\\Textures\\Effects\\bullet1"
-#define TEXTURE_PATH_GUN_BULLETS2               L"Matrix\\Textures\\Effects\\bullet2"
-#define TEXTURE_PATH_SPLASH                     L"Matrix\\Textures\\Effects\\splash"
+#define TEXTURE_PATH_BIGBOOM                    L"Mods\\PlanetaryBattles\\PBEngine\\Matrix\\Textures\\Sprites\\big_explosion"
 
 #define TEXTURE_PATH_KEELWATER                  L"Matrix\\Textures\\Billboard\\keelwater"
 #define TEXTURE_PATH_WAVE                       L"Matrix\\Textures\\Billboard\\kryg00"
@@ -78,6 +72,7 @@
 
 #define CONFIG_PATH_TURRETS						L"TurretsConfig"
 #define CONFIG_PATH_BUILDINGS					L"BuildingsConfig"
+#define CONFIG_PATH_MAP_OBJECTS					L"MapObjectsConfig"
 #define CONFIG_PATH_WEAPON_EFFECTS				L"WeaponEffectsConfig"
 
 #define OBJECT_PATH_LOGO_RED                    L"Matrix\\Logos\\RobotLogosR.VO"

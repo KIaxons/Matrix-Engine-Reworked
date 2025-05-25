@@ -710,7 +710,7 @@ void CMatrixEffectExplosion::Tact(float step)
             }
         }
 
-        D3DXVECTOR3 *pos = (deb->type == DEB_FIRE)?&((CMatrixEffectFire *)deb->fire.effect)->m_Pos:&deb->pos;
+        D3DXVECTOR3* pos = (deb->type == DEB_FIRE) ? &((CMatrixEffectFire*)deb->fire.effect)->m_Pos : &deb->pos;
 
         deb->v.z -= 1.1f * dtime;
         
@@ -723,7 +723,7 @@ void CMatrixEffectExplosion::Tact(float step)
             {
                 // in water
                 deb->ttl = 1;
-                CMatrixEffect::CreateKonusSplash(*pos, D3DXVECTOR3(0,0,1), 10, 5, FSRND((float)M_PI), 1000, true, (CTextureManaged *)g_Cache->Get(cc_TextureManaged,TEXTURE_PATH_SPLASH));
+                CMatrixEffect::CreateConeSplash(*pos, D3DXVECTOR3(0.0f, 0.0f, 1.0f), 10.0f, 5.0f, FSRND((float)M_PI), 1000.0f, 0xFFFFFFFF, true, m_SpriteTextures[SPR_WATER_SPLASH].tex);
                 continue;
             }
         }

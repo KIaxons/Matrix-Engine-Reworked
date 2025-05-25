@@ -22,8 +22,6 @@ CMatrixEffectLightening::CMatrixEffectLightening(
 )
     : CMatrixEffect(), m_Pos0(pos0), m_Pos1(pos1), m_TTL(ttl), m_Color(color), m_End0(nullptr), m_Dispersion(dispers), m_Width(width), m_SpotSpriteNum((ESpriteTextureSort)spot_sprite_num), m_BeamSpriteNum((ESpriteTextureSort)beam_sprite_num)
 {
-DTRACE();
-
     m_EffectType = EFFECT_LIGHTENING;
 
     if(bp)
@@ -39,8 +37,6 @@ DTRACE();
 
 void CMatrixEffectLightening::SetPos(const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1)
 {
-DTRACE();
-
     m_Pos0 = pos0;
     m_Pos1 = pos1;
 
@@ -95,8 +91,6 @@ DTRACE();
 
 void CMatrixEffectLightening::UpdateData(void)
 {
-DTRACE();
-
     D3DXMATRIX m;
 
     D3DXVECTOR3 pos0, pos1(m_Pos0), posx(m_Pos0);
@@ -117,14 +111,13 @@ DTRACE();
 
 CMatrixEffectLightening::~CMatrixEffectLightening()
 {
-DTRACE();
-
     if(m_End0)
     {
         m_End0->Release();
         HFree(m_End0, m_Heap);
         m_End0 = nullptr;
     }
+
     for(int i = 0; i < m_BL_cnt; ++i)
     {
         m_BL[i].Release();
@@ -135,8 +128,6 @@ DTRACE();
 
 void CMatrixEffectLightening::Release(void)
 {
-DTRACE();
-
     SetDIP();
     HDelete(CMatrixEffectLightening, this, m_Heap);
 }
@@ -147,8 +138,6 @@ void CMatrixEffectLightening::BeforeDraw(void)
 
 void CMatrixEffectLightening::Draw(void)
 {
-DTRACE();
-
     if(m_End0) m_End0->Sort(g_MatrixMap->m_Camera.GetViewMatrix());
 
     /*
@@ -168,8 +157,6 @@ DTRACE();
 
 void CMatrixEffectLightening::Tact(float step)
 {
-DTRACE();
-
     m_TTL -= step;
     if(m_TTL < 0)
     {
@@ -203,8 +190,6 @@ CMatrixEffectShorted::CMatrixEffectShorted(
 
 void CMatrixEffectShorted::UpdateData(void)
 {
-DTRACE();
-
     D3DXMATRIX m;
 
     float h = m_Len * 0.3f;
@@ -241,8 +226,6 @@ DTRACE();
 
 void CMatrixEffectShorted::SetPos(const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1)
 {
-DTRACE();
-
     m_Pos0 = pos0;
     m_Pos1 = pos1;
 
@@ -290,5 +273,6 @@ DTRACE();
             ++m_BL_cnt;
         }
     }
+
     UpdateData();
 }

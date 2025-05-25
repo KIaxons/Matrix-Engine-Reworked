@@ -683,10 +683,10 @@ void CMatrixTurret::DIPTact(float ms)
             if(g_MatrixMap->GetZ(hitpos.x, hitpos.y) < WATER_LEVEL)
             {
                 m_Module[i].m_TTL = 0;
-                CMatrixEffect::CreateKonusSplash(hitpos, D3DXVECTOR3(0, 0, 1), 10, 5, FSRND(M_PI), 1000, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged, TEXTURE_PATH_SPLASH));
+                CMatrixEffect::CreateConeSplash(hitpos, D3DXVECTOR3(0.0f, 0.0f, 1.0f), 10.0f, 5.0f, FSRND((float)M_PI), 1000.0f, 0xFFFFFFFF, true, CMatrixEffect::GetSingleBrightSpriteTex(SPR_WATER_SPLASH));
                 if(m_Module[i].m_Smoke.effect)
                 {
-                    ((CMatrixEffectSmoke*)m_Module[i].m_Smoke.effect)->SetTTL(1000);
+                    ((CMatrixEffectSmoke*)m_Module[i].m_Smoke.effect)->SetTTL(1000.0f);
                     m_Module[i].m_Smoke.Unconnect();
                 }
             }
@@ -694,7 +694,7 @@ void CMatrixTurret::DIPTact(float ms)
         else if(o == TRACE_STOP_LANDSCAPE)
         {
             //SND:
-            m_Module[i].m_Velocity = D3DXVECTOR3(0, 0, 0);
+            m_Module[i].m_Velocity = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
             m_Module[i].m_Pos = hitpos;
         }
         else if(IS_TRACE_STOP_OBJECT(o))
@@ -868,7 +868,7 @@ void CMatrixTurret::LogicTact(int tact)
     //Если пушка недавно отстрелялась и нужно сбросить таймер рассинхрона орудий
     if(m_IsAsyncCooldown)
     {
-        byte guns_left = m_TurretWeapon.size();
+        size_t guns_left = m_TurretWeapon.size();
         for(int i = 0; i < m_TurretWeapon.size(); ++i)
         {
             m_TurretWeapon[i].m_AsyncAwaitTimer = max(m_TurretWeapon[i].m_AsyncAwaitTimer - tact, 0);
@@ -964,7 +964,7 @@ void CMatrixTurret::LogicTact(int tact)
             if(cnt > 0)
             {
                 d2 = pos + dir * t;
-                CMatrixEffect::CreateShorted(d1, d2, FRND(400.0f) + 100.0f, g_Config.m_WeaponsConsts[shorted_effect_num].hex_BGRA_sprites_color, g_Config.m_WeaponsConsts[shorted_effect_num].sprite_set[0].sprites_num[0]);
+                CMatrixEffect::CreateShorted(d1, d2, FRND(400.0f) + 100.0f, g_Config.m_WeaponsConsts[shorted_effect_num].hex_ABGR_sprites_color, g_Config.m_WeaponsConsts[shorted_effect_num].sprite_set[0].sprites_num[0]);
             }
 
             if(TakingDamage(shorted_effect_num, pos, dir, m_LastDelayDamageSide, nullptr)) return; //Турель была уничтожена
@@ -1214,7 +1214,7 @@ no_target:
             if(m_AsyncDelay)
             {
                 m_TurretWeapon[m_NextGunToShot].m_AsyncAwaitTimer = m_AsyncDelay;
-                m_EndFireAfterAsync = m_TurretWeapon[i].m_Weapon->GetShotsDelay() + m_AsyncDelay * 1.1; //Нужно, чтобы сбрасывать маркер очерёдности стрельбы после того, как цель покинула зону поражения
+                m_EndFireAfterAsync = m_TurretWeapon[i].m_Weapon->GetShotsDelay() + int(1.1f * m_AsyncDelay); //Нужно, чтобы сбрасывать маркер очерёдности стрельбы после того, как цель покинула зону поражения
                 m_IsAsyncCooldown = true;
             }
         }
@@ -1322,7 +1322,7 @@ bool CMatrixTurret::TakingDamage(
         {
             int effect = g_Config.m_WeaponsConsts[weap].extra_effects[i].type;
             byte effect_type = g_Config.m_WeaponsConsts[effect].secondary_effect;
-            if(effect_type == SECONDARY_EFFECT_ABLAZE)
+            if(effect_type == SECONDARY_WEAPON_EFFECT_ABLAZE)
             {
                 if(!g_Config.m_WeaponsConsts[effect].damage.to_turrets) continue;
                 int new_priority = g_Config.m_WeaponsConsts[effect].effect_priority;
@@ -1337,7 +1337,7 @@ bool CMatrixTurret::TakingDamage(
 
                 m_NextTimeAblaze = g_MatrixMap->GetTime(); //То есть в первый раз считаем логику получения урона от огня немедленно
             }
-            else if(effect_type == SECONDARY_EFFECT_SHORTED_OUT)
+            else if(effect_type == SECONDARY_WEAPON_EFFECT_SHORTED_OUT)
             {
                 for(int i = 0; i < m_TurretWeapon.size(); ++i) m_TurretWeapon[i].m_Weapon->FireEnd();
                 for(int i = 0; i < m_ModulesCount; ++i)
@@ -1419,7 +1419,7 @@ inst_death:;
         //}
 
         m_Module[0].m_Smoke.effect = nullptr;
-        CMatrixEffect::CreateSmoke(&m_Module[0].m_Smoke, m_Module[0].m_Pos, m_Module[0].m_TTL + 100000.0f, 1000.0f, 100.0f, 0xFF000000, 1.0f / 30.0f);
+        CMatrixEffect::CreateSmoke(&m_Module[0].m_Smoke, m_Module[0].m_Pos, m_Module[0].m_TTL + 100000.0f, 1000.0f, 100.0f, 0xFF000000, true, 1.0f / 30.0f);
 
         for(int i = 1; i < m_ModulesCount; ++i)
         {
@@ -1432,7 +1432,7 @@ inst_death:;
             m_Module[i].m_Pos.y = m_Module[i].m_Matrix._42;
             m_Module[i].m_Pos.z = m_Module[i].m_Matrix._43;
             m_Module[i].m_Smoke.effect = nullptr;
-            CMatrixEffect::CreateSmoke(&m_Module[i].m_Smoke, m_Module[i].m_Pos, m_Module[i].m_TTL + 100000.0f, 1000.0f, 100.0f, 0xFF000000, 1.0f / 30.0f);
+            CMatrixEffect::CreateSmoke(&m_Module[i].m_Smoke, m_Module[i].m_Pos, m_Module[i].m_TTL + 100000.0f, 1000.0f, 100.0f, 0xFF000000, false, 1.0f / 30.0f);
         }
 
         return true;

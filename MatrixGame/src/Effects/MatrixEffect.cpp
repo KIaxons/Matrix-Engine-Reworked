@@ -194,7 +194,7 @@ void CMatrixEffect::ReleasePoolDefaultResources(void)
 
     CMatrixEffectBigBoom::MarkAllBuffersNoNeed();
     CMatrixEffectBillboard::MarkAllBuffersNoNeed();
-    CMatrixEffectKonus::MarkAllBuffersNoNeed();
+    CMatrixEffectCone::MarkAllBuffersNoNeed();
     CMatrixEffectLandscapeSpot::MarkAllBuffersNoNeed();
     CMatrixEffectPointLight::MarkAllBuffersNoNeed();
 }
@@ -204,7 +204,7 @@ void CMatrixEffect::InitEffects(CBlockPar& bp_in)
     //Static Init
     CMatrixEffectBigBoom::StaticInit();
     CMatrixEffectBillboard::StaticInit();
-    CMatrixEffectKonus::StaticInit();
+    CMatrixEffectCone::StaticInit();
     CMatrixEffectLandscapeSpot::StaticInit();
     CMatrixEffectMoveto::StaticInit();
     CMatrixEffectPointLight::StaticInit();
@@ -325,6 +325,7 @@ void CMatrixEffect::InitEffects(CBlockPar& bp_in)
     bp_sprite_textures.ParAdd(L"BrightFireParticle", (CWStr)SPR_BRIGHT_FIRE_PART);
 
     bp_sprite_textures.ParAdd(L"LightSpot", (CWStr)SPR_SPOT_LIGHT);
+    bp_sprite_textures.ParAdd(L"WaterSplash", (CWStr)SPR_WATER_SPLASH);
     bp_sprite_textures.ParAdd(L"SelectionSpot", (CWStr)SPR_SELECTION_PART);
     bp_sprite_textures.ParAdd(L"PathSpot", (CWStr)SPR_PATH_PART);
 
@@ -333,6 +334,12 @@ void CMatrixEffect::InitEffects(CBlockPar& bp_in)
     bp_sprite_textures.ParAdd(L"GunFlash1", (CWStr)SPR_GUN_FLASH_1);
     bp_sprite_textures.ParAdd(L"GunFlash2", (CWStr)SPR_GUN_FLASH_2);
     bp_sprite_textures.ParAdd(L"GunFlash3", (CWStr)SPR_GUN_FLASH_3);
+
+    bp_sprite_textures.ParAdd(L"BulletHit1", (CWStr)SPR_BULLET_HIT_1);
+    bp_sprite_textures.ParAdd(L"BulletHit2", (CWStr)SPR_BULLET_HIT_2);
+    bp_sprite_textures.ParAdd(L"BulletHit3", (CWStr)SPR_BULLET_HIT_3);
+
+    bp_sprite_textures.ParAdd(L"GunFire", (CWStr)SPR_GUN_FIRE);
 
     bp_sprite_textures.ParAdd(L"Contrail", (CWStr)SPR_CONTRAIL);
 
@@ -508,7 +515,7 @@ void CMatrixEffect::InitEffects(CBlockPar& bp_in)
                     sprite_name = g_Config.m_WeaponsConsts[i].sprite_set[t - 1].sprites_name;
                     sprites_count = g_Config.m_WeaponsConsts[i].sprite_set[t - 1].sprites_count;
                 }
-                else //Например, для primary_effect типа EFFECT_CANNON список спрайтов (хотя там всего один) может оказаться пустым
+                else //Например, для primary_effect типа WEAPON_EFFECT_CANNON список спрайтов (хотя там всего один) может оказаться пустым
                 {
                     for(int j = 0; j < g_Config.m_WeaponsConsts[i].sprite_set[t - 1].sprites_count; ++j) g_Config.m_WeaponsConsts[i].sprite_set[t - 1].sprites_num.push_back(SPR_NONE);
                     continue;
@@ -888,7 +895,7 @@ void CMatrixEffect::CreatePointLight(
     }
 }
 
-void CMatrixEffect::CreateKonus(
+void CMatrixEffect::CreateCone(
     SEffectHandler* eh,
     const D3DXVECTOR3& start,
     const D3DXVECTOR3& dir,
@@ -896,6 +903,7 @@ void CMatrixEffect::CreateKonus(
     float height,
     float angle,
     float ttl,
+    dword color,
     bool is_bright,
     CTextureManaged* tex
 )
@@ -904,39 +912,38 @@ void CMatrixEffect::CreateKonus(
 
     if(MAX_EFFECT_DISTANCE_SQ < D3DXVec3LengthSq(&temp)) return;
 
-    CMatrixEffectKonus* e = HNew(m_Heap) CMatrixEffectKonus(start, dir, radius, height, angle, ttl, is_bright, tex);
+    CMatrixEffectCone* e = HNew(m_Heap) CMatrixEffectCone(start, dir, radius, height, angle, ttl, color, is_bright, tex);
     if(!g_MatrixMap->AddEffect(e)) e = nullptr;
     if(eh && e)
     {
-#ifdef _DEBUG
-        eh->Release(DEBUG_CALL_INFO);
-#else
         eh->Release();
-#endif
         eh->effect = e;
         e->SetHandler(eh);
     }
 }
 
-void CMatrixEffect::CreateKonusSplash(
+void CMatrixEffect::CreateConeSplash(
     const D3DXVECTOR3& start,
     const D3DXVECTOR3& dir,
     float radius,
     float height,
     float angle,
     float ttl,
+    dword color,
     bool is_bright,
     CTextureManaged* tex
 )
 {
-		 
-
     D3DXVECTOR3 temp = start - g_MatrixMap->m_Camera.GetFrustumCenter();
     if(MAX_EFFECT_DISTANCE_SQ < D3DXVec3LengthSq(&temp)) return;
 
-    CMatrixEffectKonusSplash* e = HNew(m_Heap) CMatrixEffectKonusSplash(start, dir, radius, height, angle, ttl, is_bright, tex);
+    CMatrixEffectConeSplash* e = HNew(m_Heap) CMatrixEffectConeSplash(start, dir, radius, height, angle, ttl, color, is_bright, tex);
 
-    if(!g_MatrixMap->AddEffect(e)) e = nullptr;
+    if(!g_MatrixMap->AddEffect(e))
+    {
+        e = nullptr;
+    }
+
     if(e)
     {
         CSound::AddSound(S_SPLASH, start);
@@ -966,7 +973,11 @@ void CMatrixEffect::CreateFlame(
 )
 {
     CMatrixEffectFlame* e = HNew(m_Heap) CMatrixEffectFlame(ttl, hitmask, skip, user, handler);
-    if(!g_MatrixMap->AddEffect(e)) e = nullptr;
+    if(!g_MatrixMap->AddEffect(e))
+    {
+        e = nullptr;
+    }
+
     if(eh && e)
     {
         eh->Release();

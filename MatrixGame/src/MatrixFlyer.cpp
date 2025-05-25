@@ -1215,8 +1215,8 @@ void CMatrixFlyer::LogicTact(int tact)
     td.hdir = D3DXVECTOR2(-m_AngleZSin, m_AngleZCos);
     td.tdir = D3DXVECTOR2(m_Target - D3DXVECTOR2(m_Pos.x, m_Pos.y));
 
-    td.pow998 = pow(0.998, double(td.ms));
-    td.pow999 = pow(0.999, double(td.ms));
+    td.pow998 = float(pow(0.998, double(td.ms)));
+    td.pow999 = float(pow(0.999, double(td.ms)));
 
     td.mul = 1.0f - td.pow998;
 
@@ -1412,7 +1412,7 @@ void CMatrixFlyer::FireBegin()
         if(w->m_Type != FLYER_UNIT_WEAPON && (w->m_Type != FLYER_UNIT_WEAPON_HOLLOW)) continue;
         if(!w->m_Weapon.m_Weapon->IsFire())
         {
-            if(w->m_Weapon.m_Weapon->GetWeaponNum() == WEAPON_MORTAR)
+            if(g_Config.m_WeaponsConsts[w->m_Weapon.m_Weapon->GetWeaponNum()].primary_effect == WEAPON_EFFECT_MORTAR)
             {
                 D3DXVECTOR3 speed(-m_MoveSpeed * m_AngleZSin, m_MoveSpeed * m_AngleZCos, 0);
                 w->m_Weapon.m_Weapon->FireBegin(speed * 10 + m_Pos, this);
@@ -1690,7 +1690,7 @@ bool CMatrixFlyer::TakingDamage(
         {
             int effect = g_Config.m_WeaponsConsts[weap].extra_effects[i].type;
             byte effect_type = g_Config.m_WeaponsConsts[effect].secondary_effect;
-            if(effect_type == SECONDARY_EFFECT_ABLAZE)
+            if(effect_type == SECONDARY_WEAPON_EFFECT_ABLAZE)
             {
                 if(!g_Config.m_WeaponsConsts[effect].damage.to_flyers) continue;
                 int new_priority = g_Config.m_WeaponsConsts[effect].effect_priority;
@@ -1705,7 +1705,7 @@ bool CMatrixFlyer::TakingDamage(
 
                 m_NextTimeAblaze = g_MatrixMap->GetTime(); //То есть в первый раз считаем логику получения урона от огня немедленно
             }
-            else if(effect_type == SECONDARY_EFFECT_SHORTED_OUT)
+            else if(effect_type == SECONDARY_WEAPON_EFFECT_SHORTED_OUT)
             {
                 //MarkShorted(-1);
                 //SetShortedTTL(GetShortedTTL() + 500);

@@ -6,45 +6,31 @@
 #pragma once
 
 // weapon
-#define FLAME_PUFF_TTL 2000
+#define FLAME_PUFF_TTL               2000
+#define LASER_WIDTH                  10
 
-#define LASER_WIDTH 10
-#define VOLCANO_FIRE_LENGHT 15
-#define VOLCANO_FIRE_WIDTH 10
-#define VOLCANO_FIRE_KONUS_RADIUS 5
-#define VOLCANO_FIRE_KONUS_LENGTH 5
+#define WEAPON_MAX_HEAT              1000
 
 extern float g_WeaponDamageNormalCoef;
 extern float g_WeaponDamageArcadeCoef;
 extern float g_UnitSpeedArcadeCoef;
 
-//#define WD_PLASMA           300
-//#define WD_VOLCANO          300
-//#define WD_HOMING_MISSILE   500
-//#define WD_BOMB             400
-//#define WD_FLAMETHROWER     100
-//#define WD_BIGBOOM          100
-//#define WD_LIGHTENING       300
-//#define WD_LASER            200
-//#define WD_GUN              300
-
-#define WEAPON_MAX_HEAT      1000
-
+//Раньше использовалось для определения типа орудия по номеру,
+// но теперь оно переопределяется в момент загрузки конфигов, так что особого смысла больше не имеет
 enum EWeapon
 {
-    WEAPON_NONE = 0,
+    WEAPON_INSTANT_DEATH = -1,
+    WEAPON_NONE = 0
 
-    WEAPON_MACHINEGUN = 1,
-    WEAPON_FLAMETHROWER = 4,
-    WEAPON_MORTAR = 5,
-    WEAPON_LASER = 6,
-    WEAPON_BOMB = 7,
-    WEAPON_PLASMAGUN = 8,
-    WEAPON_DISCHARGER = 9,
-    WEAPON_REPAIRER = 10,
-    WEAPON_TURRET_LASER = 13,
-
-    WEAPON_INSTANT_DEATH = -1
+    //WEAPON_MACHINEGUN = 1,
+    //WEAPON_FLAMETHROWER = 4,
+    //WEAPON_MORTAR = 5,
+    //WEAPON_LASER = 6,
+    //WEAPON_BOMB = 7,
+    //WEAPON_PLASMAGUN = 8,
+    //WEAPON_DISCHARGER = 9,
+    //WEAPON_REPAIRER = 10,
+    //WEAPON_TURRET_LASER = 13
 };
 
 class CLaser : public CMatrixEffect
@@ -77,49 +63,55 @@ public:
     }
 };
 
-class CVolcano : public CMatrixEffect
+class CMachinegun : public CMatrixEffect
 {
-    CMatrixEffectKonus m_Konus;
-    CSpriteSequence        m_bl1;
-    CSpriteSequence        m_bl2;
-    CSpriteSequence        m_bl3;
+    CMatrixEffectCone m_Cone;
+    CSpriteSequence   m_Sprite1;
+    CSpriteSequence   m_Sprite2;
+    CSpriteSequence   m_Sprite3;
 
-    virtual ~CVolcano()
+    float m_SpritesLenght = 15.0f;
+    float m_FireConeLenght = 5.0f;
+    float m_FireConeRadius = 5.0f;
+
+    virtual ~CMachinegun()
     {
-        m_bl1.Release();
-        m_bl2.Release();
-        m_bl3.Release();
+        m_Sprite1.Release();
+        m_Sprite2.Release();
+        m_Sprite3.Release();
     }
 
 public:
-    CVolcano(const D3DXVECTOR3& start, const D3DXVECTOR3& dir, float angle);
+    CMachinegun(const D3DXVECTOR3& start, const D3DXVECTOR3& dir, float angle, float sprites_lenght, float sprites_width, float fire_cone_lenght, float fire_cone_radius, dword color, int sprite_num_1, int sprite_num_2, int sprite_num_3);
 
-    virtual void BeforeDraw(void)
+    virtual void BeforeDraw()
     {
-        m_Konus.BeforeDraw();
+        m_Cone.BeforeDraw();
     };
-    virtual void Draw(void);
+    virtual void Draw();
     virtual void Tact(float) {};
-    virtual void Release(void)
+    virtual void Release()
     {
-        HDelete(CVolcano, this, m_Heap);
+        HDelete(CMachinegun, this, m_Heap);
     };
 
-    virtual int Priority(void) { return MAX_EFFECT_PRIORITY; };
+    virtual int Priority() { return MAX_EFFECT_PRIORITY; };
+
+    float GetSpritesLenght() { return m_SpritesLenght; };
 
     void SetPos(const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, const D3DXVECTOR3& dir)
     {
-        m_bl1.SetPos(pos0, pos1);
-        m_bl2.SetPos(pos0, pos1);
-        m_bl3.SetPos(pos0, pos1);
-        m_Konus.Modify(pos0, dir);
+        m_Sprite1.SetPos(pos0, pos1);
+        m_Sprite2.SetPos(pos0, pos1);
+        m_Sprite3.SetPos(pos0, pos1);
+        m_Cone.Modify(pos0, dir);
     }
     void SetPos(const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, const D3DXVECTOR3& dir, float angle)
     {
-        m_bl1.SetPos(pos0, pos1);
-        m_bl2.SetPos(pos0, pos1);
-        m_bl3.SetPos(pos0, pos1);
-        m_Konus.Modify(pos0, dir, VOLCANO_FIRE_KONUS_RADIUS, VOLCANO_FIRE_KONUS_LENGTH, angle);
+        m_Sprite1.SetPos(pos0, pos1);
+        m_Sprite2.SetPos(pos0, pos1);
+        m_Sprite3.SetPos(pos0, pos1);
+        m_Cone.Modify(pos0, dir, m_FireConeRadius, m_FireConeLenght, angle);
     }
 };
 
@@ -150,7 +142,7 @@ class CMatrixEffectWeapon : public CMatrixEffect
 
     union
     {
-        CVolcano*            m_Volcano = nullptr;
+        CMachinegun*         m_Machinegun = nullptr;
         CLaser*              m_Laser;// = nullptr;
         CMatrixEffectRepair* m_Repair;// = nullptr;
     };

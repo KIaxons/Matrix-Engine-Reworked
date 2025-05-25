@@ -282,7 +282,7 @@ bool CMatrixBuilding::TakingDamage(
         {
             int effect = g_Config.m_WeaponsConsts[weap].extra_effects[i].type;
             byte effect_type = g_Config.m_WeaponsConsts[effect].secondary_effect;
-            if(effect_type == SECONDARY_EFFECT_ABLAZE)
+            if(effect_type == SECONDARY_WEAPON_EFFECT_ABLAZE)
             {
                 if(!g_Config.m_WeaponsConsts[effect].damage.to_buildings) continue;
                 int new_priority = g_Config.m_WeaponsConsts[effect].effect_priority;
@@ -544,7 +544,7 @@ static bool FindRobotForCaptureAny(const D3DXVECTOR2& center, CMatrixMapStatic* 
 
 void CMatrixBuilding::PauseTact(int cms)
 {
-    m_HealthBar.Modify(100000.0f, 0);
+    m_HealthBar.Modify(100000.0f, 0.0f);
 
     if(m_State != BUILDING_DIP && m_State != BUILDING_DIP_EXPLODED)
     {
@@ -806,26 +806,33 @@ void CMatrixBuilding::LogicTact(int cms)
     int downtime = -BUILDING_EXPLOSION_TIME;
     if(m_Kind == BUILDING_BASE)
     {
-        downtime -= BUILDING_BASE_EXPLOSION_TIME;
+        downtime -= BUILDING_BASE_EXPLOSION_TIME; //Типа база будет взрываться дольше (дольше отнимаются её HP)
+    }
 
-        if((m_State == BUILDING_DIP) && (m_Hitpoints < downtime + 100))
+    if(m_State == BUILDING_DIP && m_Hitpoints < downtime + 100)
+    {
+        if(g_Config.m_BuildingsConsts[m_Kind].explosion_weapon_type != WEAPON_NONE)
         {
             CSound::AddSound(S_EXPLOSION_BUILDING_BOOM4, GetGeoCenter());
             //DCNT("boom");
-            CMatrixEffectWeapon* e = (CMatrixEffectWeapon*)CMatrixEffect::CreateWeapon(GetGeoCenter(), D3DXVECTOR3(0, 0, 1), 0, nullptr, WEAPON_BOMB);
+            CMatrixEffectWeapon* e = (CMatrixEffectWeapon*)CMatrixEffect::CreateWeapon(GetGeoCenter(), D3DXVECTOR3(0, 0, 1), 0, nullptr, g_Config.m_BuildingsConsts[m_Kind].explosion_weapon_type);
             e->SetOwner(this);
-            e->FireBegin(D3DXVECTOR3(0, 0, 0), this);
+            e->FireBegin(D3DXVECTOR3(0.0f, 0.0f, 0.0f), this);
             e->Tact(1);
             e->FireEnd();
             e->Release();
-            m_State = BUILDING_DIP_EXPLODED;
         }
+
+        m_State = BUILDING_DIP_EXPLODED;
     }
 
     //Здание было уничтожено
     if(m_Hitpoints < downtime)
     {
-        if(m_Kind != BUILDING_BASE) CSound::AddSound(S_EXPLOSION_BUILDING_BOOM3, GetGeoCenter());
+        if(m_Kind != BUILDING_BASE)
+        {
+            CSound::AddSound(S_EXPLOSION_BUILDING_BOOM3, GetGeoCenter());
+        }
 
         if(m_GGraph)
         {
@@ -888,7 +895,7 @@ void CMatrixBuilding::LogicTact(int cms)
             return;
         }
 
-        m_Hitpoints = -10000000;
+        m_Hitpoints = -10000000.0f;
     }
 
     if(m_Hitpoints < 0)
@@ -1392,7 +1399,7 @@ void CMatrixBuilding::Reinforcements()
         obj = obj->GetNextLogic();
     }
 
-    float angle = FSRND(M_PI);
+    float angle = FSRND((float)M_PI);
 
     CBlockPar* bp = g_MatrixData->BlockPathGet(BLOCK_PATH_REINFORCEMENTS);
     int max_scores = bp->ParGet(L"ReinforcementsPoints").GetInt();

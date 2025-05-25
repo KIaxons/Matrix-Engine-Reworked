@@ -5,57 +5,54 @@
 
 #pragma once
 
+//Ёффект отрисовки конуса из спрайтов
 
-// konus
+#define CONE_FVF (D3DFVF_XYZ | D3DFVF_TEX1)
 
-
-#define KONUS_FVF (D3DFVF_XYZ | D3DFVF_TEX1 )
-struct SKonusVertex
+struct SConeVertex
 {
-    D3DXVECTOR3 p;      // Vertex position
-    float       tu, tv; // Vertex texture coordinates
+    D3DXVECTOR3 p = { 0.0f, 0.0f, 0.0f }; // Vertex position
+    float       tu = 0.0f, tv = 0.0f;     // Vertex texture coordinates
 };
 
-#define KONUS_NUM_SECTORS   7
+#define CONE_NUM_SECTORS  7
 
 
-class CMatrixEffectKonus : public CMatrixEffect
+class CMatrixEffectCone : public CMatrixEffect
 {
 protected:
-    CTextureManaged        *m_Tex;
-    dword            m_Color;  // diffuse color
-    float            m_TTL;
-    float            m_Radius;
-    float            m_Height;
-    float            m_Angle;
-    dword            m_Intense;
+    CTextureManaged* m_Tex = nullptr;
+    float            m_TTL = 0.0f;
+    float            m_Radius = 0.0f;
+    float            m_Height = 0.0f;
+    float            m_Angle = 0.0f;
+    dword            m_Color = 0xFFFFFFFF; // diffuse color
+    bool             m_Intense = false;
 
+    float           _m_TTL = 0.0f;
 
-    float           _m_TTL;
-
-    D3DXVECTOR3     m_Pos;
-    D3DXVECTOR3     m_Dir;
+    D3DXVECTOR3     m_Pos = { 0.0f, 0.0f, 0.0f };
+    D3DXVECTOR3     m_Dir = { 0.0f, 0.0f, 0.0f };
     D3DXMATRIX      m_Mat;
 
-   
     static D3D_VB   m_VB;
     static int      m_VB_ref;
 
-    CMatrixEffectKonus(const D3DXVECTOR3 &start, const D3DXVECTOR3 &dir, float radius, float height, float angle, float ttl, bool intense, CTextureManaged *tex);
-	virtual ~CMatrixEffectKonus();
+    CMatrixEffectCone(const D3DXVECTOR3& start, const D3DXVECTOR3& dir, float radius, float height, float angle, float ttl, dword color, bool intense, CTextureManaged* tex);
+    virtual ~CMatrixEffectCone();
 
-    void UpdateMatrix(void);
+    void UpdateMatrix();
 
-    static bool PrepareDX(void);
-    static void StaticInit(void)
+    static bool PrepareDX();
+    static void StaticInit()
     {
         m_VB = nullptr;
         m_VB_ref = 0;
     }
 
-    static void MarkAllBuffersNoNeed(void)
+    static void MarkAllBuffersNoNeed()
     {
-	    if (IS_VB(m_VB)) 
+	    if(IS_VB(m_VB)) 
         {
             DESTROY_VB(m_VB);
         }
@@ -63,52 +60,49 @@ protected:
 
 public:
     friend class CMatrixEffect;
-    friend class CVolcano;
+    friend class CMachinegun;
 
-    virtual void BeforeDraw(void) {DTRACE(); PrepareDX(); m_Tex->Preload();};
-    virtual void Draw(void);
+    virtual void BeforeDraw() { PrepareDX(); m_Tex->Preload(); };
+    virtual void Draw();
     virtual void Tact(float step);
-    virtual void Release(void);
+    virtual void Release();
 
-    virtual int  Priority(void) {return 10;};
+    virtual int  Priority() { return 10; };
 
-    void Modify(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &dir)
+    void Modify(const D3DXVECTOR3& pos, const D3DXVECTOR3& dir)
     {
-        DTRACE();
         m_Pos = pos;
         m_Dir = dir;
         UpdateMatrix();
     }
+
     void Modify(const D3DXVECTOR3 &pos, const D3DXVECTOR3 &dir, float radius, float height, float angle)
     {
-        DTRACE();
         m_Pos = pos;
         m_Dir = dir;
         m_Radius = radius;
         m_Height = height;
         m_Angle = angle;
         UpdateMatrix();
-
     }
-
 };
 
 
-class CMatrixEffectKonusSplash : public CMatrixEffectKonus
+class CMatrixEffectConeSplash : public CMatrixEffectCone
 {
-    float m_HeightInit;
-    float m_RadiusInit;
-    D3DXVECTOR3 m_PosInit;
+    float m_HeightInit = 0.0f;
+    float m_RadiusInit = 0.0f;
+    D3DXVECTOR3 m_PosInit = { 0.0f, 0.0f, 0.0f };
+
 public:
-    CMatrixEffectKonusSplash(const D3DXVECTOR3 &start, const D3DXVECTOR3 &dir, float radius, float height, float angle, float ttl, bool intense, CTextureManaged *tex):
-    CMatrixEffectKonus(start,dir,radius,height,angle,ttl, intense,tex), m_HeightInit(height), m_RadiusInit(radius), m_PosInit(start)
+    CMatrixEffectConeSplash(const D3DXVECTOR3& start, const D3DXVECTOR3& dir, float radius, float height, float angle, float ttl, dword color, bool is_intense, CTextureManaged* tex) :
+        CMatrixEffectCone(start, dir, radius, height, angle, ttl, color, is_intense, tex), m_HeightInit(height), m_RadiusInit(radius), m_PosInit(start)
     {
         m_EffectType = EFFECT_SPLASH;
-    DTRACE();
-        CMatrixEffectKonusSplash::Tact(0);
+        CMatrixEffectConeSplash::Tact(0);
     }
-    virtual void Tact(float step);
 
-    virtual int  Priority(void) {return 0;};
+    virtual void Tact(float step);
+    virtual int  Priority() { return 0; };
 };
 

@@ -1087,21 +1087,6 @@ void CMatrixMap::BeforeDraw()
 //    m_Minimap.SetAngle(-m_Camera.GetAngleZ());
 //#endif
 
-//#ifdef _DEBUG
-//    if(IS_TRACE_STOP_OBJECT(m_TraceStopObj) && m_TraceStopObj->GetObjectType() == OBJECT_TYPE_MAPOBJECT)
-//    {
-//        int t = ((CMatrixMapObject*)m_TraceStopObj)->m_BurnTexVis;
-//        m_TraceStopObj->TakingDamage(WEAPON_PLASMAGUN, D3DXVECTOR3(0, 0, 0), D3DXVECTOR3(0, 0, 0));
-//
-//        if(m_KeyDown && m_KeyScan == KEY_PGDN) { m_KeyDown = false; t -= 1; }
-//        if(m_KeyDown && m_KeyScan == KEY_PGUP) { m_KeyDown = false; t += 1; }
-//
-//        CDText::T("v", CStr(t));
-//
-//        ((CMatrixMapObject*)m_TraceStopObj)->m_BurnTexVis = (byte)(t&255);
-//    }
-//#endif
-
     //D3DXVECTOR3 out;
     //if(TraceLand(&out, m_Camera.GetFrustumCenter() + D3DXVECTOR3(0,100,0), m_MouseDir))
     //{
@@ -2766,6 +2751,7 @@ void CMatrixMap::SubEffect(CMatrixEffect* e)
             LIST_DEL(e, m_EffectsFirst, m_EffectsLast, m_Prev, m_Next);
             e->Release();
         }
+
         --m_EffectsCnt;
     }
 }

@@ -12,11 +12,11 @@
 class CMatrixBuilding;
 class CMatrixRovotAI;
 
-#define CANNON_FIRE_THINK_PERIOD    100
-#define CANNON_NULL_TARGET_TIME     1000
-#define CANNON_TIME_FROM_FIRE       1000
+#define CANNON_FIRE_THINK_PERIOD  100
+#define CANNON_NULL_TARGET_TIME   1000
+#define CANNON_TIME_FROM_FIRE     1000
 
-#define CANNON_COLLIDE_R            20
+#define CANNON_COLLIDE_R          20
 
 enum ECannonUnitType
 {

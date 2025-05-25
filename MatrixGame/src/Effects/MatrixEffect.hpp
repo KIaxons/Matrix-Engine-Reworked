@@ -11,7 +11,7 @@
 #include "../stdafx.h"
 #include <vector>
 
-#define MAX_EFFECT_DISTANCE_SQ  ((3000) * (3000))
+#define MAX_EFFECT_DISTANCE_SQ ((3000) * (3000))
 
 //Базовые спрайты, которые по умолчанию задействованы в ПБ (не менять размер с int, т.к. массив базовых спрайтов расширяется после загрузки новых из конфига)
 enum ESpriteTextureSort : int
@@ -22,6 +22,7 @@ enum ESpriteTextureSort : int
     SPR_BRIGHT_FIRE_PART,
 
     SPR_SPOT_LIGHT,
+    SPR_WATER_SPLASH,
     SPR_SELECTION_PART,
     SPR_PATH_PART,
 
@@ -29,6 +30,10 @@ enum ESpriteTextureSort : int
     SPR_GUN_FLASH_1,
     SPR_GUN_FLASH_2,
     SPR_GUN_FLASH_3,
+    SPR_BULLET_HIT_1,
+    SPR_BULLET_HIT_2,
+    SPR_BULLET_HIT_3,
+    SPR_GUN_FIRE,
     SPR_CONTRAIL,
 
     SPR_JET_STREAM_ANIM_FRAME_1,
@@ -147,6 +152,7 @@ typedef void (*FIRE_END_HANDLER)(CMatrixMapStatic* hit, const D3DXVECTOR3& pos, 
 // selection
 #define SEL_COLOR_DEFAULT 0xFF00FF00
 #define SEL_COLOR_TMP     0xFF305010
+
 enum EBuoyType
 {
     BUOY_RED = 0,
@@ -181,11 +187,11 @@ struct SSpotProperties
     dword             flags = 0;
 };
 
-#define MAX_EFFECTS_EXPLOSIONS      50
-#define MAX_EFFECTS_POINT_LIGHTS    50
-#define MAX_EFFECTS_SMOKEFIRES      100
-#define MAX_EFFECTS_LANDSPOTS       100
-#define MAX_EFFECTS_FIREANIM        50
+#define MAX_EFFECTS_EXPLOSIONS    50
+#define MAX_EFFECTS_POINT_LIGHTS  50
+#define MAX_EFFECTS_SMOKEFIRES    100
+#define MAX_EFFECTS_LANDSPOTS     100
+#define MAX_EFFECTS_FIREANIM      50
 
 // common
 enum EEffectType
@@ -206,7 +212,7 @@ enum EEffectType
     /* 13 */ EFFECT_CAPTURE_CIRCLES,
     /* 14 */ EFFECT_ELEVATOR_FIELD,
     /* 15 */ EFFECT_POINT_LIGHT,
-    /* 16 */ EFFECT_KONUS,
+    /* 16 */ EFFECT_CONE,
     /* 17 */ EFFECT_BILLBOARD,
     /* 18 */ EFFECT_SPRITES_LINE,
     /* 19 */ EFFECT_FLAME,
@@ -214,7 +220,7 @@ enum EEffectType
     /* 21 */ EFFECT_LIGHTENING,
     /* 22 */ EFFECT_SHORTED,
     /* 23 */ EFFECT_LASER,
-    /* 24 */ EFFECT_VOLCANO,
+    /* 24 */ EFFECT_MACHINEGUN,
     /* 25 */ EFFECT_LINKED_ANIM,
     /* 26 */ EFFECT_FIRE_STREAM,
     /* 27 */ EFFECT_DUST,
@@ -316,10 +322,11 @@ struct SEffectHandler
 
 struct SFloatRGBColor
 {
-    float red = 0.0f;
+    float red   = 0.0f;
     float green = 0.0f;
-    float blue = 0.0f;
+    float blue  = 0.0f;
 };
+
 class CMatrixEffect : public CMain
 {
 protected:
@@ -387,42 +394,42 @@ public:
     static void     InitEffects(CBlockPar& bp);
     static void     ClearEffects();
 
-    static const SSpriteTexture* GetSpriteTex(ESpriteTextureSort t) { return &m_SpriteTextures[t].spr_tex; };
-    static CTextureManaged* GetSingleBrightSpriteTex(ESpriteTextureSort t) { return m_SpriteTextures[t].tex; };
-    static int AddSpriteTexture(CWStr sprite_name, int sprite_num, int sprites_count, CBlockPar* cache_path_bp, CBlockPar& check_bp);
+    static const SSpriteTexture* GetSpriteTex(ESpriteTextureSort tex_num) { return &m_SpriteTextures[tex_num].spr_tex; };
+    static CTextureManaged* GetSingleBrightSpriteTex(ESpriteTextureSort tex_num) { return m_SpriteTextures[tex_num].tex; };
+    static int      AddSpriteTexture(CWStr sprite_name, int sprite_num, int sprites_count, CBlockPar* cache_path_bp, CBlockPar& check_bp);
 
-    static void            CreateExplosion(const D3DXVECTOR3& pos, const SExplosionProperties& props, bool fire = false); // automaticaly adds to Effects list; can return nullptr
+    static void     CreateExplosion(const D3DXVECTOR3& pos, const SExplosionProperties& props, bool fire = false); // automaticaly adds to Effects list; can return nullptr
     
-    static void            CreateSmoke(SEffectHandler* eh, const D3DXVECTOR3& pos, float ttl, float puffttl, float spawntime, dword color, bool is_bright = false, float speed = SMOKE_SPEED);   // automaticaly adds to Effects list; can return nullptr
-    static void            CreateFire(SEffectHandler* eh, const D3DXVECTOR3& pos, float ttl, float puffttl, float spawntime, float dispfactor, bool is_bright = false, float speed = FIRE_SPEED, const SFloatRGBColor& close_color = { 1.0f, 1.0f, 0.1f }, const SFloatRGBColor& far_color = { 0.5f, 0.0f, 0.0f }); //automaticaly adds to Effects list; can return nullptr
-    static void            CreateFireAnim(SEffectHandler* eh, const D3DXVECTOR3& pos, float anim_width, float anim_height, int time_to_live, const std::vector<int>& sprites_id = { SPR_FLAME_ANIM_FRAME_1, SPR_FLAME_ANIM_FRAME_2, SPR_FLAME_ANIM_FRAME_3, SPR_FLAME_ANIM_FRAME_4, SPR_FLAME_ANIM_FRAME_5, SPR_FLAME_ANIM_FRAME_6, SPR_FLAME_ANIM_FRAME_7, SPR_FLAME_ANIM_FRAME_8 }); // automaticaly adds to Effects list; can return nullptr
-    static void            CreateFirePlasma(const D3DXVECTOR3& start, const D3DXVECTOR3& end, float speed, dword hitmask, CMatrixMapStatic* skip, FIRE_END_HANDLER handler, dword user); // automaticaly adds to Effects list; can return nullptr
-    static void            CreateFlame(SEffectHandler* eh, float ttl, dword hitmask, CMatrixMapStatic* skip, dword user, FIRE_END_HANDLER handler);
+    static void     CreateSmoke(SEffectHandler* eh, const D3DXVECTOR3& pos, float ttl, float puffttl, float spawntime, dword color, bool is_bright = false, float speed = SMOKE_SPEED);   // automaticaly adds to Effects list; can return nullptr
+    static void     CreateFire(SEffectHandler* eh, const D3DXVECTOR3& pos, float ttl, float puffttl, float spawntime, float dispfactor, bool is_bright = false, float speed = FIRE_SPEED, const SFloatRGBColor& close_color = { 1.0f, 1.0f, 0.1f }, const SFloatRGBColor& far_color = { 0.5f, 0.0f, 0.0f }); //automaticaly adds to Effects list; can return nullptr
+    static void     CreateFireAnim(SEffectHandler* eh, const D3DXVECTOR3& pos, float anim_width, float anim_height, int time_to_live, const std::vector<int>& sprites_id = { SPR_FLAME_ANIM_FRAME_1, SPR_FLAME_ANIM_FRAME_2, SPR_FLAME_ANIM_FRAME_3, SPR_FLAME_ANIM_FRAME_4, SPR_FLAME_ANIM_FRAME_5, SPR_FLAME_ANIM_FRAME_6, SPR_FLAME_ANIM_FRAME_7, SPR_FLAME_ANIM_FRAME_8 }); // automaticaly adds to Effects list; can return nullptr
+    static void     CreateFirePlasma(const D3DXVECTOR3& start, const D3DXVECTOR3& end, float speed, dword hitmask, CMatrixMapStatic* skip, FIRE_END_HANDLER handler, dword user); // automaticaly adds to Effects list; can return nullptr
+    static void     CreateFlame(SEffectHandler* eh, float ttl, dword hitmask, CMatrixMapStatic* skip, dword user, FIRE_END_HANDLER handler);
 
-    static void            CreateLandscapeSpot(SEffectHandler* eh, const D3DXVECTOR2& pos, float angle, float scale, ESpotType type = SPOT_CONSTANT);  // automaticaly adds to Effects list; can return nullptr
-    static void            CreateMovingObject(SEffectHandler* eh, const SMOProps& props, dword hitmask, CMatrixMapStatic* skip, FIRE_END_HANDLER = nullptr, dword user = 0); // automaticaly adds to Effects list; can return nullptr
-    static void            CreateBuoy(SEffectHandler* eh, const D3DXVECTOR3& pos, EBuoyType bt);
+    static void     CreateLandscapeSpot(SEffectHandler* eh, const D3DXVECTOR2& pos, float angle, float scale, ESpotType type = SPOT_CONSTANT);  // automaticaly adds to Effects list; can return nullptr
+    static void     CreateMovingObject(SEffectHandler* eh, const SMOProps& props, dword hitmask, CMatrixMapStatic* skip, FIRE_END_HANDLER = nullptr, dword user = 0); // automaticaly adds to Effects list; can return nullptr
+    static void     CreateBuoy(SEffectHandler* eh, const D3DXVECTOR3& pos, EBuoyType bt);
     
-    static void            CreateMoveToAnim(int type);
-    static void            CreateMoveToAnim(const D3DXVECTOR3& pos, int type);
-    static void            DeleteAllMoveto(void);
+    static void     CreateMoveToAnim(int type);
+    static void     CreateMoveToAnim(const D3DXVECTOR3& pos, int type);
+    static void     DeleteAllMoveto(void);
     
     static CMatrixEffect*  CreateSelection(const D3DXVECTOR3& pos, float r, dword color = SEL_COLOR_DEFAULT);
     static CMatrixEffect*  CreatePath(const D3DXVECTOR3* pos, int cnt);
     static void            CreatePointLight(SEffectHandler* eh, const D3DXVECTOR3& pos, float radius, dword color, bool drawbill = false);  // automaticaly adds to Effects list; can return nullptr
     
-    static void            CreateKonus(SEffectHandler* eh, const D3DXVECTOR3& start, const D3DXVECTOR3& dir, float radius, float height, float angle, float ttl, bool is_bright, CTextureManaged* tex = nullptr);
-    static void            CreateKonusSplash(const D3DXVECTOR3& start, const D3DXVECTOR3& dir, float radius, float height, float angle, float ttl, bool is_bright, CTextureManaged* tex = nullptr);
-    
+    static void     CreateCone(SEffectHandler* eh, const D3DXVECTOR3& start, const D3DXVECTOR3& dir, float radius, float height, float angle, float ttl, dword color = 0xFFFFFFFF, bool is_bright = false, CTextureManaged* tex = nullptr);
+    static void     CreateConeSplash(const D3DXVECTOR3& start, const D3DXVECTOR3& dir, float radius, float height, float angle, float ttl, dword color = 0xFFFFFFFF, bool is_bright = false, CTextureManaged* tex = nullptr);
+
     static CMatrixEffect*  CreateWeapon(const D3DXVECTOR3& start, const D3DXVECTOR3& dir, dword user, FIRE_END_HANDLER handler, int type, int cooldown = 0);
     static void            CreateBigBoom(const D3DXVECTOR3& pos, float radius, float ttl, dword hitmask, CMatrixMapStatic* skip, dword user, FIRE_END_HANDLER handler, dword light = 0);   // automaticaly adds to Effects list; can return nullptr
     
-    static void            CreateLightening(SEffectHandler* eh, const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, float ttl, float dispers, float width, dword color = 0xFFFFFFFF, int spot_sprite_num = SPR_DISCHARGER_SPOT, int beam_sprite_num = SPR_DISCHARGER_BEAM); // automaticaly adds to Effects list; can return nullptr
-    static void            CreateShorted(const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, float ttl, dword color = 0xFFFFFFFF, int beam_sprite_num = SPR_DISCHARGER_BEAM); // automaticaly adds to Effects list; can return nullptr
+    static void     CreateLightening(SEffectHandler* eh, const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, float ttl, float dispers, float width, dword color = 0xFFFFFFFF, int spot_sprite_num = SPR_DISCHARGER_SPOT, int beam_sprite_num = SPR_DISCHARGER_BEAM); // automaticaly adds to Effects list; can return nullptr
+    static void     CreateShorted(const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, float ttl, dword color = 0xFFFFFFFF, int beam_sprite_num = SPR_DISCHARGER_BEAM); // automaticaly adds to Effects list; can return nullptr
    
-    static void            CreateBillboard(SEffectHandler* eh, const D3DXVECTOR3& pos, float radius1, float radius2, dword color1, dword color2, float ttl, float delay, const wchar* tex, const D3DXVECTOR3& dir, ADD_TAKT addtakt = nullptr); // automaticaly adds to Effects list; can return nullptr
-    static void            CreateBillboardScore(const wchar* n, const D3DXVECTOR3& pos, dword color);
-    static void            CreateSpritesLine(SEffectHandler* eh, const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, float width, dword color1, dword color2, float ttl, CTextureManaged* tex); // automaticaly adds to Effects list; can return nullptr
+    static void     CreateBillboard(SEffectHandler* eh, const D3DXVECTOR3& pos, float radius1, float radius2, dword color1, dword color2, float ttl, float delay, const wchar* tex, const D3DXVECTOR3& dir, ADD_TAKT addtakt = nullptr); // automaticaly adds to Effects list; can return nullptr
+    static void     CreateBillboardScore(const wchar* n, const D3DXVECTOR3& pos, dword color);
+    static void     CreateSpritesLine(SEffectHandler* eh, const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, float width, dword color1, dword color2, float ttl, CTextureManaged* tex); // automaticaly adds to Effects list; can return nullptr
     
     static CMatrixEffect*  CreateCaptureCircles(const D3DXVECTOR3& pos, float radius, float angle, int cnt);
     static CMatrixEffect*  CreateElevatorField(const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1, float radius, const D3DXVECTOR3& fwd);
@@ -432,10 +439,8 @@ public:
     static void            CreateShleif(SEffectHandler* eh);
     static CMatrixEffect*  CreateRepair(const D3DXVECTOR3& pos, const D3DXVECTOR3& dir, float seek_radius, CMatrixMapStatic* skip, ESpriteTextureSort sprite_spot = SPR_REPAIRER_SPOT);
 
-
     static void DrawBegin();
     static void DrawEnd();
-
 
     virtual void BeforeDraw() = 0;
     virtual void Draw() = 0;
@@ -449,30 +454,19 @@ public:
 
 inline  void SEffectHandler::Rebase()
 {
-    if(effect) effect->SetHandler(this);
+    if(effect)
+    {
+        effect->SetHandler(this);
+    }
 }
 
 inline  void SEffectHandler::Unconnect()
 {
-DTRACE();
-#ifdef _DEBUG
-    ASSERT(effect);
-    if(effect->GetHandler() == this)
-    {
-        effect->SetHandler(nullptr);
-    }
-    else
-    {
-        _asm int 3
-    }
-    effect = nullptr;
-#else
     if(effect) 
     {
         effect->SetHandler(nullptr);
         effect = nullptr;
     }
-#endif
 }
 
 
@@ -620,5 +614,4 @@ public:
 #include "MatrixEffectMoveTo.hpp"
 #include "MatrixEffectShleif.hpp"
 #include "MatrixEffectRepair.hpp"
-
 #include "MatrixEffectWeapon.hpp"

@@ -1419,7 +1419,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
             if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_SET_GUN_1]) & 0x8000) == 0x8000)
             {
                 SRobotWeapon* gun = robot->GetWeaponByPylonNum(0);
-                if(gun && gun->GetWeaponNum() != WEAPON_BOMB)
+                if(gun && g_Config.m_WeaponsConsts[gun->GetWeaponNum()].primary_effect != WEAPON_EFFECT_BOMB)
                 {
                     if(gun->m_On)
                     {
@@ -1435,7 +1435,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
             if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_SET_GUN_2]) & 0x8000) == 0x8000)
             {
                 SRobotWeapon* gun = robot->GetWeaponByPylonNum(1);
-                if(gun && gun->GetWeaponNum() != WEAPON_BOMB)
+                if(gun && g_Config.m_WeaponsConsts[gun->GetWeaponNum()].primary_effect != WEAPON_EFFECT_BOMB)
                 {
                     if(gun->m_On)
                     {
@@ -1451,7 +1451,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
             if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_SET_GUN_3]) & 0x8000) == 0x8000)
             {
                 SRobotWeapon* gun = robot->GetWeaponByPylonNum(2);
-                if(gun && gun->GetWeaponNum() != WEAPON_BOMB)
+                if(gun && g_Config.m_WeaponsConsts[gun->GetWeaponNum()].primary_effect != WEAPON_EFFECT_BOMB)
                 {
                     if(gun->m_On)
                     {
@@ -1467,7 +1467,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
             if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_SET_GUN_4]) & 0x8000) == 0x8000)
             {
                 SRobotWeapon* gun = robot->GetWeaponByPylonNum(3);
-                if(gun && gun->GetWeaponNum() != WEAPON_BOMB)
+                if(gun && g_Config.m_WeaponsConsts[gun->GetWeaponNum()].primary_effect != WEAPON_EFFECT_BOMB)
                 {
                     if(gun->m_On)
                     {
@@ -1483,7 +1483,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
             if((GetAsyncKeyState(g_Config.m_KeyActions[KA_UNIT_SET_GUN_5]) & 0x8000) == 0x8000)
             {
                 SRobotWeapon* gun = robot->GetWeaponByPylonNum(4);
-                if(gun && gun->GetWeaponNum() != WEAPON_BOMB)
+                if(gun && g_Config.m_WeaponsConsts[gun->GetWeaponNum()].primary_effect != WEAPON_EFFECT_BOMB)
                 {
                     if(gun->m_On)
                     {
@@ -2672,30 +2672,6 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                 g_MatrixMap->GetPlayerSide()->PGOrderAttack(g_MatrixMap->GetPlayerSide()->RobotToLogicGroup(g_MatrixMap->m_TraceStopObj->AsRobot()), sss, nullptr);
             }
 
-        }
-        if(scan == KEY_K && IS_TRACE_STOP_OBJECT(g_MatrixMap->m_TraceStopObj))
-        {
-            CMatrixMapStatic* f = g_MatrixMap->m_TraceStopObj;
-            if(f->GetObjectType() == OBJECT_TYPE_FLYER || f->GetObjectType() == OBJECT_TYPE_ROBOT_AI)
-            {
-                CMatrixMapStatic::SortBegin();
-                
-                if(f->IsFlyer()) ((CMatrixFlyer*)f)->SetHitpoint(1);
-
-                f->TakingDamage(WEAPON_FLAMETHROWER, f->GetGeoCenter(), D3DXVECTOR3(0, 0, 0), 0, nullptr);
-            }
-            else if(f->GetObjectType() == OBJECT_TYPE_MAPOBJECT)
-            {
-                f->TakingDamage(WEAPON_MORTAR, f->GetGeoCenter(), D3DXVECTOR3(0, 0, 0), 0, nullptr);
-            }
-            else if(f->GetObjectType() == OBJECT_TYPE_BUILDING)
-            {
-                bool killed = f->TakingDamage(WEAPON_BOMB, f->GetGeoCenter(), D3DXVECTOR3(0, 0, 0), 0, nullptr);
-                if(!killed) killed = f->TakingDamage(WEAPON_BOMB, f->GetGeoCenter(), D3DXVECTOR3(0, 0, 0), 0, nullptr);
-                if(!killed) killed = f->TakingDamage(WEAPON_BOMB, f->GetGeoCenter(), D3DXVECTOR3(0, 0, 0), 0, nullptr);
-                if(!killed) killed = f->TakingDamage(WEAPON_BOMB, f->GetGeoCenter(), D3DXVECTOR3(0, 0, 0), 0, nullptr);
-                if(!killed) killed = f->TakingDamage(WEAPON_BOMB, f->GetGeoCenter(), D3DXVECTOR3(0, 0, 0), 0, nullptr);
-            }
         }
         if(scan == KEY_SPACE)
         {

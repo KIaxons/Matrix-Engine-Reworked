@@ -3044,14 +3044,14 @@ void CMatrixMapLogic::Tact(int step)
         //GatherInfo(2);
     }
 
-    int portions = step / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
+    int portions = step / int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
     
     for(int cnt = 0; cnt < portions; ++cnt)
     {
-        CMatrixMapStatic::ProceedLogic(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
+        CMatrixMapStatic::ProceedLogic(int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor));
     }
 
-    portions = step - portions * (LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
+    portions = step - portions * int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
     if(portions)
     {
         CMatrixMapStatic::ProceedLogic(portions);
@@ -3059,12 +3059,12 @@ void CMatrixMapLogic::Tact(int step)
 
     while(GetTime() > m_TactNext)
     {
-		m_TactNext += LOGIC_TACT_DIVIDER * g_GameSpeedFactor;
+		m_TactNext += int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
         //CMatrixMapStatic::ProceedLogic(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
 
 		for(int i = 0; i < m_SidesCount; ++i)
         {
-			m_Side[i].LogicTact(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
+			m_Side[i].LogicTact(int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor));
 		}
 	}
 

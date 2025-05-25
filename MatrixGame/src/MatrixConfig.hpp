@@ -15,6 +15,14 @@
 #define SECRET_VALUE        1000000.0f
 #define LOGIC_TACT_DIVIDER  10 //В миллисекундах
 
+#define MACHINEGUN_MUZZLE_FLASH_SPRITES_NUM 0
+#define MACHINEGUN_GROUND_HIT_SPRITES_NUM   1
+#define MACHINEGUN_WATER_HIT_SPRITES_NUM    2
+#define MACHINEGUN_CONTRAIL_SPRITES_NUM     3
+
+#define CANNON_MUZZLE_FLASH_SPRITES_NUM     0
+#define CANNON_CONTRAIL_SPRITES_NUM         1
+
 struct SStringPair
 {
     //Если объявить заранее, то на этапе первичного заполнения конфига будут крашить, хз
@@ -569,24 +577,45 @@ struct STurretsConsts
 
 enum //EPrimaryWeaponEffect
 {
-    EFFECT_CANNON = 1,
-    EFFECT_ROCKET_LAUNCHER,
-    EFFECT_MORTAR,
-    EFFECT_REPAIRER,
-    EFFECT_BOMB
+    WEAPON_EFFECT_MACHINEGUN = 1,
+    WEAPON_EFFECT_CANNON,
+    WEAPON_EFFECT_ROCKET_LAUNCHER,
+    WEAPON_EFFECT_FLAMETHROWER,
+    WEAPON_EFFECT_MORTAR,
+    WEAPON_EFFECT_LASER,
+    WEAPON_EFFECT_PLASMAGUN,
+    WEAPON_EFFECT_REPAIRER,
+    WEAPON_EFFECT_DISCHARGER,
+    WEAPON_EFFECT_BOMB
 };
 
 enum //ESecondaryWeaponEffect
 {
-    SECONDARY_EFFECT_ABLAZE = 1,
-    SECONDARY_EFFECT_SHORTED_OUT
+    SECONDARY_WEAPON_EFFECT_ABLAZE = 1,
+    SECONDARY_WEAPON_EFFECT_SHORTED_OUT
+};
+
+struct SGroundHitPars
+{
+    float radius_1 = 0.0f;
+    float height_1 = 0.0f;
+    float radius_2 = 0.0f;
+    float height_2 = 0.0f;
+    dword hex_ABGR_sprites_color = 0x00000000;
+};
+
+struct SWaterHitPars
+{
+    float radius = 0.0f;
+    float height = 0.0f;
+    dword hex_ABGR_sprites_color = 0x00000000;
 };
 
 struct SWeaponsConsts
 {
     CWStr type_name = (CWStr)L"";
-    byte primary_effect = 0;   //Маркер и номер для оружия, являющегося основным эффектом (различные выстрелы)
-    byte secondary_effect = 0; //Маркер и номер (SECONDARY_EFFECT_ABLAZE, SECONDARY_EFFECT_SHORTED_OUT и т.д.) для оружия, являющегося несамостоятельным дополнительным эффектом
+    int primary_effect = 0;   //Маркер и номер для оружия, являющегося основным эффектом (различные выстрелы)
+    int secondary_effect = 0; //Маркер и номер (SECONDARY_WEAPON_EFFECT_ABLAZE, SECONDARY_WEAPON_EFFECT_SHORTED_OUT и т.д.) для оружия, являющегося несамостоятельным дополнительным эффектом
     int effect_priority = 0;   //Приоритет эффекта имеет смысл, когда необходимо выбрать, какой из эффектов одного типа нужно наложить или при выборе замены уже наложенного эффекта
 
     bool is_bomb = false;
@@ -640,25 +669,38 @@ struct SWeaponsConsts
     float projectile_splash_radius = 0.0f;
     int   projectile_max_lifetime = 0;
 
-    int   sprites_lenght = 0;
-    int   sprites_width = 0;
+    float sprites_lenght = 0.0f;
+    float sprites_width = 0.0f;
+    float fire_cone_radius = 0.0f;
+    float fire_cone_lenght = 0.0f;
+    dword hex_ABGR_sprites_color = 0x00000000;
 
-    int   contrail_width = 0;
-    int   contrail_duration = 0;
-    int   contrail_fire_effect_starts = 0;
-    dword hex_BGRA_sprites_color = 0;
+    float contrail_width = 0.0f;
+    float contrail_duration = 0.0f;
+    float contrail_chance = 0.0f;
+    float contrail_fire_effect_starts = 0;
+    dword hex_ABGR_contrail_color = 0x00000000;
 
     float light_radius = 0.0f;
     float light_duration = 0.0f;
-    dword hex_BGRA_light_color = 0;
+    dword hex_ABGR_light_color = 0x00000000;
 
-    SFloatRGBColor close_color_rgb = { 0.0f, 0.0f, 0.0f };
-    SFloatRGBColor far_color_rgb = { 0.0f, 0.0f, 0.0f };
+    union
+    {
+        SGroundHitPars ground_hit = { 0.0f, 0.0f, 0.0f, 0.0f, 0 };
+        SFloatRGBColor close_color_rgb;
+    };
+    union
+    {
+        SWaterHitPars  water_hit = { 0.0f, 0.0f, 0 };
+        SFloatRGBColor far_color_rgb;
+    };
 
     //Для примера объявления обычных массивов дефолтным аргументом
     //void A(const int(&arr)[2] = { 2, 2 }) {}
 
-    struct SWeaponExtraEffect {
+    struct SWeaponExtraEffect
+    {
         int type = -1;
 
         int duration_per_hit = 0;
@@ -667,7 +709,8 @@ struct SWeaponsConsts
     std::vector<SWeaponExtraEffect> extra_effects; //Массив с номерами дополнительных эффектов, которые накладывает данное оружие при нанесении урона
 
     //Спрайты, использующиеся для эффектов и анимаций оружия (могут использоваться отдельные спрайты, либо наборы для спрайтовых анимаций)
-    struct SSpriteSet{
+    struct SSpriteSet
+    {
         CWStr sprites_name = (CWStr)L"";
         std::vector<int> sprites_num;
         byte sprites_count = 0;
@@ -685,12 +728,23 @@ struct SWeaponsConsts
 //Не забывать обновлять, ResetMenu и выборе модулей по клавишам с клавиатуры (//Были нажаты цифровые клавиши 1-9 (по местной нумерации 2-10)), чтобы не крашила при невалиде в шаблоне!
 
 
-struct SBuildingsConsts {
+struct SBuildingsConsts
+{
     CWStr type_name = (CWStr)L"";
     float structure = 50000.0f;
 
     CWStr name = (CWStr)L"";
     CWStr description = (CWStr)L"";
+
+    int explosion_weapon_type = WEAPON_NONE;
+};
+
+struct SMapObjectsConsts
+{
+    //CWStr type_name = (CWStr)L"";
+    //float structure = 50000.0f; //Видимо, оно вообще в самой карте зашито, блять
+
+    int explosion_weapon_type = WEAPON_NONE;
 };
 
 //Не забыть про лимиты установки модулей MR_MAX_MODULES и RUK_WEAPON_PYLONS_COUNT
@@ -709,6 +763,8 @@ public:
     std::vector<STurretsConsts> m_TurretsConsts;
     std::vector<SBuildingsConsts> m_BuildingsConsts;
     std::vector<SWeaponsConsts> m_WeaponsConsts;
+
+    SMapObjectsConsts m_TerronConsts;
 
     SStringPair* m_Cursors = nullptr;
     int          m_CursorsCnt = 0;
@@ -809,6 +865,7 @@ inline int WeapName2Weap(const CWStr& weapon_name)
     {
         if(g_Config.m_WeaponsConsts[i].type_name == weapon_name) return i;
     }
+
     return WEAPON_NONE;
 }
 

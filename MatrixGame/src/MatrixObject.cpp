@@ -73,12 +73,12 @@ bool CMatrixMapObject::TakingDamage(
     }
     else if(m_BehaviorFlag == BEHF_TERRON && !FLAG(m_ObjectFlags, OBJECT_STATE_TERRON_EXPL))
     {
-        m_BreakHitPoint = max(m_BreakHitPoint - g_Config.m_WeaponsConsts[weap].damage.to_objects, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_objects);
+        m_BreakHitPoint = int(max(m_BreakHitPoint - g_Config.m_WeaponsConsts[weap].damage.to_objects, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_objects));
 
         if(m_HealthBar == nullptr)
         {
             m_HealthBar = HNew(g_MatrixHeap) CMatrixProgressBar();
-            m_HealthBar->Modify(1000000, 0, GetRadius() * 1.2f, 1);
+            m_HealthBar->Modify(1000000.0f, 0.0f, GetRadius() * 1.2f, 1.0f);
         }
 
         if(!m_Graph->IsAnim(L"Pain"))
@@ -120,7 +120,7 @@ bool CMatrixMapObject::TakingDamage(
     }
     else if(m_BehaviorFlag == BEHF_BREAK)
     {
-        m_BreakHitPoint = max(m_BreakHitPoint - g_Config.m_WeaponsConsts[weap].damage.to_objects, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_objects);
+        m_BreakHitPoint = int(max(m_BreakHitPoint - g_Config.m_WeaponsConsts[weap].damage.to_objects, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_objects));
 
         if(FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_HealthBar == nullptr)
         {
@@ -165,12 +165,12 @@ bool CMatrixMapObject::TakingDamage(
     }
     else if(m_BehaviorFlag == BEHF_ANIM)
     {
-        m_BreakHitPoint = max(m_BreakHitPoint - g_Config.m_WeaponsConsts[weap].damage.to_objects, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_objects);
+        m_BreakHitPoint = int(max(m_BreakHitPoint - g_Config.m_WeaponsConsts[weap].damage.to_objects, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_objects));
 
         if(FLAG(m_ObjectFlags, OBJECT_STATE_SPECIAL) && m_HealthBar == nullptr)
         {
             m_HealthBar = HNew(g_MatrixHeap) CMatrixProgressBar();
-            m_HealthBar->Modify(1000000, 0, PB_SPECIAL_WIDTH, 1);
+            m_HealthBar->Modify(1000000.0f, 0.0f, PB_SPECIAL_WIDTH, 1.0f);
         }
 
         if(m_BreakHitPoint <= 0)
@@ -1127,7 +1127,10 @@ void CMatrixMapObject::LogicTact(int cms)
 {
     if(m_BehaviorFlag == BEHF_TERRON)
     {
-        if(m_HealthBar) m_HealthBar->Modify(100000.0f, 0);
+        if(m_HealthBar)
+        {
+            m_HealthBar->Modify(100000.0f, 0.0f);
+        }
 
         if(FLAG(m_ObjectFlags, OBJECT_STATE_TERRON_EXPL))
         {
@@ -1155,28 +1158,34 @@ void CMatrixMapObject::LogicTact(int cms)
             }
             else if(GetAblazeTTL() < 100 && !FLAG(m_ObjectFlags, OBJECT_STATE_TERRON_EXPL2))
             {
-                SETFLAG(m_ObjectFlags, OBJECT_STATE_TERRON_EXPL2);
-                CSound::AddSound(S_EXPLOSION_BUILDING_BOOM4, GetGeoCenter());
-                //DCNT("boom");
-                CMatrixEffectWeapon* e = (CMatrixEffectWeapon*)CMatrixEffect::CreateWeapon(GetGeoCenter(), D3DXVECTOR3(0, 0, 1), 0, nullptr, WEAPON_BOMB);
-                e->SetOwner(this);
-                e->FireBegin(D3DXVECTOR3(0, 0, 0), this);
-                e->Tact(1);
-                e->FireEnd();
-                e->Release();
-                //g_MatrixMap->RestoreMusicVolume();
+                if(g_Config.m_TerronConsts.explosion_weapon_type != WEAPON_NONE)
+                {
+                    SETFLAG(m_ObjectFlags, OBJECT_STATE_TERRON_EXPL2);
+                    CSound::AddSound(S_EXPLOSION_BUILDING_BOOM4, GetGeoCenter());
+                    //DCNT("boom");
+                    CMatrixEffectWeapon* e = (CMatrixEffectWeapon*)CMatrixEffect::CreateWeapon(GetGeoCenter(), D3DXVECTOR3(0, 0, 1), 0, nullptr, g_Config.m_TerronConsts.explosion_weapon_type);
+                    e->SetOwner(this);
+                    e->FireBegin(D3DXVECTOR3(0, 0, 0), this);
+                    e->Tact(1);
+                    e->FireEnd();
+                    e->Release();
+                    //g_MatrixMap->RestoreMusicVolume();
+                }
             }
             else if(GetAblazeTTL() < 1000 && !FLAG(m_ObjectFlags, OBJECT_STATE_TERRON_EXPL1))
             {
-                SETFLAG(m_ObjectFlags, OBJECT_STATE_TERRON_EXPL1);
-                CSound::AddSound(S_EXPLOSION_BUILDING_BOOM4, GetGeoCenter());
-                //DCNT("boom");
-                CMatrixEffectWeapon* e = (CMatrixEffectWeapon*)CMatrixEffect::CreateWeapon(GetGeoCenter(), D3DXVECTOR3(0, 0, 1), 0, nullptr, WEAPON_BOMB);
-                e->SetOwner(this);
-                e->FireBegin(D3DXVECTOR3(0, 0, 0), this);
-                e->Tact(1);
-                e->FireEnd();
-                e->Release();
+                if(g_Config.m_TerronConsts.explosion_weapon_type != WEAPON_NONE)
+                {
+                    SETFLAG(m_ObjectFlags, OBJECT_STATE_TERRON_EXPL1);
+                    CSound::AddSound(S_EXPLOSION_BUILDING_BOOM4, GetGeoCenter());
+                    //DCNT("boom");
+                    CMatrixEffectWeapon* e = (CMatrixEffectWeapon*)CMatrixEffect::CreateWeapon(GetGeoCenter(), D3DXVECTOR3(0, 0, 1), 0, nullptr, g_Config.m_TerronConsts.explosion_weapon_type);
+                    e->SetOwner(this);
+                    e->FireBegin(D3DXVECTOR3(0, 0, 0), this);
+                    e->Tact(1);
+                    e->FireEnd();
+                    e->Release();
+                }
             }
             else
             {
@@ -1224,11 +1233,11 @@ void CMatrixMapObject::LogicTact(int cms)
     }
     else if(m_BehaviorFlag == BEHF_BREAK)
     {
-        if(m_HealthBar) m_HealthBar->Modify(100000.0f, 0);
+        if(m_HealthBar) m_HealthBar->Modify(100000.0f, 0.0f);
     }
     else if(m_BehaviorFlag == BEHF_ANIM)
     {
-        if(m_HealthBar) m_HealthBar->Modify(100000.0f, 0);
+        if(m_HealthBar) m_HealthBar->Modify(100000.0f, 0.0f);
     }
     else if(m_BehaviorFlag == BEHF_SPAWNER)
     {

@@ -139,7 +139,7 @@ void CMatrixRobotAI::DIPTact(float ms)
             if(g_MatrixMap->GetZ(hitpos.x, hitpos.y) < WATER_LEVEL)
             {
                 m_Module[i].m_TTL = 0;
-                CMatrixEffect::CreateKonusSplash(hitpos, D3DXVECTOR3(0, 0, 1), 10, 5, (float)FSRND(M_PI), 1000, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged, TEXTURE_PATH_SPLASH));
+                CMatrixEffect::CreateConeSplash(hitpos, D3DXVECTOR3(0.0f, 0.0f, 1.0f), 10.0f, 5.0f, FSRND((float)M_PI), 1000.0f, 0xFFFFFFFF, true, CMatrixEffect::GetSingleBrightSpriteTex(SPR_WATER_SPLASH));
                 if(m_Module[i].Smoke().effect)
                 {
                     ((CMatrixEffectSmoke*)m_Module[i].Smoke().effect)->SetTTL(1000);
@@ -396,7 +396,7 @@ void CMatrixRobotAI::LogicTact(int ms)
             if(cnt > 0)
             {
                 d2 = pos + dir * t;
-                CMatrixEffect::CreateShorted(d1, d2, (float)FRND(400.0) + 100.0f, g_Config.m_WeaponsConsts[shorted_effect_num].hex_BGRA_sprites_color, g_Config.m_WeaponsConsts[shorted_effect_num].sprite_set[0].sprites_num[0]);
+                CMatrixEffect::CreateShorted(d1, d2, (float)FRND(400.0) + 100.0f, g_Config.m_WeaponsConsts[shorted_effect_num].hex_ABGR_sprites_color, g_Config.m_WeaponsConsts[shorted_effect_num].sprite_set[0].sprites_num[0]);
             }
 
             if(TakingDamage(shorted_effect_num, pos, dir, m_LastDelayDamageSide, nullptr)) return;
@@ -1073,11 +1073,10 @@ void CMatrixRobotAI::LogicTact(int ms)
                         int weap_type = m_RobotWeapons[nC].GetWeaponNum();
                         if(g_Config.m_WeaponsConsts[weap_type].is_repairer)
                         {
-                            //Тип 2 означает, что выбранная для ведения огня цель дружественна стреляющему
                             if(type == 2) m_RobotWeapons[nC].FireBegin(m_Velocity * (1.0f / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor)), this);
                             else m_RobotWeapons[nC].FireEnd();
                         }
-                        else if(weap_type == WEAPON_MORTAR)
+                        else if(g_Config.m_WeaponsConsts[weap_type].primary_effect == WEAPON_EFFECT_MORTAR)
                         {
                             if(!type) m_RobotWeapons[nC].FireBegin(D3DXVECTOR3(f1, f2, f3), this);
                             else m_RobotWeapons[nC].FireEnd();
@@ -1457,8 +1456,8 @@ void CMatrixRobotAI::LogicTact(int ms)
                 }
 
                 //Особые обработчики для некоторых видов оружия
-                byte prim_weap_type = g_Config.m_WeaponsConsts[m_RobotWeapons[nC].GetWeaponNum()].primary_effect;
-                if(prim_weap_type == EFFECT_MORTAR)
+                int prim_weap_type = g_Config.m_WeaponsConsts[m_RobotWeapons[nC].GetWeaponNum()].primary_effect;
+                if(prim_weap_type == WEAPON_EFFECT_MORTAR)
                 {
                     m_RobotWeapons[nC].Modify(vPos, vWeapPos, m_WeaponDir);
                     m_RobotWeapons[nC].Tact(float(ms));
@@ -1476,7 +1475,7 @@ void CMatrixRobotAI::LogicTact(int ms)
                     }
                     continue;
                 }
-                else if(prim_weap_type == EFFECT_BOMB)
+                else if(prim_weap_type == WEAPON_EFFECT_BOMB)
                 {
                     //m_RobotWeapons[nC].m_Weapon->Modify(vPos, vDir, m_Velocity * (1.0f / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor)));				
                     //m_RobotWeapons[nC].m_Weapon->Tact(float(ms));
@@ -1484,7 +1483,7 @@ void CMatrixRobotAI::LogicTact(int ms)
                     //m_RobotWeapons[nC].m_Module->m_Graph->SetAnimByName(ANIMATION_NAME_FIRE, ANIM_LOOP_OFF);
                     continue;
                 }
-                else if(prim_weap_type == EFFECT_ROCKET_LAUNCHER)
+                else if(prim_weap_type == WEAPON_EFFECT_ROCKET_LAUNCHER)
                 {
                     //Special homing_missile handler
                     m_RobotWeapons[nC].Modify(vPos, vDir, m_Velocity * (1.0f / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor)));
@@ -1949,7 +1948,7 @@ bool CMatrixRobotAI::TakingDamage(
 
     //float damage = damage_coef * friendly_fire ? g_Config.m_WeaponsConsts[weap].friendly_damage.to_robots : g_Config.m_WeaponsConsts[weap].damage.to_robots;
     damage = damage_coef * g_Config.m_WeaponsConsts[weap].damage.to_robots;
-    if(weap == WEAPON_BOMB) damage += damage * m_BombProtect;
+    if(g_Config.m_WeaponsConsts[weap].primary_effect == WEAPON_EFFECT_BOMB) damage += damage * m_BombProtect;
     m_Hitpoints = max(m_Hitpoints - damage, g_Config.m_WeaponsConsts[weap].non_lethal_threshold.to_robots);
 
     if(m_Hitpoints >= 0) m_HealthBar.Modify(m_Hitpoints * m_MaxHitpointsInversed);
@@ -1970,7 +1969,7 @@ bool CMatrixRobotAI::TakingDamage(
             SWeaponsConsts::SWeaponExtraEffect* effect = &g_Config.m_WeaponsConsts[weap].extra_effects[i];
             int effect_num = effect->type;
             byte effect_type = g_Config.m_WeaponsConsts[effect_num].secondary_effect;
-            if(effect_type == SECONDARY_EFFECT_ABLAZE)
+            if(effect_type == SECONDARY_WEAPON_EFFECT_ABLAZE)
             {
                 if(!g_Config.m_WeaponsConsts[effect_num].damage.to_robots) continue;
                 int new_priority = g_Config.m_WeaponsConsts[effect_num].effect_priority;
@@ -1985,7 +1984,7 @@ bool CMatrixRobotAI::TakingDamage(
 
                 m_NextTimeAblaze = g_MatrixMap->GetTime(); //То есть в первый раз считаем логику получения урона от огня немедленно
             }
-            else if(effect_type == SECONDARY_EFFECT_SHORTED_OUT)
+            else if(effect_type == SECONDARY_WEAPON_EFFECT_SHORTED_OUT)
             {
                 LowLevelStopFire();
                 SwitchAnimation(ANIMATION_OFF);
@@ -4426,7 +4425,7 @@ void CMatrixRobotAI::CalcRobotParams(SRobotTemplate* robot_template)
         m_RobotWeapons[cnt].ModifyDist(fire_dist);
         m_RobotWeapons[cnt].m_HeatingSpeed = Float2Int(float(m_RobotWeapons[cnt].m_HeatingSpeed) + float(m_RobotWeapons[cnt].m_HeatingSpeed) * overheat);
 
-        if(m_RobotWeapons[cnt].GetWeaponNum() == WEAPON_BOMB)
+        if(g_Config.m_WeaponsConsts[m_RobotWeapons[cnt].GetWeaponNum()].primary_effect == WEAPON_EFFECT_BOMB)
         {
             ++cnt;
             continue;
@@ -4854,7 +4853,7 @@ void CMatrixRobotAI::BeginBombCountdown()
 
     for(int i = 0; i < m_WeaponsCount; ++i)
     {
-        if(m_RobotWeapons[i].IsEffectPresent() && m_RobotWeapons[i].GetWeaponNum() != WEAPON_BOMB) continue;
+        if(m_RobotWeapons[i].IsEffectPresent() && g_Config.m_WeaponsConsts[m_RobotWeapons[i].GetWeaponNum()].primary_effect != WEAPON_EFFECT_BOMB) continue;
 
         m_RobotWeapons[i].m_Module->m_ReadyToExplode = true;
         if(m_RobotWeapons[i].m_Module->m_Graph->SetAnimByName(ANIMATION_NAME_FIRE, ANIM_LOOP_OFF)) continue;
@@ -4878,7 +4877,7 @@ void CMatrixRobotAI::DetonateTheBomb()
     int bombs_count = 0;
     for(int i = 0; i < m_WeaponsCount; ++i)
     {
-        if(m_RobotWeapons[i].m_Module->m_ReadyToExplode) //if(m_Weapons[i].IsEffectPresent() && m_Weapons[i].GetWeaponNum() == WEAPON_BOMB)
+        if(m_RobotWeapons[i].m_Module->m_ReadyToExplode) //if(m_Weapons[i].IsEffectPresent() && g_Config.m_WeaponsConsts[m_Weapons[i].GetWeaponNum()].primary_effect == WEAPON_EFFECT_BOMB)
         {
             m_RobotWeapons[i].Modify(GetGeoCenter(), D3DXVECTOR3(m_PosX, m_PosY, 0.0f), m_Velocity * (1.0f / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor)));
             m_RobotWeapons[i].FireBegin(m_Velocity * (1.0f / (LOGIC_TACT_DIVIDER * g_GameSpeedFactor)), this);
@@ -5535,7 +5534,7 @@ bool CMatrixRobotAI::IsHomingMissilesEquipped()
         {
             int weap_num = m_RobotWeapons[i].GetWeaponNum();
             if(
-                g_Config.m_WeaponsConsts[weap_num].primary_effect == EFFECT_ROCKET_LAUNCHER &&
+                g_Config.m_WeaponsConsts[weap_num].primary_effect == WEAPON_EFFECT_ROCKET_LAUNCHER &&
                 g_Config.m_WeaponsConsts[weap_num].projectile_homing_speed + m_MissileHomingSpeed > 0.0f
               ) return true;
         }

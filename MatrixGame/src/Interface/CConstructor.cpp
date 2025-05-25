@@ -40,7 +40,7 @@ SNewBorn* CConstructor::ProduceRobot(void*)
         auto hull_num = m_Hull.m_Module.m_nKind;
         if(hull_num)
         {
-            for(int i = 0; i < g_Config.m_RobotHullsConsts[hull_num].weapon_pylon_data.size(); ++i)
+            for(size_t i = 0; i < g_Config.m_RobotHullsConsts[hull_num].weapon_pylon_data.size(); ++i)
             {
                 int constructor_slot_num = g_Config.m_RobotHullsConsts[hull_num].weapon_pylon_data[i].constructor_slot_num;
                 if(m_Weapon[constructor_slot_num].m_Module.m_nKind)
@@ -156,7 +156,7 @@ void CConstructor::AddRobotToBuildingQueue(
         auto hull_num = m_Hull.m_Module.m_nKind;
         if(hull_num)
         {
-            for(int i = 0; i < g_Config.m_RobotHullsConsts[hull_num].weapon_pylon_data.size(); ++i)
+            for(size_t i = 0; i < g_Config.m_RobotHullsConsts[hull_num].weapon_pylon_data.size(); ++i)
             {
                 int constructor_slot_num = g_Config.m_RobotHullsConsts[hull_num].weapon_pylon_data[i].constructor_slot_num;
                 if(m_Weapon[constructor_slot_num].m_Module.m_nKind)
@@ -443,7 +443,7 @@ void __stdcall CConstructor::RemoteOperateModule(void* pObj)
         case MRT_WEAPON:
         {
             //Сперва необходимо определить реальный номер оружейного пилона на модели, т.к. их там может быть меньше максимального числа
-            for(int i = 0; i < g_Config.m_RobotHullsConsts[cur_hull_num].weapon_pylon_data.size(); ++i)
+            for(size_t i = 0; i < g_Config.m_RobotHullsConsts[cur_hull_num].weapon_pylon_data.size(); ++i)
             {
                 if(g_Config.m_RobotHullsConsts[cur_hull_num].weapon_pylon_data[i].constructor_slot_num == pylon)
                 {
@@ -549,7 +549,7 @@ void CConstructor::ReplaceRobotModule(
         if(old_cfg)
         {
             //Переносим всё подходящее оружие со старого корпуса на новый после смены корпуса
-            for(int i = 0; i < g_Config.m_RobotHullsConsts[kind].weapon_pylon_data.size(); ++i)
+            for(size_t i = 0; i < g_Config.m_RobotHullsConsts[kind].weapon_pylon_data.size(); ++i)
             {
                 int const_slot = g_Config.m_RobotHullsConsts[kind].weapon_pylon_data[i].constructor_slot_num;
                 auto gun = old_cfg->m_Weapon[const_slot].m_nKind;
@@ -621,7 +621,7 @@ void CConstructor::TempReplaceRobotModuleFromMenu(
     else if(type == MRT_HULL)
     {
         //Временно "примеряем" всё подходящее оружие с текущего корпуса на выделенный в выпадающем меню
-        for(int i = 0; i < g_Config.m_RobotHullsConsts[kind].weapon_pylon_data.size(); ++i)
+        for(size_t i = 0; i < g_Config.m_RobotHullsConsts[kind].weapon_pylon_data.size(); ++i)
         {
             int const_slot = g_Config.m_RobotHullsConsts[kind].weapon_pylon_data[i].constructor_slot_num;
             auto gun = player_side->m_ConstructPanel->m_Configs[cfg_num].m_Weapon[const_slot].m_nKind;
@@ -716,7 +716,7 @@ void CConstructor::InsertModules()
     int hull_num = m_Hull.m_Module.m_nKind;
     if(hull_num)
     {
-        for(int i = 0; i < g_Config.m_RobotHullsConsts[hull_num].weapon_pylon_data.size(); ++i)
+        for(size_t i = 0; i < g_Config.m_RobotHullsConsts[hull_num].weapon_pylon_data.size(); ++i)
         {
             int constructor_slot_num = g_Config.m_RobotHullsConsts[hull_num].weapon_pylon_data[i].constructor_slot_num;
 		    if(m_Weapon[constructor_slot_num].m_Module.m_nKind)
@@ -807,7 +807,7 @@ void CConstructor::GetConstructionPrice(int* res)
             {
                 if(bp->ParGetName(i) == L"CostModifyPercent")
                 {
-                    cost_mod += max(bp->ParGet(i).GetDouble() * 0.01f, -1.0f);
+                    cost_mod += max(bp->ParGet(i).GetFloat() * 0.01f, -1.0f);
                     break;
                 }
             }
@@ -870,7 +870,7 @@ void CConstructor::GetConstructionPrice(int* res)
 int CConstructor::GetConstructionStructure()
 {
     CMatrixRobotAI* robot = m_Robot;
-    int structure = 0;
+    float structure = 0;
 
     for(int i = 0; i < robot->m_ModulesCount; ++i)
     {
@@ -887,10 +887,16 @@ int CConstructor::GetConstructionStructure()
             if(bp)
             {
                 structure += 10.0f * bp->ParGetNE(L"AddStructure").GetFloat();
-                float hp_factor = bp->ParGetNE(L"AddStructurePercent").GetFloat() * 0.01;
-                if(hp_factor) structure += structure * hp_factor;
+                float hp_factor = bp->ParGetNE(L"AddStructurePercent").GetFloat() * 0.01f;
+                
+                if(hp_factor)
+                {
+                    structure += structure * hp_factor;
+                }
+
                 structure = max(structure, 10.0f);
             }
+
             break;
         }
     }
@@ -1048,7 +1054,7 @@ bool CConstructorPanel::IsEnoughResourcesForThisModule(
                 {
                     if(bp->ParGetName(i) == L"CostModifyPercent")
                     {
-                        cost_mod += max(bp->ParGet(i).GetDouble() * 0.01f, -1.0f);
+                        cost_mod += max(bp->ParGet(i).GetFloat() * 0.01f, -1.0f);
                         break;
                     }
                 }
@@ -1063,39 +1069,39 @@ bool CConstructorPanel::IsEnoughResourcesForThisModule(
         if(cur_hull_num)
         {
             //Сколько ресурсов вернётся в общий пул после замены текущего корпуса из конфига
-            returned_res[0] = g_Config.m_RobotHullsConsts[cur_hull_num].cost_titan * cost_mod;
-            returned_res[1] = g_Config.m_RobotHullsConsts[cur_hull_num].cost_electronics * cost_mod;
-            returned_res[2] = g_Config.m_RobotHullsConsts[cur_hull_num].cost_energy * cost_mod;
-            returned_res[3] = g_Config.m_RobotHullsConsts[cur_hull_num].cost_plasma * cost_mod;
+            returned_res[0] = int(g_Config.m_RobotHullsConsts[cur_hull_num].cost_titan * cost_mod);
+            returned_res[1] = int(g_Config.m_RobotHullsConsts[cur_hull_num].cost_electronics * cost_mod);
+            returned_res[2] = int(g_Config.m_RobotHullsConsts[cur_hull_num].cost_energy * cost_mod);
+            returned_res[3] = int(g_Config.m_RobotHullsConsts[cur_hull_num].cost_plasma * cost_mod);
 
-            for(int i = 0; i < g_Config.m_RobotHullsConsts[cur_hull_num].weapon_pylon_data.size(); ++i)
+            for(size_t i = 0; i < g_Config.m_RobotHullsConsts[cur_hull_num].weapon_pylon_data.size(); ++i)
             {
                 int const_pylon = g_Config.m_RobotHullsConsts[cur_hull_num].weapon_pylon_data[i].constructor_slot_num;
                 int weapon = m_Configs[m_CurrentConfig].m_Weapon[const_pylon].m_nKind;
                 if(weapon) //Если в данном слоте корпуса в конструкторе установлено хоть какое-то оружие
                 {
                     //Считаем стоимость этого оружия
-                    returned_res[0] += g_Config.m_RobotWeaponsConsts[weapon].cost_titan * cost_mod;
-                    returned_res[1] += g_Config.m_RobotWeaponsConsts[weapon].cost_electronics * cost_mod;
-                    returned_res[2] += g_Config.m_RobotWeaponsConsts[weapon].cost_energy * cost_mod;
-                    returned_res[3] += g_Config.m_RobotWeaponsConsts[weapon].cost_plasma * cost_mod;
+                    returned_res[0] += int(g_Config.m_RobotWeaponsConsts[weapon].cost_titan * cost_mod);
+                    returned_res[1] += int(g_Config.m_RobotWeaponsConsts[weapon].cost_electronics * cost_mod);
+                    returned_res[2] += int(g_Config.m_RobotWeaponsConsts[weapon].cost_energy * cost_mod);
+                    returned_res[3] += int(g_Config.m_RobotWeaponsConsts[weapon].cost_plasma * cost_mod);
                 }
             }
         }
 
         //Сколько ресурсов стоит сам выбранный корпус
-        required_res[0] = g_Config.m_RobotHullsConsts[kind].cost_titan * cost_mod;
-        required_res[1] = g_Config.m_RobotHullsConsts[kind].cost_electronics * cost_mod;
-        required_res[2] = g_Config.m_RobotHullsConsts[kind].cost_energy * cost_mod;
-        required_res[3] = g_Config.m_RobotHullsConsts[kind].cost_plasma * cost_mod;
+        required_res[0] = int(g_Config.m_RobotHullsConsts[kind].cost_titan * cost_mod);
+        required_res[1] = int(g_Config.m_RobotHullsConsts[kind].cost_electronics * cost_mod);
+        required_res[2] = int(g_Config.m_RobotHullsConsts[kind].cost_energy * cost_mod);
+        required_res[3] = int(g_Config.m_RobotHullsConsts[kind].cost_plasma * cost_mod);
 
         //Для проверки, стоит ли проверяемый корпус дефицитного ресурса сам по себе
-        item_res[0] = g_Config.m_RobotHullsConsts[kind].cost_titan * cost_mod;
-        item_res[1] = g_Config.m_RobotHullsConsts[kind].cost_electronics * cost_mod;
-        item_res[2] = g_Config.m_RobotHullsConsts[kind].cost_energy * cost_mod;
-        item_res[3] = g_Config.m_RobotHullsConsts[kind].cost_plasma * cost_mod;
+        item_res[0] = int(g_Config.m_RobotHullsConsts[kind].cost_titan * cost_mod);
+        item_res[1] = int(g_Config.m_RobotHullsConsts[kind].cost_electronics * cost_mod);
+        item_res[2] = int(g_Config.m_RobotHullsConsts[kind].cost_energy * cost_mod);
+        item_res[3] = int(g_Config.m_RobotHullsConsts[kind].cost_plasma * cost_mod);
 
-        for(int i = 0; i < g_Config.m_RobotHullsConsts[kind].weapon_pylon_data.size(); ++i)
+        for(size_t i = 0; i < g_Config.m_RobotHullsConsts[kind].weapon_pylon_data.size(); ++i)
         {
             int const_pylon = g_Config.m_RobotHullsConsts[kind].weapon_pylon_data[i].constructor_slot_num;
             int weapon = m_Configs[m_CurrentConfig].m_Weapon[const_pylon].m_nKind;
@@ -1105,17 +1111,17 @@ bool CConstructorPanel::IsEnoughResourcesForThisModule(
                 if(!g_Config.m_RobotHullsConsts[kind].weapon_pylon_data[i].fit_weapon.test(weapon)) continue;
 
                 //Суммируем стоимость всего подходящего для переноса оружия к стоимости выбранного корпуса
-                required_res[0] += g_Config.m_RobotWeaponsConsts[weapon].cost_titan * cost_mod;
-                required_res[1] += g_Config.m_RobotWeaponsConsts[weapon].cost_electronics * cost_mod;
-                required_res[2] += g_Config.m_RobotWeaponsConsts[weapon].cost_energy * cost_mod;
-                required_res[3] += g_Config.m_RobotWeaponsConsts[weapon].cost_plasma * cost_mod;
+                required_res[0] += int(g_Config.m_RobotWeaponsConsts[weapon].cost_titan * cost_mod);
+                required_res[1] += int(g_Config.m_RobotWeaponsConsts[weapon].cost_electronics * cost_mod);
+                required_res[2] += int(g_Config.m_RobotWeaponsConsts[weapon].cost_energy * cost_mod);
+                required_res[3] += int(g_Config.m_RobotWeaponsConsts[weapon].cost_plasma * cost_mod);
 
                 //Также суммируем их цену к фактической цене корпуса
                 //В противном случае возможна ситуация, когда при нехватке ресурсов для переключения корпуса вместе с пушками, корпус всё равно подсвечен в списке доступным
-                item_res[0] += g_Config.m_RobotWeaponsConsts[weapon].cost_titan * cost_mod;
-                item_res[1] += g_Config.m_RobotWeaponsConsts[weapon].cost_electronics * cost_mod;
-                item_res[2] += g_Config.m_RobotWeaponsConsts[weapon].cost_energy * cost_mod;
-                item_res[3] += g_Config.m_RobotWeaponsConsts[weapon].cost_plasma * cost_mod;
+                item_res[0] += int(g_Config.m_RobotWeaponsConsts[weapon].cost_titan * cost_mod);
+                item_res[1] += int(g_Config.m_RobotWeaponsConsts[weapon].cost_electronics * cost_mod);
+                item_res[2] += int(g_Config.m_RobotWeaponsConsts[weapon].cost_energy * cost_mod);
+                item_res[3] += int(g_Config.m_RobotWeaponsConsts[weapon].cost_plasma * cost_mod);
             }
         }
     }
@@ -1125,21 +1131,21 @@ bool CConstructorPanel::IsEnoughResourcesForThisModule(
         int cur_chassis = m_Configs[m_CurrentConfig].m_Chassis.m_nKind;
         if(cur_chassis)
         {
-            returned_res[0] = g_Config.m_RobotChassisConsts[cur_chassis].cost_titan * cost_mod;
-            returned_res[1] = g_Config.m_RobotChassisConsts[cur_chassis].cost_electronics * cost_mod;
-            returned_res[2] = g_Config.m_RobotChassisConsts[cur_chassis].cost_energy * cost_mod;
-            returned_res[3] = g_Config.m_RobotChassisConsts[cur_chassis].cost_plasma * cost_mod;
+            returned_res[0] = int(g_Config.m_RobotChassisConsts[cur_chassis].cost_titan * cost_mod);
+            returned_res[1] = int(g_Config.m_RobotChassisConsts[cur_chassis].cost_electronics * cost_mod);
+            returned_res[2] = int(g_Config.m_RobotChassisConsts[cur_chassis].cost_energy * cost_mod);
+            returned_res[3] = int(g_Config.m_RobotChassisConsts[cur_chassis].cost_plasma * cost_mod);
         }
 
-        required_res[0] = g_Config.m_RobotChassisConsts[kind].cost_titan * cost_mod;
-        required_res[1] = g_Config.m_RobotChassisConsts[kind].cost_electronics * cost_mod;
-        required_res[2] = g_Config.m_RobotChassisConsts[kind].cost_energy * cost_mod;
-        required_res[3] = g_Config.m_RobotChassisConsts[kind].cost_plasma * cost_mod;
+        required_res[0] = int(g_Config.m_RobotChassisConsts[kind].cost_titan * cost_mod);
+        required_res[1] = int(g_Config.m_RobotChassisConsts[kind].cost_electronics * cost_mod);
+        required_res[2] = int(g_Config.m_RobotChassisConsts[kind].cost_energy * cost_mod);
+        required_res[3] = int(g_Config.m_RobotChassisConsts[kind].cost_plasma * cost_mod);
 
-        item_res[0] = g_Config.m_RobotChassisConsts[kind].cost_titan * cost_mod;
-        item_res[1] = g_Config.m_RobotChassisConsts[kind].cost_electronics * cost_mod;
-        item_res[2] = g_Config.m_RobotChassisConsts[kind].cost_energy * cost_mod;
-        item_res[3] = g_Config.m_RobotChassisConsts[kind].cost_plasma * cost_mod;
+        item_res[0] = int(g_Config.m_RobotChassisConsts[kind].cost_titan * cost_mod);
+        item_res[1] = int(g_Config.m_RobotChassisConsts[kind].cost_electronics * cost_mod);
+        item_res[2] = int(g_Config.m_RobotChassisConsts[kind].cost_energy * cost_mod);
+        item_res[3] = int(g_Config.m_RobotChassisConsts[kind].cost_plasma * cost_mod);
     }
     else if(type == MRT_HEAD)
     {
@@ -1169,21 +1175,21 @@ bool CConstructorPanel::IsEnoughResourcesForThisModule(
         int cur_weapon = m_Configs[m_CurrentConfig].m_Weapon[pilon].m_nKind;
         if(cur_weapon)
         {
-            returned_res[0] = g_Config.m_RobotWeaponsConsts[cur_weapon].cost_titan * cost_mod;
-            returned_res[1] = g_Config.m_RobotWeaponsConsts[cur_weapon].cost_electronics * cost_mod;
-            returned_res[2] = g_Config.m_RobotWeaponsConsts[cur_weapon].cost_energy * cost_mod;
-            returned_res[3] = g_Config.m_RobotWeaponsConsts[cur_weapon].cost_plasma * cost_mod;
+            returned_res[0] = int(g_Config.m_RobotWeaponsConsts[cur_weapon].cost_titan * cost_mod);
+            returned_res[1] = int(g_Config.m_RobotWeaponsConsts[cur_weapon].cost_electronics * cost_mod);
+            returned_res[2] = int(g_Config.m_RobotWeaponsConsts[cur_weapon].cost_energy * cost_mod);
+            returned_res[3] = int(g_Config.m_RobotWeaponsConsts[cur_weapon].cost_plasma * cost_mod);
         }
 
-        required_res[0] = g_Config.m_RobotWeaponsConsts[kind].cost_titan * cost_mod;
-        required_res[1] = g_Config.m_RobotWeaponsConsts[kind].cost_electronics * cost_mod;
-        required_res[2] = g_Config.m_RobotWeaponsConsts[kind].cost_energy * cost_mod;
-        required_res[3] = g_Config.m_RobotWeaponsConsts[kind].cost_plasma * cost_mod;
+        required_res[0] = int(g_Config.m_RobotWeaponsConsts[kind].cost_titan * cost_mod);
+        required_res[1] = int(g_Config.m_RobotWeaponsConsts[kind].cost_electronics * cost_mod);
+        required_res[2] = int(g_Config.m_RobotWeaponsConsts[kind].cost_energy * cost_mod);
+        required_res[3] = int(g_Config.m_RobotWeaponsConsts[kind].cost_plasma * cost_mod);
 
-        item_res[0] = g_Config.m_RobotWeaponsConsts[kind].cost_titan * cost_mod;
-        item_res[1] = g_Config.m_RobotWeaponsConsts[kind].cost_electronics * cost_mod;
-        item_res[2] = g_Config.m_RobotWeaponsConsts[kind].cost_energy * cost_mod;
-        item_res[3] = g_Config.m_RobotWeaponsConsts[kind].cost_plasma * cost_mod;
+        item_res[0] = int(g_Config.m_RobotWeaponsConsts[kind].cost_titan * cost_mod);
+        item_res[1] = int(g_Config.m_RobotWeaponsConsts[kind].cost_electronics * cost_mod);
+        item_res[2] = int(g_Config.m_RobotWeaponsConsts[kind].cost_energy * cost_mod);
+        item_res[3] = int(g_Config.m_RobotWeaponsConsts[kind].cost_plasma * cost_mod);
     }
 
     for(int i = 0; i < MAX_RESOURCES; ++i) total_res_needed[i] = total_res_needed[i] - returned_res[i] + required_res[i];
@@ -1214,23 +1220,23 @@ void CConstructorPanel::MakeItemReplacements(
     {
         int weapon_type = g_Config.m_RobotWeaponsConsts[kind].weapon_type;
 
-        int wspeed = g_Config.m_WeaponsConsts[weapon_type].shots_delay;
-        int damage = g_Config.m_WeaponsConsts[weapon_type].damage.to_robots;
+        float wspeed = g_Config.m_WeaponsConsts[weapon_type].shots_delay;
+        int damage = int(g_Config.m_WeaponsConsts[weapon_type].damage.to_robots);
 
         damage = Float2Int(damage * 1000.0f / wspeed);
 
         int add_damage = 0;
-        for(int i = 0; i < g_Config.m_WeaponsConsts[weapon_type].extra_effects.size(); ++i)
+        for(size_t i = 0; i < g_Config.m_WeaponsConsts[weapon_type].extra_effects.size(); ++i)
         {
             int effect = g_Config.m_WeaponsConsts[weapon_type].extra_effects[i].type;
             int effect_type = g_Config.m_WeaponsConsts[effect].secondary_effect;
-            if(effect_type == SECONDARY_EFFECT_ABLAZE) add_damage += Float2Int(g_Config.m_WeaponsConsts[effect].damage.to_robots * 1000.0f / ABLAZE_LOGIC_PERIOD);
-            else if(effect_type == SECONDARY_EFFECT_SHORTED_OUT) add_damage += Float2Int(g_Config.m_WeaponsConsts[effect].damage.to_robots * 1000.0f / SHORTED_OUT_LOGIC_PERIOD);
+            if(effect_type == SECONDARY_WEAPON_EFFECT_ABLAZE) add_damage += Float2Int(g_Config.m_WeaponsConsts[effect].damage.to_robots * 1000.0f / ABLAZE_LOGIC_PERIOD);
+            else if(effect_type == SECONDARY_WEAPON_EFFECT_SHORTED_OUT) add_damage += Float2Int(g_Config.m_WeaponsConsts[effect].damage.to_robots * 1000.0f / SHORTED_OUT_LOGIC_PERIOD);
         }
         
         if(g_Config.m_WeaponsConsts[weapon_type].is_bomb) //Если оружие бомба, то перемножать её урон на скорострельность незачем
         {
-            damage = g_Config.m_WeaponsConsts[weapon_type].damage.to_robots;
+            damage = int(g_Config.m_WeaponsConsts[weapon_type].damage.to_robots);
         }
         
         CWStr c(color, g_CacheHeap);
@@ -1275,7 +1281,7 @@ void CConstructorPanel::MakeItemReplacements(
     }
     else if(type == MRT_HULL)
     {
-        int structure = g_Config.m_RobotHullsConsts[kind].structure;
+        int structure = int(g_Config.m_RobotHullsConsts[kind].structure);
         //int pylons = g_Config.m_RobotHullsConsts[kind].weapon_pylon_data.size();
         //int ext_pilons = g_Config.m_RobotHullsConsts[kind].weapons_info.extra_pylons;
 
@@ -1292,7 +1298,7 @@ void CConstructorPanel::MakeItemReplacements(
     }
     else if(type == MRT_CHASSIS)
     {
-        int structure = g_Config.m_RobotChassisConsts[kind].structure;
+        int structure = int(g_Config.m_RobotChassisConsts[kind].structure);
         CWStr colored_size = color.Add(CWStr(L"size</color>")).Replace(CWStr(L"size"), CWStr(structure / 10));
         m_FocusedLabel.Replace(CWStr(L"<Structure>"), colored_size);
     }
@@ -1324,7 +1330,7 @@ void CConstructorPanel::SetLabelsAndPrice(ERobotModuleType type, ERobotModuleKin
                 {
                     if(bp->ParGetName(i) == L"CostModifyPercent")
                     {
-                        cost_mod += max(bp->ParGet(i).GetDouble() * 0.01f, -1.0f);
+                        cost_mod += max(bp->ParGet(i).GetFloat() * 0.01f, -1.0f);
                         break;
                     }
                 }
@@ -1451,7 +1457,7 @@ CMatrixRobotAI* SRobotTemplate::CreateRobotByTemplate(
         }
 
         int cur_hull_num = m_Hull.m_Module.m_nKind;
-        for(int i = 0; i < g_Config.m_RobotHullsConsts[cur_hull_num].weapon_pylon_data.size(); ++i)
+        for(size_t i = 0; i < g_Config.m_RobotHullsConsts[cur_hull_num].weapon_pylon_data.size(); ++i)
         {
             int constr_pylon_num = g_Config.m_RobotHullsConsts[cur_hull_num].weapon_pylon_data[i].constructor_slot_num; //Номер оружия в слоте конструктора
 
@@ -1594,7 +1600,7 @@ void SRobotTemplate::LoadAIRobotType(
         //Определяем границы "весовых категорий" роботов, зависящие от их приоритетов, что необходимо для выбора роботов при их дальнейшей постройке ИИ
         //Да, выглядит не особо красиво, но не придумал как оформить автоматическое заполнение лучше - всё равно это происходит один раз на загрузке
         m_AIRobotTypesCategories[side_num][0].Begin = 0;
-        for(int i = 0; i < m_AIRobotTypesList[side_num].size() - 1; ++i)
+        for(size_t i = 0; i < m_AIRobotTypesList[side_num].size() - 1; ++i)
         {
             int priority = m_AIRobotTypesList[side_num][i].m_TemplatePriority;
             if(!m_AIRobotTypesCategories[side_num][0].End && priority > highest_first)       m_AIRobotTypesCategories[side_num][0].End = i - 1;
@@ -1883,8 +1889,11 @@ bool SRobotTemplate::CreateRobotTemplateFromPar(const CWStr& par_name, const CWS
     }
 
     //Определяем относительную затратность каждого вида ресурса на данный шаблон (необходимо алгоритму выбора шаблона для постройки ИИ)
-    float average_cost = (m_Resources[TITAN] + m_Resources[ELECTRONICS] + m_Resources[ENERGY] + m_Resources[PLASMA]) / MAX_RESOURCES;
-    for(int k = 0; k < MAX_RESOURCES; ++k) m_ResourcesExpendability[k] = float(m_Resources[k]) / average_cost;
+    float average_cost = float((m_Resources[TITAN] + m_Resources[ELECTRONICS] + m_Resources[ENERGY] + m_Resources[PLASMA]) / MAX_RESOURCES);
+    for(int k = 0; k < MAX_RESOURCES; ++k)
+    {
+        m_ResourcesExpendability[k] = float(m_Resources[k]) / average_cost;
+    }
 
     //Также считываем значения из параметра
     m_TemplatePriority = max(par_val.GetStrPar(0, L",").GetInt(), 1);
@@ -1938,11 +1947,14 @@ void GetConstructionName(CMatrixRobotAI* robot)
 int GetConstructionDamage(CMatrixRobotAI* robot)
 {
     int total_damage = 0;
-    float shots_delay_decrease = 0;
+    float shots_delay_decrease = 0.0f;
 
     int head_kind = robot->GetRobotHeadKind();
     CBlockPar* bp = g_Config.m_RobotHeadsConsts[head_kind].effects;
-    if(bp) shots_delay_decrease = max(bp->ParGetNE(L"WeaponShotsDelay").GetFloat() / 100.0f, -1.0);
+    if(bp)
+    {
+        shots_delay_decrease = max(bp->ParGetNE(L"WeaponShotsDelay").GetFloat() / 100.0f, -1.0f);
+    }
 
     for(int i = 0; i < robot->m_ModulesCount; ++i)
     {
@@ -1952,11 +1964,12 @@ int GetConstructionDamage(CMatrixRobotAI* robot)
             if(!g_Config.m_WeaponsConsts[weapon_num].is_bomb && !g_Config.m_WeaponsConsts[weapon_num].is_repairer)
             {
                 float shots_delay = g_Config.m_WeaponsConsts[weapon_num].shots_delay;
-                shots_delay = Float2Int(shots_delay + shots_delay * shots_delay_decrease);
+                shots_delay = shots_delay + shots_delay * shots_delay_decrease;
 
                 float gun_damage = g_Config.m_WeaponsConsts[weapon_num].damage.to_robots;
-                gun_damage = Float2Int(gun_damage * 1000.0f / shots_delay);
-                total_damage += gun_damage;
+                gun_damage = gun_damage * 1000.0f / shots_delay;
+
+                total_damage += int(gun_damage);
             }
         }
     }

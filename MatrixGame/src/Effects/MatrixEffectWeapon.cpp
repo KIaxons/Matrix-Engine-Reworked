@@ -13,7 +13,7 @@
 #include <math.h>
 
 CMatrixEffectWeapon::CMatrixEffectWeapon(const D3DXVECTOR3& pos, const D3DXVECTOR3& dir, dword user, FIRE_END_HANDLER handler, int type, int cooldown) :
-    CMatrixEffect(), m_WeaponNum(type), m_User(user), m_Handler(handler), m_Pos(pos), m_Dir(dir), m_CoolDown(cooldown ? float(cooldown) : ((float)type))
+    CMatrixEffect(), m_WeaponNum(type), m_User(user), m_Handler(handler), m_Pos(pos), m_Dir(dir)
 {
     m_EffectType = EFFECT_WEAPON;
     m_WeaponCoefficient = g_WeaponDamageNormalCoef;
@@ -38,29 +38,29 @@ CMatrixEffectWeapon::~CMatrixEffectWeapon()
 {
     FireEnd();
 
-    if(m_WeaponNum == WEAPON_FLAMETHROWER)
+    if(g_Config.m_WeaponsConsts[m_WeaponNum].primary_effect == WEAPON_EFFECT_FLAMETHROWER)
     {
-        if(m_Effect.effect) m_Effect.Unconnect();
+        if(m_Effect.effect)
+        {
+            m_Effect.Unconnect();
+        }
     }
 
-#ifdef _DEBUG
-    m_Effect.Release(DEBUG_CALL_INFO);
-#else
     m_Effect.Release();
-#endif
 
-    if(m_Owner) m_Owner->Release();
+    if(m_Owner)
+    {
+        m_Owner->Release();
+    }
 }
 
 void CMatrixEffectWeapon::WeaponHit(CMatrixMapStatic* hiti, const D3DXVECTOR3& pos, dword user, dword flags)
 {
-DTRACE();
-    
     CMatrixEffectWeapon* w = (CMatrixEffectWeapon*)user;
 
     bool give_damage = true;
-    byte prim_effect = g_Config.m_WeaponsConsts[w->m_WeaponNum].primary_effect;
-    if(prim_effect == EFFECT_CANNON || prim_effect == EFFECT_ROCKET_LAUNCHER)
+    int prim_effect = g_Config.m_WeaponsConsts[w->m_WeaponNum].primary_effect;
+    if(prim_effect == WEAPON_EFFECT_CANNON || prim_effect == WEAPON_EFFECT_ROCKET_LAUNCHER)
     {
         if(POW2(w->m_WeaponDist * w->m_WeaponCoefficient) < m_Dist2) give_damage = false;
     }
@@ -71,7 +71,7 @@ DTRACE();
 
     if(give_damage && IS_TRACE_STOP_OBJECT(hiti))
     {
-        if(w->m_WeaponNum == WEAPON_BOMB)
+        if(prim_effect == WEAPON_EFFECT_BOMB)
         {
             D3DXVECTOR3 dir(pos - w->m_Pos);
             D3DXVec3Normalize(&dir, &dir);
@@ -84,9 +84,9 @@ DTRACE();
             if(hiti->IsRobot()) flags_add = FEHF_DAMAGE_ROBOT;
         }
     }
-    else if(hiti == TRACE_STOP_WATER && w->m_WeaponNum != WEAPON_FLAMETHROWER && w->m_WeaponNum != WEAPON_BOMB)
+    else if(hiti == TRACE_STOP_WATER && prim_effect != WEAPON_EFFECT_FLAMETHROWER && prim_effect != WEAPON_EFFECT_BOMB)
     {
-        CMatrixEffect::CreateKonusSplash(pos, D3DXVECTOR3(0.0f, 0.0f, 1.0f), 10.0f, 5.0f, FSRND((float)M_PI), 1000.0f, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged,TEXTURE_PATH_SPLASH));
+        CMatrixEffect::CreateConeSplash(pos, D3DXVECTOR3(0.0f, 0.0f, 1.0f), 10.0f, 5.0f, FSRND((float)M_PI), 1000.0f, 0xFFFFFFFF, true, m_SpriteTextures[SPR_WATER_SPLASH].tex);
     }
 
     if(odead) hiti = TRACE_STOP_NONE;
@@ -132,39 +132,65 @@ void CMatrixEffectWeapon::Modify(const D3DXVECTOR3& pos, const D3DXVECTOR3& dir,
     m_Dir = dir;
     m_Speed = speed;
 
-    if(m_WeaponNum == WEAPON_PLASMAGUN)
+    switch(g_Config.m_WeaponsConsts[m_WeaponNum].primary_effect)
     {
-        if(m_Effect.effect && m_Effect.effect->GetType() == EFFECT_KONUS)
+        case WEAPON_EFFECT_MACHINEGUN:
         {
-            ((CMatrixEffectKonus*)m_Effect.effect)->Modify(pos, dir);
+            if(m_Machinegun)
+            {
+                m_Machinegun->SetPos(pos, pos + dir * m_Machinegun->GetSpritesLenght(), dir);
+            }
+
+            break;
         }
-    }
-    else if(m_WeaponNum == WEAPON_MACHINEGUN)
-    {
-        if(m_Volcano) m_Volcano->SetPos(pos, pos + dir * VOLCANO_FIRE_LENGHT, dir);
-    }
-    else if(m_WeaponNum == WEAPON_DISCHARGER)
-    {
-        if(m_Effect.effect && m_Effect.effect->GetType() == EFFECT_LIGHTENING)
+
+        case WEAPON_EFFECT_PLASMAGUN:
         {
-            D3DXVECTOR3 hitpos(m_Pos + m_Dir * m_WeaponDist * m_WeaponCoefficient);
-            g_MatrixMap->Trace(&hitpos, m_Pos, hitpos, TRACE_ALL, m_Skip);
-            ((CMatrixEffectLightening*)m_Effect.effect)->SetPos(m_Pos, hitpos);
+            if(m_Effect.effect && m_Effect.effect->GetType() == EFFECT_CONE)
+            {
+                ((CMatrixEffectCone*)m_Effect.effect)->Modify(pos, dir);
+            }
+
+            break;
         }
-    }
-    else if(m_WeaponNum == WEAPON_LASER || m_WeaponNum == WEAPON_TURRET_LASER)
-    {
-        if(m_Laser)
+
+        case WEAPON_EFFECT_DISCHARGER:
         {
-            D3DXVECTOR3 hitpos(m_Pos + m_Dir * m_WeaponDist * m_WeaponCoefficient);
-            g_MatrixMap->Trace(&hitpos, m_Pos, hitpos, TRACE_ALL, m_Skip);
-            
-            m_Laser->SetPos(m_Pos, hitpos);
+            if(m_Effect.effect && m_Effect.effect->GetType() == EFFECT_LIGHTENING)
+            {
+                D3DXVECTOR3 hitpos(m_Pos + m_Dir * m_WeaponDist * m_WeaponCoefficient);
+                g_MatrixMap->Trace(&hitpos, m_Pos, hitpos, TRACE_ALL, m_Skip);
+                ((CMatrixEffectLightening*)m_Effect.effect)->SetPos(m_Pos, hitpos);
+            }
+
+            break;
         }
-    }
-    else if(g_Config.m_WeaponsConsts[m_WeaponNum].is_repairer)
-    {
-        if(m_Repair) m_Repair->UpdateData(pos, dir);
+
+        case WEAPON_EFFECT_LASER:
+        {
+            if(m_Laser)
+            {
+                D3DXVECTOR3 hitpos(m_Pos + m_Dir * m_WeaponDist * m_WeaponCoefficient);
+                g_MatrixMap->Trace(&hitpos, m_Pos, hitpos, TRACE_ALL, m_Skip);
+
+                m_Laser->SetPos(m_Pos, hitpos);
+            }
+
+            break;
+        }
+
+        default:
+        {
+            if(g_Config.m_WeaponsConsts[m_WeaponNum].is_repairer)
+            {
+                if(m_Repair)
+                {
+                    m_Repair->UpdateData(pos, dir);
+                }
+            }
+
+            break;
+        }
     }
 }
 
@@ -178,25 +204,116 @@ void CMatrixEffectWeapon::FireWeapon()
         else m_Sound = CSound::Play(m_ShotSoundType, m_Pos);
     }
 
-    if(g_Config.m_WeaponsConsts[m_WeaponNum].primary_effect)
+    SWeaponsConsts* weapon_data = &g_Config.m_WeaponsConsts[m_WeaponNum];
+
+    if(weapon_data->primary_effect)
     {
-        switch(g_Config.m_WeaponsConsts[m_WeaponNum].primary_effect)
+        switch(weapon_data->primary_effect)
         {
+            case WEAPON_EFFECT_MACHINEGUN:
+            {
+                if(m_Machinegun) //Если эффект вспышки уже создан, то просто корректируем его позицию
+                {
+                    float ang = float(2.0 * M_PI / 4096.0) * (g_MatrixMap->GetTime() & 4095);
+                    m_Machinegun->SetPos(m_Pos, m_Pos + m_Dir * m_Machinegun->GetSpritesLenght(), m_Dir, ang);
+                }
+                else if(weapon_data->sprite_set[MACHINEGUN_MUZZLE_FLASH_SPRITES_NUM].sprites_count) //Здесь создаём и линкуем к дулу пулемёта эффект вспышки от выстрелов
+                {
+                    float ang = float(2.0 * M_PI / 4096.0) * (g_MatrixMap->GetTime() & 4095);
+                    m_Machinegun = HNew(m_Heap) CMachinegun( m_Pos, m_Dir, ang,
+                        weapon_data->sprites_lenght,   weapon_data->sprites_width,
+                        weapon_data->fire_cone_lenght, weapon_data->fire_cone_radius,
+                        weapon_data->hex_ABGR_sprites_color,
+                        weapon_data->sprite_set[MACHINEGUN_MUZZLE_FLASH_SPRITES_NUM].sprites_num[0],
+                        weapon_data->sprite_set[MACHINEGUN_MUZZLE_FLASH_SPRITES_NUM].sprites_num[1],
+                        weapon_data->sprite_set[MACHINEGUN_MUZZLE_FLASH_SPRITES_NUM].sprites_num[2] );
+
+                    if(!g_MatrixMap->AddEffect(m_Machinegun))
+                    {
+                        m_Machinegun = nullptr;
+                    }
+                }
+
+                dword flags_add = FEHF_LASTHIT;
+
+                D3DXVECTOR3 hitpos;
+                D3DXVECTOR3 splash;
+                CMatrixMapStatic* s = g_MatrixMap->Trace(&hitpos, m_Pos, m_Pos + m_Dir * m_WeaponDist * m_WeaponCoefficient, TRACE_ALL, m_Skip);
+
+                if(s == TRACE_STOP_NONE)
+                {
+                    break;
+                }
+
+                //Попали в какую-то цель
+                if(IS_TRACE_STOP_OBJECT(s))
+                {
+                    bool dead = s->TakingDamage(m_WeaponNum, hitpos, m_Dir, GetSideStorage(), GetOwner());
+                    SETFLAG(m_Flags, WEAPFLAGS_HITWAS);
+                    
+                    if(dead)
+                    {
+                        s = TRACE_STOP_NONE;
+                    }
+
+                    splash = -m_Dir;
+                }
+                //Попали в землю
+                else if(s != TRACE_STOP_WATER && weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_count)
+                {
+                    g_MatrixMap->GetNormal(&splash, hitpos.x, hitpos.y);
+                    CMatrixEffect::CreateCone(nullptr, hitpos, splash, weapon_data->ground_hit.radius_1, weapon_data->ground_hit.height_1, FSRND((float)M_PI), 300.0f, weapon_data->ground_hit.hex_ABGR_sprites_color, true, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_num[0]].tex);
+                    if(weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_count > 2 && FRND(1.0f) < 0.5f)
+                    {
+                        CMatrixEffect::CreateCone(nullptr, hitpos, splash, weapon_data->ground_hit.radius_2, weapon_data->ground_hit.height_2, FSRND((float)M_PI), 300.0f, weapon_data->ground_hit.hex_ABGR_sprites_color, true, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_num[2]].tex);
+                    }
+                    else
+                    {
+                        CMatrixEffect::CreateCone(nullptr, hitpos, splash, weapon_data->ground_hit.radius_2, weapon_data->ground_hit.height_2, FSRND((float)M_PI), 300.0f, weapon_data->ground_hit.hex_ABGR_sprites_color, true, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_num[1]].tex);
+                    }
+                }
+                //Попали в воду
+                else if(weapon_data->sprite_set[MACHINEGUN_WATER_HIT_SPRITES_NUM].sprites_count)
+                {
+                    splash = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
+                    CMatrixEffect::CreateConeSplash(hitpos, splash, weapon_data->water_hit.radius, weapon_data->water_hit.height, FSRND((float)M_PI), 1000.0f, weapon_data->water_hit.hex_ABGR_sprites_color, true, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_WATER_HIT_SPRITES_NUM].sprites_num[0]].tex);
+                }
+
+                //С некоторым шансом рисуем инверсионный след от пули (от дула к месту попадания)
+                if(weapon_data->sprite_set[MACHINEGUN_CONTRAIL_SPRITES_NUM].sprites_count && FRND(1.0f) < weapon_data->contrail_chance)
+                {
+                    CMatrixEffect::CreateSpritesLine(nullptr, m_Pos, hitpos, weapon_data->contrail_width, weapon_data->hex_ABGR_contrail_color, 0x00000000, weapon_data->contrail_duration, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_CONTRAIL_SPRITES_NUM].sprites_num[0]].tex);
+                }
+
+                if(m_Handler)
+                {
+                    m_Handler(s, hitpos, m_User, FEHF_LASTHIT);
+                }
+
+                break;
+            }
+
             //Оружие, спавнящее проджектайлы
-            case EFFECT_CANNON:
+            case WEAPON_EFFECT_CANNON:
             {
                 SMOProps mo;
                 mo.gun.maxdist = m_WeaponDist * m_WeaponCoefficient;
                 mo.gun.splash_radius = g_Config.m_WeaponsConsts[m_WeaponNum].projectile_splash_radius;
-                //Для отрисовки инверсионного следа от снаряда
-                if(g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[1].sprites_count)
+
+                //Для отрисовки инверсионного следа от снаряда (рисуется с шансом)
+                if(
+                        weapon_data->sprite_set[CANNON_CONTRAIL_SPRITES_NUM].sprites_count
+                    && (weapon_data->contrail_chance >= 1.0f || FRND(1.0f) < weapon_data->contrail_chance))
                 {
-                    mo.gun.contrail_sprite_num = (ESpriteTextureSort)g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[1].sprites_num[0];
-                    mo.gun.contrail_width = g_Config.m_WeaponsConsts[m_WeaponNum].contrail_width;
-                    mo.gun.contrail_duration = g_Config.m_WeaponsConsts[m_WeaponNum].contrail_duration;
-                    mo.gun.contrail_color = g_Config.m_WeaponsConsts[m_WeaponNum].hex_BGRA_sprites_color;
+                    mo.gun.contrail_sprite_num = (ESpriteTextureSort)weapon_data->sprite_set[CANNON_CONTRAIL_SPRITES_NUM].sprites_num[0];
+                    mo.gun.contrail_width = weapon_data->contrail_width;
+                    mo.gun.contrail_duration = weapon_data->contrail_duration;
+                    mo.gun.contrail_color = weapon_data->hex_ABGR_contrail_color;
                 }
-                else mo.gun.contrail_sprite_num = SPR_NONE;
+                else
+                {
+                    mo.gun.contrail_sprite_num = SPR_NONE;
+                }
 
                 mo.startpos = m_Pos;
                 mo.target = m_Speed; //Нахуя?
@@ -206,54 +323,58 @@ void CMatrixEffectWeapon::FireWeapon()
                 //mo.attacker = m_Owner;
                 //if(mo.attacker) mo.attacker->RefInc();
 
-                mo.velocity = m_Dir * g_Config.m_WeaponsConsts[m_WeaponNum].projectile_full_velocity + m_Speed;
-                mo.object = LoadObject(g_Config.m_WeaponsConsts[m_WeaponNum].projectile_model_path, m_Heap);
+                mo.velocity = m_Dir * weapon_data->projectile_full_velocity + m_Speed;
+                mo.object = LoadObject(weapon_data->projectile_model_path, m_Heap);
                 mo.handler = MO_Cannon_Round_Tact;
 
                 ++m_Ref;
                 CMatrixEffect::CreateMovingObject(nullptr, mo, TRACE_ALL, m_Skip, WeaponHit, (dword)this);
 
-                if(g_Config.m_WeaponsConsts[m_WeaponNum].light_radius)
+                if(weapon_data->light_radius)
                 {
                     SEffectHandler eh;
-                    CMatrixEffect::CreatePointLight(&eh, m_Pos, g_Config.m_WeaponsConsts[m_WeaponNum].light_radius, g_Config.m_WeaponsConsts[m_WeaponNum].hex_BGRA_light_color, false);
+                    CMatrixEffect::CreatePointLight(&eh, m_Pos, weapon_data->light_radius, weapon_data->hex_ABGR_light_color, false);
                     if(eh.effect)
                     {
-                        ((CMatrixEffectPointLight*)eh.effect)->Kill(g_Config.m_WeaponsConsts[m_WeaponNum].light_duration);
+                        ((CMatrixEffectPointLight*)eh.effect)->Kill(weapon_data->light_duration);
                         eh.Unconnect();
                     }
                 }
 
-                if(g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_count) //На случай, если спрайтовую "вспышку" отрубили совсем
+                //Рисуем дульную вспышку от выстрела
+                if(weapon_data->sprite_set[CANNON_MUZZLE_FLASH_SPRITES_NUM].sprites_count) //На случай, если спрайтовую "вспышку" отрубили совсем
                 {
-                    int f = IRND(g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_count);
-                    CMatrixEffect::CreateSpritesLine(nullptr, m_Pos, m_Pos + m_Dir * (float)g_Config.m_WeaponsConsts[m_WeaponNum].sprites_lenght, (float)g_Config.m_WeaponsConsts[m_WeaponNum].sprites_width, 0xFFFFFFFF, 0, 1000, m_SpriteTextures[g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_num[f]].tex);
+                    int f = IRND(weapon_data->sprite_set[CANNON_MUZZLE_FLASH_SPRITES_NUM].sprites_count);
+                    CMatrixEffect::CreateSpritesLine(nullptr, m_Pos, m_Pos + m_Dir * weapon_data->sprites_lenght, weapon_data->sprites_width, weapon_data->hex_ABGR_sprites_color, 0x00000000, 1000.0f, m_SpriteTextures[weapon_data->sprite_set[CANNON_MUZZLE_FLASH_SPRITES_NUM].sprites_num[f]].tex);
                 }
 
                 break;
             }
 
-            case EFFECT_ROCKET_LAUNCHER:
+            //Оружие, спавнящее проджектайлы
+            case WEAPON_EFFECT_ROCKET_LAUNCHER:
             {
                 SMOProps mo;
                 mo.startpos = m_Pos;
-                mo.target = m_Pos + m_Dir * 5000;
+                mo.target = m_Pos + m_Dir * 5000.0f;
                 mo.curpos = mo.startpos;
 
-                mo.hm.full_velocity_reach = g_Config.m_WeaponsConsts[m_WeaponNum].projectile_full_velocity_reach;
+                mo.hm.full_velocity_reach = weapon_data->projectile_full_velocity_reach;
                 if(!mo.hm.full_velocity_reach) //Если у ракеты нет периода начальной скорости, то стартует она сразу с полной
                 {
-                    mo.velocity = m_Dir * g_Config.m_WeaponsConsts[m_WeaponNum].projectile_full_velocity + m_Speed;
+                    mo.velocity = m_Dir * weapon_data->projectile_full_velocity + m_Speed;
                     mo.hm.is_full_velocity = true;
                 }
                 else
                 {
-                    mo.velocity = m_Dir * g_Config.m_WeaponsConsts[m_WeaponNum].projectile_start_velocity + m_Speed;
-                    mo.hm.full_velocity = m_Dir * g_Config.m_WeaponsConsts[m_WeaponNum].projectile_full_velocity + m_Speed;
+                    mo.velocity = m_Dir * weapon_data->projectile_start_velocity + m_Speed;
+                    mo.hm.full_velocity = m_Dir * weapon_data->projectile_full_velocity + m_Speed;
                 }
-                mo.hm.acceleration_coef = g_Config.m_WeaponsConsts[m_WeaponNum].projectile_acceleration_coef;
-                mo.hm.target_capture_angle_cos = g_Config.m_WeaponsConsts[m_WeaponNum].projectile_target_capture_angle_cos;
-                mo.hm.homing_speed = g_Config.m_WeaponsConsts[m_WeaponNum].projectile_homing_speed;
+
+                mo.hm.acceleration_coef = weapon_data->projectile_acceleration_coef;
+                mo.hm.target_capture_angle_cos = weapon_data->projectile_target_capture_angle_cos;
+                mo.hm.homing_speed = weapon_data->projectile_homing_speed;
+
                 if(m_User)
                 {
                     /* хуй почему знает, но такое выставление цели крашит игру где-то в переборе эффектов
@@ -270,21 +391,24 @@ void CMatrixEffectWeapon::FireWeapon()
                         CMatrixRobotAI* robot = (CMatrixRobotAI*)m_User;
                         if(robot->m_MissileTargetCaptureAngleCos != 1.0f)
                         {
-                            mo.hm.target_capture_angle_cos = mo.hm.target_capture_angle_cos * robot->m_MissileTargetCaptureAngleCos - g_Config.m_WeaponsConsts[m_WeaponNum].projectile_target_capture_angle_sin * robot->m_MissileTargetCaptureAngleSin;
+                            mo.hm.target_capture_angle_cos = mo.hm.target_capture_angle_cos * robot->m_MissileTargetCaptureAngleCos - weapon_data->projectile_target_capture_angle_sin * robot->m_MissileTargetCaptureAngleSin;
                         }
                         mo.hm.homing_speed += robot->m_MissileHomingSpeed;
                     }
                 }
-                mo.hm.splash_radius = g_Config.m_WeaponsConsts[m_WeaponNum].projectile_splash_radius;
-                mo.hm.max_lifetime = (float)g_Config.m_WeaponsConsts[m_WeaponNum].projectile_max_lifetime;
+                mo.hm.splash_radius = weapon_data->projectile_splash_radius;
+                mo.hm.max_lifetime = (float)weapon_data->projectile_max_lifetime;
 
-                if(m_User) mo.hm.missile_owner = (CMatrixMapStatic*)m_User;
+                if(m_User)
+                {
+                    mo.hm.missile_owner = (CMatrixMapStatic*)m_User;
+                }
 
-                mo.hm.fire_effect_starts = g_Config.m_WeaponsConsts[m_WeaponNum].contrail_fire_effect_starts;
-                mo.hm.close_color_rgb = g_Config.m_WeaponsConsts[m_WeaponNum].close_color_rgb;
-                mo.hm.far_color_rgb = g_Config.m_WeaponsConsts[m_WeaponNum].far_color_rgb;
+                mo.hm.fire_effect_starts = weapon_data->contrail_fire_effect_starts;
+                mo.hm.close_color_rgb = weapon_data->close_color_rgb;
+                mo.hm.far_color_rgb = weapon_data->far_color_rgb;
 
-                mo.object = LoadObject(g_Config.m_WeaponsConsts[m_WeaponNum].projectile_model_path, m_Heap);
+                mo.object = LoadObject(weapon_data->projectile_model_path, m_Heap);
                 mo.handler = MO_Homing_Missile_Tact;
 
                 mo.side = m_SideStorage;
@@ -293,37 +417,52 @@ void CMatrixEffectWeapon::FireWeapon()
 
                 mo.shleif = (SEffectHandler*)HAlloc(sizeof(SEffectHandler), m_Heap);
                 mo.shleif->effect = nullptr;
-                if(g_Config.m_WeaponsConsts[m_WeaponNum].contrail_duration) CMatrixEffect::CreateShleif(mo.shleif);
+                if(weapon_data->contrail_duration) CMatrixEffect::CreateShleif(mo.shleif);
                 ++m_Ref;
                 CMatrixEffect::CreateMovingObject(nullptr, mo, TRACE_ALL, m_Skip, WeaponHit, (dword)this);
 
-                if(g_Config.m_WeaponsConsts[m_WeaponNum].light_radius)
+                if(weapon_data->light_radius)
                 {
                     SEffectHandler eh;
-                    CMatrixEffect::CreatePointLight(&eh, m_Pos, g_Config.m_WeaponsConsts[m_WeaponNum].light_radius, g_Config.m_WeaponsConsts[m_WeaponNum].hex_BGRA_light_color, false);
+                    CMatrixEffect::CreatePointLight(&eh, m_Pos, weapon_data->light_radius, weapon_data->hex_ABGR_light_color, false);
                     if(eh.effect)
                     {
-                        ((CMatrixEffectPointLight*)eh.effect)->Kill(g_Config.m_WeaponsConsts[m_WeaponNum].light_duration);
+                        ((CMatrixEffectPointLight*)eh.effect)->Kill(weapon_data->light_duration);
                         eh.Unconnect();
                     }
                 }
 
-                if(g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_count) //На случай, если спрайтовую "вспышку" отрубили совсем
+                if(weapon_data->sprite_set[0].sprites_count) //На случай, если спрайтовую "вспышку" отрубили совсем
                 {
-                    int f = IRND(g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_count);
-                    CMatrixEffect::CreateSpritesLine(nullptr, m_Pos, m_Pos + m_Dir * (float)g_Config.m_WeaponsConsts[m_WeaponNum].sprites_lenght, (float)g_Config.m_WeaponsConsts[m_WeaponNum].sprites_width, 0xFFFFFFFF, 0, 1000, m_SpriteTextures[g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_num[f]].tex);
+                    int f = IRND(weapon_data->sprite_set[0].sprites_count);
+                    CMatrixEffect::CreateSpritesLine(nullptr, m_Pos, m_Pos + m_Dir * weapon_data->sprites_lenght, weapon_data->sprites_width, 0xFFFFFFFF, 0x00000000, 1000.0f, m_SpriteTextures[weapon_data->sprite_set[0].sprites_num[f]].tex);
                 }
 
                 break;
             }
 
-            case EFFECT_MORTAR:
+            case WEAPON_EFFECT_FLAMETHROWER:
+            {
+                if(m_Effect.effect == nullptr)
+                {
+                    float ttl = m_WeaponDist * m_WeaponCoefficient * 8.333f;
+                    CMatrixEffect::CreateFlame(&m_Effect, ttl, TRACE_ALL, m_Skip, (dword)this, WeaponHit);
+                    if(m_Effect.effect == nullptr) break;
+                    ++m_Ref;
+                }
+
+                ((CMatrixEffectFlame*)m_Effect.effect)->AddPuff(m_Pos, m_Dir, m_Speed);
+                
+                break;
+            }
+
+            case WEAPON_EFFECT_MORTAR:
             {
                 SMOProps mo;
                 mo.startpos = m_Pos;
                 mo.curpos = mo.startpos;
 
-                //CHelper::Create(100, 0)->Line(m_Speed, m_Speed + D3DXVECTOR3(0, 0, 100));
+                //CHelper::Create(100, 0)->Line(m_Speed, m_Speed + D3DXVECTOR3(0.0f, 0.0f, 100.0f));
 
                 D3DXVECTOR3 temp = m_Pos - m_Speed;
                 float len = D3DXVec3Length(&temp);
@@ -346,9 +485,9 @@ void CMatrixEffectWeapon::FireWeapon()
                 if(m_Dir.z < 0)
                 {
                     // on flyer bombomet
-                    pts[1] = m_Pos + m_Dir * 70 - D3DXVECTOR3(0, 0, 25);
-                    pts[2] = m_Pos + m_Dir * 110 - D3DXVECTOR3(0, 0, 100);
-                    pts[3] = m_Pos + m_Dir * 130 - D3DXVECTOR3(0, 0, 300);
+                    pts[1] = m_Pos + m_Dir * 70.0f - D3DXVECTOR3(0.0f, 0.0f, 25.0f);
+                    pts[2] = m_Pos + m_Dir * 110.0f - D3DXVECTOR3(0.0f, 0.0f, 100.0f);
+                    pts[3] = m_Pos + m_Dir * 130.0f - D3DXVECTOR3(0.0f, 0.0f, 300.0f);
 
                     pcnt = 4;
 
@@ -356,11 +495,11 @@ void CMatrixEffectWeapon::FireWeapon()
                 }
                 else
                 {
-                    pts[1] = mid + dir * len * 0.15f + D3DXVECTOR3(0, 0, len * 0.5f);
-                    pts[2] = mid - dir * len * 0.15f + D3DXVECTOR3(0, 0, len * 0.5f);
+                    pts[1] = mid + dir * len * 0.15f + D3DXVECTOR3(0.0f, 0.0f, len * 0.5f);
+                    pts[2] = mid - dir * len * 0.15f + D3DXVECTOR3(0.0f, 0.0f, len * 0.5f);
                     pts[3] = mo.target;
                     // more beautiful trajectory
-                    pts[4] = mo.target - dir * len * 0.35f - D3DXVECTOR3(0, 0, len * 0.5f);
+                    pts[4] = mo.target - dir * len * 0.35f - D3DXVECTOR3(0.0f, 0.0f, len * 0.5f);
 
                     mo.velocity.x = 0.0005f;
                 }
@@ -409,13 +548,87 @@ void CMatrixEffectWeapon::FireWeapon()
                 break;
             }
 
-            case EFFECT_REPAIRER:
+            case WEAPON_EFFECT_LASER:
+            {
+                D3DXVECTOR3 hitpos = m_Pos + m_Dir * m_WeaponDist * m_WeaponCoefficient;
+                CMatrixMapStatic* s = g_MatrixMap->Trace(&hitpos, m_Pos, hitpos, TRACE_ALL, m_Skip);
+
+                if(IS_TRACE_STOP_OBJECT(s))
+                {
+                    bool dead = s->TakingDamage(m_WeaponNum, hitpos, m_Dir, GetSideStorage(), GetOwner());
+                    SETFLAG(m_Flags, WEAPFLAGS_HITWAS);
+                    if(dead)
+                    {
+                        s = TRACE_STOP_NONE;
+                    }
+
+                    /*
+                    D3DXVECTOR3 pos1(hitpos.x + FSRND(20.0f), hitpos.y + FSRND(20.0f), 0);
+                    pos1.z = g_MatrixMap->GetZ(pos1.x, pos1.y);
+                    e = CMatrixEffect::CreateShorted(hitpos, pos1, int(FRND(500.0f) + 400.0f));
+                    g_MatrixMap->AddEffect(e);
+                    */
+
+                    CMatrixEffect::CreateExplosion(hitpos, ExplosionLaserHit);
+
+                    if(m_Handler)
+                    {
+                        m_Handler(s, hitpos, m_User, FEHF_LASTHIT);
+                    }
+                }
+                else if(s == TRACE_STOP_LANDSCAPE)
+                {
+                    CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND((float)M_PI), FRND(1.0f) + 0.5f, SPOT_PLASMA_HIT);
+                    CMatrixEffect::CreateExplosion(hitpos, ExplosionLaserHit);
+                }
+                else if(s == TRACE_STOP_WATER)
+                {
+                    CMatrixEffect::CreateSmoke(nullptr, hitpos, 100, 1400, 10, 0xFFFFFF);
+                }
+
+                if(m_Laser)
+                {
+                    m_Laser->SetPos(m_Pos, hitpos);
+                }
+                else
+                {
+                    m_Laser = HNew(m_Heap) CLaser(m_Pos, hitpos);
+                    if(!g_MatrixMap->AddEffect(m_Laser))
+                    {
+                        m_Laser = nullptr;
+                    }
+                }
+
+                if(m_Handler)
+                {
+                    m_Handler(s, hitpos, m_User, FEHF_LASTHIT);
+                }
+
+                break;
+            }
+
+            case WEAPON_EFFECT_PLASMAGUN:
+            {
+                float ang = float(2 * M_PI / 4096.0) * (g_MatrixMap->GetTime() & 4095);
+                CMatrixEffect::CreateCone(&m_Effect, m_Pos, m_Dir, 10.0f, 10.0f, ang, 300.0f, 0xFFFFFFFF, true, nullptr);
+
+                ++m_Ref;
+
+                CMatrixEffect::CreateFirePlasma(m_Pos, m_Pos + (m_Dir * m_WeaponDist * m_WeaponCoefficient), 0.5f, TRACE_ALL, m_Skip, WeaponHit, (dword)this);
+
+                break;
+            }
+
+            case WEAPON_EFFECT_REPAIRER:
             {
                 if(m_Repair) m_Repair->UpdateData(m_Pos, m_Dir);
                 else
                 {
                     m_Repair = (CMatrixEffectRepair*)CreateRepair(m_Pos, m_Dir, m_WeaponDist * m_WeaponCoefficient, m_Skip, (ESpriteTextureSort)g_Config.m_WeaponsConsts[m_WeaponNum].sprite_set[0].sprites_num[0]);
-                    if(!g_MatrixMap->AddEffect(m_Laser)) m_Repair = nullptr;
+                    if(!g_MatrixMap->AddEffect(m_Laser))
+                    {
+                        m_Repair = nullptr;
+                    }
                 }
 
                 if(m_Repair)
@@ -427,13 +640,70 @@ void CMatrixEffectWeapon::FireWeapon()
                         SETFLAG(m_Flags, WEAPFLAGS_HITWAS);
                         ms->TakingDamage(m_WeaponNum, ms->GetGeoCenter(), m_Dir, GetSideStorage(), GetOwner());
                     }
-                    else if(m_Handler) m_Handler(TRACE_STOP_NONE, m_Pos, m_User, FEHF_LASTHIT);
+                    else if(m_Handler)
+                    {
+                        m_Handler(TRACE_STOP_NONE, m_Pos, m_User, FEHF_LASTHIT);
+                    }
                 }
 
                 break;
             }
 
-            case EFFECT_BOMB:
+            case WEAPON_EFFECT_DISCHARGER:
+            {
+                D3DXVECTOR3 hitpos = m_Pos + m_Dir * m_WeaponDist * m_WeaponCoefficient;
+                CMatrixMapStatic* s = g_MatrixMap->Trace(&hitpos, m_Pos, hitpos, TRACE_ALL, m_Skip);
+
+                //float l = D3DXVec3Length(&(m_Pos - hitpos));
+                //CDText::T("len", CStr(l));
+
+                //CHelper::Create(10, 0)->Line(m_Pos, hitpos);
+                //CHelper::Create(10, 0)->Line(hitpos, hitpos + D3DXVECTOR3(0, 0, 100));
+
+                if(IS_TRACE_STOP_OBJECT(s))
+                {
+                    bool dead = s->TakingDamage(m_WeaponNum, hitpos, m_Dir, GetSideStorage(), GetOwner());
+                    SETFLAG(m_Flags, WEAPFLAGS_HITWAS);
+                    if(dead)
+                    {
+                        s = TRACE_STOP_NONE;
+                    }
+                    else
+                    {
+                        if(!s->IsFlyer())
+                        {
+                            D3DXVECTOR3 pos1(hitpos.x + FSRND(20), hitpos.y + FSRND(20), 0);
+                            pos1.z = g_MatrixMap->GetZ(pos1.x, pos1.y);
+                            CMatrixEffect::CreateShorted(hitpos, pos1, FRND(500) + 400);
+                        }
+                    }
+                }
+                else if(s == TRACE_STOP_LANDSCAPE)
+                {
+                    CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND((float)M_PI), FRND(1) + 0.5f, SPOT_PLASMA_HIT);
+
+                    //e = CMatrixEffect::CreateShorted(hitpos + D3DXVECTOR3(FSRND(5), FSRND(5), 0), hitpos + D3DXVECTOR3(FSRND(5), FSRND(5), 0), int(FRND(500) + 400));
+                    //g_MatrixMap->AddEffect(e);
+                }
+
+                if(m_Effect.effect && m_Effect.effect->GetType() == EFFECT_LIGHTENING)
+                {
+                    ((CMatrixEffectLightening*)m_Effect.effect)->SetPos(m_Pos, hitpos);
+                }
+                else
+                {
+                    CMatrixEffect::CreateLightening(&m_Effect, m_Pos, hitpos, 1000000, 3, LIGHTENING_WIDTH);
+                }
+
+                if(m_Handler)
+                {
+                    m_Handler(s, hitpos, m_User, FEHF_LASTHIT);
+                }
+
+                break;
+            }
+
+            case WEAPON_EFFECT_BOMB:
             {
                 ++m_Ref;
                 CMatrixEffect::CreateBigBoom(m_Pos, m_WeaponDist * m_WeaponCoefficient, 300, TRACE_ALL, nullptr/*m_Skip*/, (dword)this, WeaponHit);
@@ -443,168 +713,12 @@ void CMatrixEffectWeapon::FireWeapon()
 
                 break;
             }
+
+            default:
+            {
+                CMatrixEffect::CreateExplosion(m_Pos, ExplosionRobotBoom, true);
+            }
         }
-    }
-    else switch(m_WeaponNum)
-    {
-        case WEAPON_PLASMAGUN:
-        {
-            float ang = float(2 * M_PI / 4096.0) * (g_MatrixMap->GetTime() & 4095);
-            CMatrixEffect::CreateKonus(&m_Effect, m_Pos, m_Dir, 10, 10, ang, 300, true, nullptr);
-            ++m_Ref;
-            CMatrixEffect::CreateFirePlasma(m_Pos, m_Pos + (m_Dir * m_WeaponDist * m_WeaponCoefficient), 0.5f, TRACE_ALL, m_Skip, WeaponHit, (dword)this);
-            break;
-        }
-        case WEAPON_MACHINEGUN:
-        {
-            if(m_Volcano)
-            {
-                //g_MatrixMap->SubEffect(m_Konus);
-                float ang = float(2 * M_PI / 4096.0) * (g_MatrixMap->GetTime() & 4095);
-                m_Volcano->SetPos(m_Pos, m_Pos + m_Dir * VOLCANO_FIRE_LENGHT, m_Dir, ang);
-            }
-            else
-            {
-                float ang = float(2 * M_PI / 4096.0) * (g_MatrixMap->GetTime() & 4095);
-                m_Volcano = HNew (m_Heap) CVolcano(m_Pos, m_Dir, ang);
-                if(!g_MatrixMap->AddEffect(m_Volcano)) m_Volcano = nullptr;
-            }
-
-            dword flags_add = FEHF_LASTHIT;
-
-            D3DXVECTOR3 hitpos;
-            D3DXVECTOR3 splash;
-            CMatrixMapStatic* s = g_MatrixMap->Trace(&hitpos, m_Pos, m_Pos + m_Dir * m_WeaponDist * m_WeaponCoefficient, TRACE_ALL, m_Skip);
-            if(s == TRACE_STOP_NONE) break;
-            if(IS_TRACE_STOP_OBJECT(s))
-            {
-                bool dead = s->TakingDamage(m_WeaponNum, hitpos, m_Dir, GetSideStorage(), GetOwner());
-                SETFLAG(m_Flags, WEAPFLAGS_HITWAS);
-                if(dead) s = TRACE_STOP_NONE;
-                splash = -m_Dir;
-            }
-            else if(s == TRACE_STOP_WATER)
-            {
-                splash = D3DXVECTOR3(0, 0, 1);
-                CMatrixEffect::CreateKonusSplash(hitpos, splash, 10, 5, FSRND((float)M_PI), 1000, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged, TEXTURE_PATH_SPLASH));
-            }
-            else
-            {
-                g_MatrixMap->GetNormal(&splash, hitpos.x, hitpos.y);
-                CMatrixEffect::CreateKonus(nullptr, hitpos, splash, 5, 10, FSRND((float)M_PI), 300, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged, TEXTURE_PATH_GUN_BULLETS1));
-                CMatrixEffect::CreateKonus(nullptr, hitpos, splash, 5, 5, FSRND((float)M_PI), 300, true, (CTextureManaged*)g_Cache->Get(cc_TextureManaged, TEXTURE_PATH_GUN_BULLETS2));
-            }
-
-            if(FRND(1) < 0.1f)
-            {
-                //CHelper::Create(1, 1)->Line(m_Pos, hitpos, 0x80808080, 0x80808080);
-                CMatrixEffect::CreateSpritesLine(nullptr, m_Pos, hitpos , 0.5f, 0x80FFFFFF, 0, 100, m_SpriteTextures[SPR_CONTRAIL].tex);
-            }
-
-            if(m_Handler) m_Handler(s, hitpos, m_User, FEHF_LASTHIT);
-
-            break;
-        }
-
-        case WEAPON_DISCHARGER:
-        {
-            D3DXVECTOR3 hitpos = m_Pos + m_Dir * m_WeaponDist * m_WeaponCoefficient;
-            CMatrixMapStatic* s = g_MatrixMap->Trace(&hitpos, m_Pos, hitpos, TRACE_ALL, m_Skip);
-
-            //float l = D3DXVec3Length(&(m_Pos - hitpos));
-            //CDText::T("len", CStr(l));
-
-            //CHelper::Create(10, 0)->Line(m_Pos, hitpos);
-            //CHelper::Create(10, 0)->Line(hitpos, hitpos + D3DXVECTOR3(0, 0, 100));
-
-            if(IS_TRACE_STOP_OBJECT(s))
-            {
-                bool dead = s->TakingDamage(m_WeaponNum, hitpos, m_Dir, GetSideStorage(), GetOwner());
-                SETFLAG(m_Flags, WEAPFLAGS_HITWAS);
-                if(dead) s = TRACE_STOP_NONE;
-                else
-                {
-                    if(!s->IsFlyer())
-                    {
-                        D3DXVECTOR3 pos1(hitpos.x + FSRND(20), hitpos.y + FSRND(20), 0);
-                        pos1.z = g_MatrixMap->GetZ(pos1.x, pos1.y);
-                        CMatrixEffect::CreateShorted(hitpos, pos1,FRND(500) + 400);
-                    }
-                }
-            }
-            else if(s == TRACE_STOP_LANDSCAPE)
-            {
-                CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND((float)M_PI), FRND(1) + 0.5f, SPOT_PLASMA_HIT);
-
-                //e = CMatrixEffect::CreateShorted(hitpos + D3DXVECTOR3(FSRND(5), FSRND(5), 0), hitpos + D3DXVECTOR3(FSRND(5), FSRND(5), 0), int(FRND(500) + 400));
-                //g_MatrixMap->AddEffect(e);
-            }
-
-            if(m_Effect.effect && m_Effect.effect->GetType() == EFFECT_LIGHTENING) ((CMatrixEffectLightening *)m_Effect.effect)->SetPos(m_Pos, hitpos);
-            else CMatrixEffect::CreateLightening(&m_Effect, m_Pos, hitpos, 1000000, 3, LIGHTENING_WIDTH);
-
-            if(m_Handler) m_Handler(s, hitpos, m_User, FEHF_LASTHIT);
-
-            break;
-        }
-        case WEAPON_LASER:
-        case WEAPON_TURRET_LASER:
-        {
-            D3DXVECTOR3 hitpos = m_Pos + m_Dir * m_WeaponDist * m_WeaponCoefficient;
-            CMatrixMapStatic* s = g_MatrixMap->Trace(&hitpos, m_Pos, hitpos, TRACE_ALL, m_Skip);
-
-            if(IS_TRACE_STOP_OBJECT(s))
-            {
-                bool dead = s->TakingDamage(m_WeaponNum, hitpos, m_Dir, GetSideStorage(), GetOwner());
-                SETFLAG(m_Flags, WEAPFLAGS_HITWAS);
-                if(dead) s = TRACE_STOP_NONE;
-
-                /*
-                D3DXVECTOR3 pos1(hitpos.x + FSRND(20), hitpos.y + FSRND(20), 0);
-                pos1.z = g_MatrixMap->GetZ(pos1.x, pos1.y);
-                e = CMatrixEffect::CreateShorted(hitpos, pos1, int(FRND(500) + 400));
-                g_MatrixMap->AddEffect(e);
-                */
-                
-                CMatrixEffect::CreateExplosion(hitpos, ExplosionLaserHit);
-
-                if(m_Handler) m_Handler(s, hitpos, m_User, FEHF_LASTHIT);
-            }
-            else if(s == TRACE_STOP_LANDSCAPE)
-            {
-                CMatrixEffect::CreateLandscapeSpot(nullptr, D3DXVECTOR2(hitpos.x, hitpos.y), FSRND((float)M_PI), FRND(1.0f) + 0.5f, SPOT_PLASMA_HIT);
-                CMatrixEffect::CreateExplosion(hitpos, ExplosionLaserHit);
-            }
-            else if(s == TRACE_STOP_WATER)
-            {
-                CMatrixEffect::CreateSmoke(nullptr, hitpos, 100, 1400, 10, 0xFFFFFF);
-            }
-
-            if(m_Laser) m_Laser->SetPos(m_Pos, hitpos);
-            else
-            {
-                m_Laser = HNew(m_Heap) CLaser(m_Pos, hitpos);
-                if(!g_MatrixMap->AddEffect(m_Laser)) m_Laser = nullptr;
-            }
-
-            if(m_Handler) m_Handler(s, hitpos, m_User, FEHF_LASTHIT);
-
-            break;
-        }
-        case WEAPON_FLAMETHROWER:
-        {
-            if(m_Effect.effect == nullptr)
-            {
-                float ttl = m_WeaponDist * m_WeaponCoefficient * 8.333f;
-                CMatrixEffect::CreateFlame(&m_Effect, ttl, TRACE_ALL, m_Skip, (dword)this, WeaponHit);
-                if(m_Effect.effect == nullptr) break;
-                ++m_Ref;
-            }
-            ((CMatrixEffectFlame*)m_Effect.effect)->AddPuff(m_Pos, m_Dir, m_Speed);
-            break;
-        }
-
-        default: CMatrixEffect::CreateExplosion(m_Pos, ExplosionRobotBoom, true);
     }
 }
 
@@ -622,45 +736,60 @@ void CMatrixEffectWeapon::FireEnd()
         }
     }
 
-    if(g_Config.m_WeaponsConsts[m_WeaponNum].is_repairer)
+    switch(g_Config.m_WeaponsConsts[m_WeaponNum].primary_effect)
     {
-        if(m_Repair)
+        case WEAPON_EFFECT_MACHINEGUN:
         {
-            //CMatrixMapStatic* ms = m_Repair->GetTarget();
-            //if(ms && m_Handler) m_Handler(ms, ms->GetGeoCenter(), m_User, FEHF_LASTHIT);
-            g_MatrixMap->SubEffect(m_Repair);
-            m_Repair = nullptr;
-        }
-    }
-    else switch(m_WeaponNum)
-    {
-        case WEAPON_DISCHARGER:
-        {
-            m_Effect.Release();
+            if(m_Machinegun)
+            {
+                g_MatrixMap->SubEffect(m_Machinegun);
+                m_Machinegun = nullptr;
+            }
+
             break;
         }
-        case WEAPON_LASER:
-        case WEAPON_TURRET_LASER:
+
+        case WEAPON_EFFECT_FLAMETHROWER:
+        {
+            if(m_Effect.effect)
+            {
+                ((CMatrixEffectFlame*)m_Effect.effect)->Break();
+            }
+
+            break;
+        }
+
+        case WEAPON_EFFECT_LASER:
         {
             if(m_Laser)
             {
                 g_MatrixMap->SubEffect(m_Laser);
                 m_Laser = nullptr;
             }
+
             break;
         }
-        case WEAPON_MACHINEGUN:
+
+        case WEAPON_EFFECT_DISCHARGER:
         {
-            if(m_Volcano)
+            m_Effect.Release();
+
+            break;
+        }
+
+        default:
+        {
+            if(g_Config.m_WeaponsConsts[m_WeaponNum].is_repairer)
             {
-                g_MatrixMap->SubEffect(m_Volcano);
-                m_Volcano = nullptr;
+                if(m_Repair)
+                {
+                    //CMatrixMapStatic* ms = m_Repair->GetTarget();
+                    //if(ms && m_Handler) m_Handler(ms, ms->GetGeoCenter(), m_User, FEHF_LASTHIT);
+                    g_MatrixMap->SubEffect(m_Repair);
+                    m_Repair = nullptr;
+                }
             }
-            break;
-        }
-        case WEAPON_FLAMETHROWER:
-        {
-            if(m_Effect.effect) ((CMatrixEffectFlame*)m_Effect.effect)->Break();
+
             break;
         }
     }
@@ -703,7 +832,7 @@ void CMatrixEffectWeapon::SoundHit(int weapon_num, const D3DXVECTOR3& pos)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CLaser::CLaser(const D3DXVECTOR3& pos0, const D3DXVECTOR3& pos1) :
-CMatrixEffect(), m_Sprites(TRACE_PARAM_CALL pos0, pos1, LASER_WIDTH, 0xFFFFFFFF, m_SpriteTextures[SPR_LASER_BEAM].tex)
+    CMatrixEffect(), m_Sprites(TRACE_PARAM_CALL pos0, pos1, LASER_WIDTH, 0xFFFFFFFF, m_SpriteTextures[SPR_LASER_BEAM].tex)
 {
     m_EffectType = EFFECT_LASER;
 
@@ -711,10 +840,8 @@ CMatrixEffect(), m_Sprites(TRACE_PARAM_CALL pos0, pos1, LASER_WIDTH, 0xFFFFFFFF,
     else m_end = CSprite(TRACE_PARAM_CALL pos0, LASER_WIDTH * 0.5f, 0, 0xFFFFFFFF, &m_SpriteTextures[SPR_LASER_SPOT].spr_tex);
 }
 
-void CLaser::Draw(void)
+void CLaser::Draw()
 {
-DTRACE();
-
     byte a = g_MatrixMap->IsPaused()?240:(byte(FRND(128) + 128));
 
     m_Sprites.SetAlpha(a);
@@ -728,23 +855,23 @@ DTRACE();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CVolcano::CVolcano(const D3DXVECTOR3& start, const D3DXVECTOR3& dir, float angle) :
-CMatrixEffect(), m_Konus(start, dir, VOLCANO_FIRE_KONUS_RADIUS, VOLCANO_FIRE_KONUS_LENGTH, angle, 300, true, nullptr),
-m_bl1(TRACE_PARAM_CALL start, start + dir * VOLCANO_FIRE_LENGHT, VOLCANO_FIRE_WIDTH, 0xFFFFFFFF, m_SpriteTextures[SPR_GUN_FLASH_1].tex),
-m_bl2(TRACE_PARAM_CALL start, start + dir * VOLCANO_FIRE_LENGHT, VOLCANO_FIRE_WIDTH, 0xFFFFFFFF, m_SpriteTextures[SPR_GUN_FLASH_2].tex),
-m_bl3(TRACE_PARAM_CALL start, start + dir * VOLCANO_FIRE_LENGHT, VOLCANO_FIRE_WIDTH, 0xFFFFFFFF, m_SpriteTextures[SPR_GUN_FLASH_3].tex)
+CMachinegun::CMachinegun(const D3DXVECTOR3& start, const D3DXVECTOR3& dir, float angle, float sprites_lenght, float sprites_width, float fire_cone_lenght, float fire_cone_radius, dword color, int sprite_num_1, int sprite_num_2, int sprite_num_3) :
+    m_SpritesLenght(sprites_lenght), m_FireConeLenght(fire_cone_lenght), m_FireConeRadius(fire_cone_radius), m_Cone(start, dir, m_FireConeRadius, m_FireConeLenght, angle, 300.0f, color, true, nullptr),
+    m_Sprite1(TRACE_PARAM_CALL start, start + dir * m_SpritesLenght, sprites_width, color, m_SpriteTextures[sprite_num_1].tex),
+    m_Sprite2(TRACE_PARAM_CALL start, start + dir * m_SpritesLenght, sprites_width, color, m_SpriteTextures[sprite_num_2].tex),
+    m_Sprite3(TRACE_PARAM_CALL start, start + dir * m_SpritesLenght, sprites_width, color, m_SpriteTextures[sprite_num_3].tex)
 {
-    m_EffectType = EFFECT_VOLCANO;
+    m_EffectType = EFFECT_MACHINEGUN;
 }
 
-void CVolcano::Draw(void)
+void CMachinegun::Draw()
 {
-    m_Konus.Draw();
+    m_Cone.Draw();
 
     switch(g_MatrixMap->IsPaused() ? 0 : (IRND(3)))
     {
-        case 0: m_bl1.AddToDrawQueue(); break;
-        case 1: m_bl2.AddToDrawQueue(); break;
-        case 2: m_bl3.AddToDrawQueue(); break;
+        case 0: m_Sprite1.AddToDrawQueue(); break;
+        case 1: m_Sprite2.AddToDrawQueue(); break;
+        case 2: m_Sprite3.AddToDrawQueue(); break;
     }
 }

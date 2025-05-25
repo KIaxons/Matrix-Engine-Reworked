@@ -66,7 +66,7 @@ struct SMOProps
             float        homing_speed = 0.0f; //От 0.0 до 1.0, является маркером и заодно показателем эффективности самонаведения (включается только после достижения маршевой скорости)
 
             float        max_lifetime = 0.0f; //Автоматически самоуничтожается спустя указанное время
-            int          fire_effect_starts = 0;
+            float        fire_effect_starts = 0;
 
             CMatrixMapStatic* missile_owner = nullptr; //Выпустивший данную ракету юнит (робот/вертолёт/турель)
 
@@ -87,8 +87,8 @@ struct SMOProps
 
             //Для отрисовки инверсионного следа
             ESpriteTextureSort contrail_sprite_num = (ESpriteTextureSort)0; //В момент создания объекта номер всё равно будет переприсвоен, так что плевать
-            int          contrail_width = 0;
-            int          contrail_duration = 0;
+            float        contrail_width = 0.0f;
+            float        contrail_duration = 0.0f;
             dword        contrail_color = 0;
 
         } gun;

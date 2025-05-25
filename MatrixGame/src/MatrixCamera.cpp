@@ -884,7 +884,7 @@ void CMatrixCamera::Tact(float unused_ms)
             m_AFD->m_CurAngX = m_AngleX;
         }
 
-        m_AFD->Tact(g_PureGameTact);
+        m_AFD->Tact(float(g_PureGameTact));
 
         return;
     }

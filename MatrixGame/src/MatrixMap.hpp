@@ -708,10 +708,16 @@ inline bool CMatrixMap::AddEffect(CMatrixEffect* ef)
     {
         CMatrixEffect* ef2del = nullptr;
         int pri = ef->Priority();
+
         for(CMatrixEffect* e = m_EffectsFirst; e != nullptr; e = e->m_Next)
         {
-            if(e->IsDIP()) continue;
+            if(e->IsDIP())
+            {
+                continue;
+            }
+
             int p = e->Priority();
+
             if(p < MAX_EFFECT_PRIORITY)
             {
                 ef2del = e;
@@ -726,7 +732,11 @@ inline bool CMatrixMap::AddEffect(CMatrixEffect* ef)
         }
         else
         {
-            if(m_EffectsNextTact == ef2del) m_EffectsNextTact = ef2del->m_Next;
+            if(m_EffectsNextTact == ef2del)
+            {
+                m_EffectsNextTact = ef2del->m_Next;
+            }
+
             LIST_DEL(ef2del, m_EffectsFirst, m_EffectsLast, m_Prev, m_Next);
             ef2del->Release();
             --m_EffectsCnt;

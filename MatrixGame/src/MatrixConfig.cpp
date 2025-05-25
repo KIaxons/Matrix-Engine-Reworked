@@ -622,9 +622,93 @@ void CMatrixConfig::ReadParams()
             weapon_data.shots_delay = shots_per_second > 0 ? 1000.0f / min(shots_per_second, 1000.0f) : 0.0f;
 
             const CWStr* effect_type = &bp->ParGetNE(L"EffectType");
-            if(*effect_type == L"Cannon")
+            if(*effect_type == L"Machinegun")
             {
-                weapon_data.primary_effect = EFFECT_CANNON;
+                weapon_data.primary_effect = WEAPON_EFFECT_MACHINEGUN;
+
+                CBlockPar* gun_flash = bp->BlockGetNE(L"GunFlash");
+                if(gun_flash)
+                {
+                    const CWStr* sprites_str = &gun_flash->ParGetNE(L"SpritesInCache");
+                    if(!sprites_str->IsEmpty())
+                    {
+                        SWeaponsConsts::SSpriteSet spr_set;
+                        spr_set.sprites_name = sprites_str->GetStrPar(0, L":");
+                        spr_set.sprites_count = sprites_str->GetIntPar(1, L":") > 1 ? sprites_str->GetIntPar(1, L":") : 1;
+                        weapon_data.sprite_set.push_back(spr_set);
+
+                        weapon_data.sprites_lenght = gun_flash->ParGetNE(L"SpritesLenght").GetFloat();
+                        weapon_data.sprites_width = gun_flash->ParGetNE(L"SpritesWidth").GetFloat();
+
+                        weapon_data.fire_cone_radius = gun_flash->ParGetNE(L"FireConeRadius").GetFloat();
+                        weapon_data.fire_cone_lenght = gun_flash->ParGetNE(L"FireConeLenght").GetFloat();
+
+                        const CWStr* par = &gun_flash->ParGetNE(L"SpritesColor");
+                        if(par->IsEmpty()) weapon_data.hex_ABGR_sprites_color = 0xFFFFFFFF;
+                        else weapon_data.hex_ABGR_sprites_color = RGBAStringToABGRColorHEX(par);
+                    }
+                    else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
+                }
+                else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
+
+                //Спрайты попадания в землю
+                CBlockPar* ground_hit = bp->BlockGetNE(L"GroundHit");
+                if(ground_hit)
+                {
+                    const CWStr* sprites_str = &ground_hit->ParGetNE(L"SpritesInCache");
+                    if(!sprites_str->IsEmpty())
+                    {
+                        SWeaponsConsts::SSpriteSet spr_set;
+                        spr_set.sprites_name = sprites_str->GetStrPar(0, L":");
+                        spr_set.sprites_count = sprites_str->GetIntPar(1, L":") > 1 ? sprites_str->GetIntPar(1, L":") : 1;
+                        weapon_data.sprite_set.push_back(spr_set);
+
+                        weapon_data.ground_hit.radius_1 = ground_hit->ParGetNE(L"ConeRadiusFirst").GetFloat();
+                        weapon_data.ground_hit.height_1 = ground_hit->ParGetNE(L"ConeHeightFirst").GetFloat();
+
+                        weapon_data.ground_hit.radius_2 = ground_hit->ParGetNE(L"ConeRadiusSecond").GetFloat();
+                        weapon_data.ground_hit.height_2 = ground_hit->ParGetNE(L"ConeHeightSecond").GetFloat();
+
+                        const CWStr* par = &ground_hit->ParGetNE(L"SpritesColor");
+                        if(par->IsEmpty()) weapon_data.ground_hit.hex_ABGR_sprites_color = 0xFFFFFFFF;
+                        else weapon_data.ground_hit.hex_ABGR_sprites_color = RGBAStringToABGRColorHEX(par);
+                    }
+                    else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
+                }
+                else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
+
+                //Спрайт попадания в воду
+                ground_hit = bp->BlockGetNE(L"WaterHit");
+                if(ground_hit)
+                {
+                    weapon_data.sprite_set.push_back({ ground_hit->ParGet(L"SpritesInCache"), { }, 1 }); //У всплеска от попадания в воду всегда только один спрайт
+                    weapon_data.water_hit.radius = ground_hit->ParGetNE(L"ConeRadius").GetFloat();
+                    weapon_data.water_hit.height = ground_hit->ParGetNE(L"ConeHeight").GetFloat();
+
+                    const CWStr* par = &ground_hit->ParGetNE(L"SpritesColor");
+                    if (par->IsEmpty()) weapon_data.water_hit.hex_ABGR_sprites_color = 0xFFFFFFFF;
+                    else weapon_data.water_hit.hex_ABGR_sprites_color = RGBAStringToABGRColorHEX(par);
+                }
+                else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
+            
+                //Инверсионный след от пули
+                CBlockPar* contrail = bp->BlockGetNE(L"Contrail");
+                if(contrail)
+                {
+                    weapon_data.sprite_set.push_back({ contrail->ParGet(L"SpritesInCache"), { }, 1 }); //У инверсионного следа всегда только один спрайт
+                    weapon_data.contrail_width = abs(contrail->ParGet(L"SpritesWidth").GetFloat());
+                    weapon_data.contrail_duration = 1000.0f * contrail->ParGet(L"SpritesDuration").GetFloat();
+                    weapon_data.contrail_chance = 0.01f * abs(contrail->ParGet(L"DrawingChance").GetFloat());
+
+                    const CWStr* par = &contrail->ParGetNE(L"SpritesColor");
+                    if(par->IsEmpty()) weapon_data.hex_ABGR_contrail_color = 0xFFFFFFFF;
+                    else weapon_data.hex_ABGR_contrail_color = RGBAStringToABGRColorHEX(par);
+                }
+                else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
+            }
+            else if(*effect_type == L"Cannon")
+            {
+                weapon_data.primary_effect = WEAPON_EFFECT_CANNON;
 
                 weapon_data.projectile_model_path = bp->ParGet(L"ProjectileModelPath");
                 weapon_data.projectile_full_velocity = max(bp->ParGet(L"ProjectileVelocity").GetFloat(), 0.1f);
@@ -641,8 +725,12 @@ void CMatrixConfig::ReadParams()
                         spr_set.sprites_count = sprites_str->GetIntPar(1, L":") > 1 ? sprites_str->GetIntPar(1, L":") : 1;
                         weapon_data.sprite_set.push_back(spr_set);
 
-                        weapon_data.sprites_lenght = gun_flash->ParGetNE(L"SpritesLenght").GetInt();
-                        weapon_data.sprites_width = gun_flash->ParGetNE(L"SpritesWidth").GetInt();
+                        weapon_data.sprites_lenght = gun_flash->ParGetNE(L"SpritesLenght").GetFloat();
+                        weapon_data.sprites_width = gun_flash->ParGetNE(L"SpritesWidth").GetFloat();
+
+                        const CWStr* par = &gun_flash->ParGetNE(L"SpritesColor");
+                        if(par->IsEmpty()) weapon_data.hex_ABGR_sprites_color = 0xFFFFFFFF;
+                        else weapon_data.hex_ABGR_sprites_color = RGBAStringToABGRColorHEX(par);
                     }
                     else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
 
@@ -652,8 +740,8 @@ void CMatrixConfig::ReadParams()
                         weapon_data.light_duration = 1000.0f * gun_flash->ParGetNE(L"LightSpotDuration").GetFloat();
 
                         const CWStr* par = &gun_flash->ParGetNE(L"LightSpotColor");
-                        if(par->IsEmpty()) weapon_data.hex_BGRA_light_color = 0xFFFFFFFF;
-                        else weapon_data.hex_BGRA_light_color = RGBAStringToABGRColorHEX(par);
+                        if(par->IsEmpty()) weapon_data.hex_ABGR_light_color = 0xFFFFFFFF;
+                        else weapon_data.hex_ABGR_light_color = RGBAStringToABGRColorHEX(par);
                     }
                 }
                 else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
@@ -662,18 +750,19 @@ void CMatrixConfig::ReadParams()
                 if(contrail)
                 {
                     weapon_data.sprite_set.push_back({ contrail->ParGet(L"SpritesInCache"), { }, 1 }); //У инверсионного следа всегда только один спрайт
-                    weapon_data.contrail_width = contrail->ParGet(L"SpritesWidth").GetInt();
-                    weapon_data.contrail_duration = int(1000.0f * contrail->ParGet(L"SpritesDuration").GetFloat());
+                    weapon_data.contrail_width = abs(contrail->ParGet(L"SpritesWidth").GetFloat());
+                    weapon_data.contrail_duration = 1000.0f * contrail->ParGet(L"SpritesDuration").GetFloat();
+                    weapon_data.contrail_chance = 0.01f * abs(contrail->ParGet(L"DrawingChance").GetFloat());
 
                     const CWStr* par = &contrail->ParGetNE(L"SpritesColor");
-                    if(par->IsEmpty()) weapon_data.hex_BGRA_sprites_color = 0xFFFFFFFF;
-                    else weapon_data.hex_BGRA_sprites_color = RGBAStringToABGRColorHEX(par);
+                    if(par->IsEmpty()) weapon_data.hex_ABGR_contrail_color = 0xFFFFFFFF;
+                    else weapon_data.hex_ABGR_contrail_color = RGBAStringToABGRColorHEX(par);
                 }
                 else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
             }
             else if(*effect_type == L"RocketLauncher")
             {
-                weapon_data.primary_effect = EFFECT_ROCKET_LAUNCHER;
+                weapon_data.primary_effect = WEAPON_EFFECT_ROCKET_LAUNCHER;
 
                 weapon_data.projectile_model_path = bp->ParGet(L"MissileModelPath");
                 weapon_data.projectile_start_velocity = max(bp->ParGetNE(L"MissileInitialVelocity").GetFloat(), 0.1f);
@@ -698,8 +787,8 @@ void CMatrixConfig::ReadParams()
                         spr_set.sprites_count = sprites_str->GetIntPar(1, L":") > 1 ? sprites_str->GetIntPar(1, L":") : 1;
                         weapon_data.sprite_set.push_back(spr_set);
 
-                        weapon_data.sprites_lenght = gun_flash->ParGetNE(L"SpritesLenght").GetInt();
-                        weapon_data.sprites_width = gun_flash->ParGetNE(L"SpritesWidth").GetInt();
+                        weapon_data.sprites_lenght = gun_flash->ParGetNE(L"SpritesLenght").GetFloat();
+                        weapon_data.sprites_width = gun_flash->ParGetNE(L"SpritesWidth").GetFloat();
                     }
                     else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
 
@@ -709,8 +798,8 @@ void CMatrixConfig::ReadParams()
                         weapon_data.light_duration = 1000.0f * gun_flash->ParGetNE(L"LightSpotDuration").GetFloat();
 
                         const CWStr* par = &gun_flash->ParGetNE(L"LightSpotColor");
-                        if(par->IsEmpty()) weapon_data.hex_BGRA_light_color = 0xFFFFFFFF;
-                        else weapon_data.hex_BGRA_light_color = RGBAStringToABGRColorHEX(par);
+                        if(par->IsEmpty()) weapon_data.hex_ABGR_light_color = 0xFFFFFFFF;
+                        else weapon_data.hex_ABGR_light_color = RGBAStringToABGRColorHEX(par);
                     }
                 }
                 else weapon_data.sprite_set.push_back({ (CWStr)L"", { }, 0 }); //Для пустого названия номер спрайта SPR_NONE добавится позже, во время загрузки всех спрайтов в память
@@ -718,8 +807,8 @@ void CMatrixConfig::ReadParams()
                 CBlockPar* contrail = bp->BlockGetNE(L"Contrail");
                 if(contrail)
                 {
-                    weapon_data.contrail_duration = 1; //В данном случае служит маркером необходимости отрисовки следа
-                    weapon_data.contrail_fire_effect_starts = max(int(1000.0f * contrail->ParGet(L"FireEffectStartsAt").GetFloat()), 0);
+                    weapon_data.contrail_duration = 1.0f; //В данном случае служит маркером необходимости отрисовки следа
+                    weapon_data.contrail_fire_effect_starts = max(1000.0f * contrail->ParGet(L"FireEffectStartsAt").GetFloat(), 0.0f);
 
                     const CWStr* rgb_string = &contrail->ParGet(L"CloseToHearthColor");
                     for(int j = 0; j < 3 /* rgb_string.GetCountPar(L",") */; ++j)
@@ -738,14 +827,82 @@ void CMatrixConfig::ReadParams()
                     }
                 }
             }
+            else if(*effect_type == L"Flamethrower")
+            {
+                weapon_data.primary_effect = WEAPON_EFFECT_FLAMETHROWER;
+
+                const CWStr* sprites_str = &bp->ParGetNE(L"SpritesInCache");
+                if(!sprites_str->IsEmpty())
+                {
+                    for(int i = 0; i < sprites_str->GetCountPar(L","); ++i)
+                    {
+                        SWeaponsConsts::SSpriteSet spr_set;
+                        spr_set.sprites_name = sprites_str->GetStrPar(i, L",");
+                        spr_set.sprites_count = 1;
+
+                        weapon_data.sprite_set.push_back(spr_set);
+                    }
+                }
+            }
             else if(*effect_type == L"Mortar")
             {
-                weapon_data.primary_effect = EFFECT_MORTAR;
+                weapon_data.primary_effect = WEAPON_EFFECT_MORTAR;
+            }
+            else if(*effect_type == L"Laser")
+            {
+                weapon_data.primary_effect = WEAPON_EFFECT_LASER;
+
+                const CWStr* sprites_str = &bp->ParGetNE(L"SpritesInCache");
+                if(!sprites_str->IsEmpty())
+                {
+                    for(int i = 0; i < sprites_str->GetCountPar(L","); ++i)
+                    {
+                        SWeaponsConsts::SSpriteSet spr_set;
+                        spr_set.sprites_name = sprites_str->GetStrPar(i, L",");
+                        spr_set.sprites_count = 1;
+
+                        weapon_data.sprite_set.push_back(spr_set);
+                    }
+                }
+            }
+            else if(*effect_type == L"Plasmagun")
+            {
+                weapon_data.primary_effect = WEAPON_EFFECT_PLASMAGUN;
+
+                const CWStr* sprites_str = &bp->ParGetNE(L"SpritesInCache");
+                if(!sprites_str->IsEmpty())
+                {
+                    for(int i = 0; i < sprites_str->GetCountPar(L","); ++i)
+                    {
+                        SWeaponsConsts::SSpriteSet spr_set;
+                        spr_set.sprites_name = sprites_str->GetStrPar(i, L",");
+                        spr_set.sprites_count = 1;
+
+                        weapon_data.sprite_set.push_back(spr_set);
+                    }
+                }
             }
             else if(*effect_type == L"Repairer")
             {
-                weapon_data.primary_effect = EFFECT_REPAIRER;
+                weapon_data.primary_effect = WEAPON_EFFECT_REPAIRER;
                 weapon_data.is_repairer = true;
+
+                const CWStr* sprites_str = &bp->ParGetNE(L"SpritesInCache");
+                if(!sprites_str->IsEmpty())
+                {
+                    for(int i = 0; i < sprites_str->GetCountPar(L","); ++i)
+                    {
+                        SWeaponsConsts::SSpriteSet spr_set;
+                        spr_set.sprites_name = sprites_str->GetStrPar(i, L",");
+                        spr_set.sprites_count = 1;
+
+                        weapon_data.sprite_set.push_back(spr_set);
+                    }
+                }
+            }
+            else if(*effect_type == L"Discharger")
+            {
+                weapon_data.primary_effect = WEAPON_EFFECT_DISCHARGER;
 
                 const CWStr* sprites_str = &bp->ParGetNE(L"SpritesInCache");
                 if(!sprites_str->IsEmpty())
@@ -762,24 +919,8 @@ void CMatrixConfig::ReadParams()
             }
             else if(*effect_type == L"Bomb")
             {
-                weapon_data.primary_effect = EFFECT_BOMB;
+                weapon_data.primary_effect = WEAPON_EFFECT_BOMB;
                 weapon_data.is_bomb = true;
-            }
-            //Пока что не разобранные все прочие первичные эффекты
-            else
-            {
-                const CWStr* sprites_str = &bp->ParGetNE(L"SpritesInCache");
-                if(!sprites_str->IsEmpty())
-                {
-                    for(int i = 0; i < sprites_str->GetCountPar(L","); ++i)
-                    {
-                        SWeaponsConsts::SSpriteSet spr_set;
-                        spr_set.sprites_name = sprites_str->GetStrPar(i, L",");
-                        spr_set.sprites_count = 1;
-
-                        weapon_data.sprite_set.push_back(spr_set);
-                    }
-                }
             }
         }
         else //Разбираем второстепенный эффект, накладываемый другими эффектами оружия
@@ -790,14 +931,14 @@ void CMatrixConfig::ReadParams()
             const CWStr* effect_type = &bp->ParGetNE(L"EffectType");
             if(!effect_type->IsEmpty())
             {
-                if(*effect_type == L"Ablaze") weapon_data.secondary_effect = SECONDARY_EFFECT_ABLAZE;
-                else if(*effect_type == L"ShortedOut") weapon_data.secondary_effect = SECONDARY_EFFECT_SHORTED_OUT;
+                if(*effect_type == L"Ablaze") weapon_data.secondary_effect = SECONDARY_WEAPON_EFFECT_ABLAZE;
+                else if(*effect_type == L"ShortedOut") weapon_data.secondary_effect = SECONDARY_WEAPON_EFFECT_SHORTED_OUT;
             }
             //else ERROR_S2(L"Effect type is undefined for block: ", weapon_data.type_name);
 
             weapon_data.effect_priority = max(bp->ParGetNE(L"EffectPriority").GetInt(), 0);
 
-            if(weapon_data.secondary_effect == SECONDARY_EFFECT_ABLAZE)
+            if(weapon_data.secondary_effect == SECONDARY_WEAPON_EFFECT_ABLAZE)
             {
                 CBlockPar* particle_flame = bp->BlockGet(L"ParticleFlame");
                 if(particle_flame)
@@ -818,7 +959,7 @@ void CMatrixConfig::ReadParams()
                         else weapon_data.far_color_rgb.blue = rgb_string->GetFloatPar(j, L",") / 255.0f;
                     }
                 }
-                //else ERROR_S2(L"Block ParticleFlame for SECONDARY_EFFECT_ABLAZE effect not found for: ", weapon_data.type_name);
+                //else ERROR_S2(L"Block ParticleFlame for SECONDARY_WEAPON_EFFECT_ABLAZE effect not found for: ", weapon_data.type_name);
 
                 CBlockPar* anim_flame = bp->BlockGet(L"AnimatedFlame");
                 if(anim_flame)
@@ -831,9 +972,9 @@ void CMatrixConfig::ReadParams()
                     else spr_set.sprites_count = 1;
                     weapon_data.sprite_set.push_back(spr_set);
                 }
-                //else ERROR_S2(L"Block AnimatedFlame for SECONDARY_EFFECT_ABLAZE effect not found for: ", weapon_data.type_name);
+                //else ERROR_S2(L"Block AnimatedFlame for SECONDARY_WEAPON_EFFECT_ABLAZE effect not found for: ", weapon_data.type_name);
             }
-            else if(weapon_data.secondary_effect == SECONDARY_EFFECT_SHORTED_OUT)
+            else if(weapon_data.secondary_effect == SECONDARY_WEAPON_EFFECT_SHORTED_OUT)
             {
                 CBlockPar* stun_anim = bp->BlockGet(L"StunAnimation");
                 if(stun_anim)
@@ -848,10 +989,10 @@ void CMatrixConfig::ReadParams()
                     weapon_data.sprite_set.push_back(spr_set);
 
                     par = &stun_anim->ParGetNE(L"SpritesColor");
-                    if(par->IsEmpty()) weapon_data.hex_BGRA_sprites_color = 0xFFFFFFFF;
-                    else weapon_data.hex_BGRA_sprites_color = RGBAStringToABGRColorHEX(par);
+                    if(par->IsEmpty()) weapon_data.hex_ABGR_sprites_color = 0xFFFFFFFF;
+                    else weapon_data.hex_ABGR_sprites_color = RGBAStringToABGRColorHEX(par);
                 }
-                //else ERROR_S2(L"Block StunAnimation for SECONDARY_EFFECT_SHORTED_OUT effect not found for: ", weapon_data.type_name);
+                //else ERROR_S2(L"Block StunAnimation for SECONDARY_WEAPON_EFFECT_SHORTED_OUT effect not found for: ", weapon_data.type_name);
             }
         }
 
@@ -922,12 +1063,12 @@ void CMatrixConfig::ReadParams()
                 effect.type = WeapName2Weap(block_name.Del(0, 6)); //Удаляем из строки начальный Effect
                 byte effect_type = m_WeaponsConsts[effect.type].secondary_effect;
 
-                if(effect_type == SECONDARY_EFFECT_ABLAZE)
+                if(effect_type == SECONDARY_WEAPON_EFFECT_ABLAZE)
                 {
                     effect.duration_per_hit = int(1000.0f * effect_block->ParGet(L"DurationPerHit").GetFloat());
                     effect.max_duration = int(1000.0f * effect_block->ParGet(L"MaxDuration").GetFloat());
                 }
-                else if(effect_type == SECONDARY_EFFECT_SHORTED_OUT)
+                else if(effect_type == SECONDARY_WEAPON_EFFECT_SHORTED_OUT)
                 {
                     effect.duration_per_hit = int(1000.0f * effect_block->ParGet(L"DurationPerHit").GetFloat());
                     effect.max_duration = int(1000.0f * effect_block->ParGet(L"MaxDuration").GetFloat());
@@ -1485,7 +1626,16 @@ void CMatrixConfig::ReadParams()
 
         m_BuildingsConsts[i].name = bp->ParGet(L"Name");
         m_BuildingsConsts[i].description = bp->ParGet(L"Description");
+
+        m_BuildingsConsts[i].explosion_weapon_type = WeapName2Weap(bp->ParGetNE(L"ExplosionEffect"));
     }
+
+    //Загружаем характеристики различных декоративных объектов
+    // (пока что только для одного Террона)
+    bp_tmp = g_MatrixData->BlockPathGet(CONFIG_PATH_MAP_OBJECTS);
+    CBlockPar* bp = bp_tmp->BlockGet(L"Terron");
+    //m_TerronConsts.structure = max(10.0f * bp->ParGet(L"Structure").GetFloat(), 10.0f);
+    m_TerronConsts.explosion_weapon_type = WeapName2Weap(bp->ParGetNE(L"ExplosionEffect"));
 
     // timings
     m_ReinforcementsTime = Float2Int(1000.0f * g_MatrixData->BlockPathGet(BLOCK_PATH_REINFORCEMENTS)->ParGet(L"ReinforcementsReadyTimer").GetFloat()); //Стандартное время до готовности вызова подкрепления в секундах
