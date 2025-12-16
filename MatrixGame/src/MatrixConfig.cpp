@@ -1638,7 +1638,7 @@ void CMatrixConfig::ReadParams()
     m_TerronConsts.explosion_weapon_type = WeapName2Weap(bp->ParGetNE(L"ExplosionEffect"));
 
     // timings
-    m_ReinforcementsTime = Float2Int(1000.0f * g_MatrixData->BlockPathGet(BLOCK_PATH_REINFORCEMENTS)->ParGet(L"ReinforcementsReadyTimer").GetFloat()); //Стандартное время до готовности вызова подкрепления в секундах
+    m_ReinforcementsTime = 1000.0f * g_MatrixData->BlockPathGet(BLOCK_PATH_REINFORCEMENTS)->ParGet(L"ReinforcementsReadyTimer").GetFloat(); //Стандартное время до готовности вызова подкрепления в секундах
 
     bp_tmp = g_MatrixData->BlockGet(PAR_SOURCE_TIMINGS);
 

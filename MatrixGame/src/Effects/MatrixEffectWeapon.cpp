@@ -220,7 +220,8 @@ void CMatrixEffectWeapon::FireWeapon()
                 else if(weapon_data->sprite_set[MACHINEGUN_MUZZLE_FLASH_SPRITES_NUM].sprites_count) //Здесь создаём и линкуем к дулу пулемёта эффект вспышки от выстрелов
                 {
                     float ang = float(2.0 * M_PI / 4096.0) * (g_MatrixMap->GetTime() & 4095);
-                    m_Machinegun = HNew(m_Heap) CMachinegun( m_Pos, m_Dir, ang,
+                    m_Machinegun = HNew(m_Heap)
+                        CMachinegun( m_Pos, m_Dir, ang,
                         weapon_data->sprites_lenght,   weapon_data->sprites_width,
                         weapon_data->fire_cone_lenght, weapon_data->fire_cone_radius,
                         weapon_data->hex_ABGR_sprites_color,
@@ -236,9 +237,9 @@ void CMatrixEffectWeapon::FireWeapon()
 
                 dword flags_add = FEHF_LASTHIT;
 
-                D3DXVECTOR3 hitpos;
+                D3DXVECTOR3 hit_pos;
                 D3DXVECTOR3 splash;
-                CMatrixMapStatic* s = g_MatrixMap->Trace(&hitpos, m_Pos, m_Pos + m_Dir * m_WeaponDist * m_WeaponCoefficient, TRACE_ALL, m_Skip);
+                CMatrixMapStatic* s = g_MatrixMap->Trace(&hit_pos, m_Pos, m_Pos + m_Dir * m_WeaponDist * m_WeaponCoefficient, TRACE_ALL, m_Skip);
 
                 if(s == TRACE_STOP_NONE)
                 {
@@ -248,7 +249,7 @@ void CMatrixEffectWeapon::FireWeapon()
                 //Попали в какую-то цель
                 if(IS_TRACE_STOP_OBJECT(s))
                 {
-                    bool dead = s->TakingDamage(m_WeaponNum, hitpos, m_Dir, GetSideStorage(), GetOwner());
+                    bool dead = s->TakingDamage(m_WeaponNum, hit_pos, m_Dir, GetSideStorage(), GetOwner());
                     SETFLAG(m_Flags, WEAPFLAGS_HITWAS);
                     
                     if(dead)
@@ -261,33 +262,33 @@ void CMatrixEffectWeapon::FireWeapon()
                 //Попали в землю
                 else if(s != TRACE_STOP_WATER && weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_count)
                 {
-                    g_MatrixMap->GetNormal(&splash, hitpos.x, hitpos.y);
-                    CMatrixEffect::CreateCone(nullptr, hitpos, splash, weapon_data->ground_hit.radius_1, weapon_data->ground_hit.height_1, FSRND((float)M_PI), 300.0f, weapon_data->ground_hit.hex_ABGR_sprites_color, true, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_num[0]].tex);
+                    g_MatrixMap->GetNormal(&splash, hit_pos.x, hit_pos.y);
+                    CMatrixEffect::CreateCone(nullptr, hit_pos, splash, weapon_data->ground_hit.radius_1, weapon_data->ground_hit.height_1, FSRND((float)M_PI), 300.0f, weapon_data->ground_hit.hex_ABGR_sprites_color, true, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_num[0]].tex);
                     if(weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_count > 2 && FRND(1.0f) < 0.5f)
                     {
-                        CMatrixEffect::CreateCone(nullptr, hitpos, splash, weapon_data->ground_hit.radius_2, weapon_data->ground_hit.height_2, FSRND((float)M_PI), 300.0f, weapon_data->ground_hit.hex_ABGR_sprites_color, true, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_num[2]].tex);
+                        CMatrixEffect::CreateCone(nullptr, hit_pos, splash, weapon_data->ground_hit.radius_2, weapon_data->ground_hit.height_2, FSRND((float)M_PI), 300.0f, weapon_data->ground_hit.hex_ABGR_sprites_color, true, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_num[2]].tex);
                     }
                     else
                     {
-                        CMatrixEffect::CreateCone(nullptr, hitpos, splash, weapon_data->ground_hit.radius_2, weapon_data->ground_hit.height_2, FSRND((float)M_PI), 300.0f, weapon_data->ground_hit.hex_ABGR_sprites_color, true, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_num[1]].tex);
+                        CMatrixEffect::CreateCone(nullptr, hit_pos, splash, weapon_data->ground_hit.radius_2, weapon_data->ground_hit.height_2, FSRND((float)M_PI), 300.0f, weapon_data->ground_hit.hex_ABGR_sprites_color, true, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_GROUND_HIT_SPRITES_NUM].sprites_num[1]].tex);
                     }
                 }
                 //Попали в воду
                 else if(weapon_data->sprite_set[MACHINEGUN_WATER_HIT_SPRITES_NUM].sprites_count)
                 {
                     splash = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
-                    CMatrixEffect::CreateConeSplash(hitpos, splash, weapon_data->water_hit.radius, weapon_data->water_hit.height, FSRND((float)M_PI), 1000.0f, weapon_data->water_hit.hex_ABGR_sprites_color, true, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_WATER_HIT_SPRITES_NUM].sprites_num[0]].tex);
+                    CMatrixEffect::CreateConeSplash(hit_pos, splash, weapon_data->water_hit.radius, weapon_data->water_hit.height, FSRND((float)M_PI), 1000.0f, weapon_data->water_hit.hex_ABGR_sprites_color, true, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_WATER_HIT_SPRITES_NUM].sprites_num[0]].tex);
                 }
 
                 //С некоторым шансом рисуем инверсионный след от пули (от дула к месту попадания)
                 if(weapon_data->sprite_set[MACHINEGUN_CONTRAIL_SPRITES_NUM].sprites_count && FRND(1.0f) < weapon_data->contrail_chance)
                 {
-                    CMatrixEffect::CreateSpritesLine(nullptr, m_Pos, hitpos, weapon_data->contrail_width, weapon_data->hex_ABGR_contrail_color, 0x00000000, weapon_data->contrail_duration, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_CONTRAIL_SPRITES_NUM].sprites_num[0]].tex);
+                    CMatrixEffect::CreateSpritesLine(nullptr, m_Pos, hit_pos, weapon_data->contrail_width, weapon_data->hex_ABGR_contrail_color, 0x00000000, weapon_data->contrail_duration, m_SpriteTextures[weapon_data->sprite_set[MACHINEGUN_CONTRAIL_SPRITES_NUM].sprites_num[0]].tex);
                 }
 
                 if(m_Handler)
                 {
-                    m_Handler(s, hitpos, m_User, FEHF_LASTHIT);
+                    m_Handler(s, hit_pos, m_User, FEHF_LASTHIT);
                 }
 
                 break;

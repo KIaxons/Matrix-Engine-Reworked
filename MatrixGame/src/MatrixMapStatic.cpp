@@ -281,29 +281,29 @@ void CMatrixMapStatic::UnjoinGroup()
     m_InCnt = 0;
 }
 
-void CMatrixMapStatic::ProceedLogic(int takts)
+void CMatrixMapStatic::ProceedLogic(int ms)
 {
 //__int64 tv[7];
 //int tc[7];
 //for(int i = 0; i < 7; ++i) { tv[i] = 0; tc[i] = 0; }
 
-    DTRACE();
-	CMatrixMapStatic * ms;
-	ms = m_FirstLogicTemp;
-	while(ms)
+	CMatrixMapStatic* map_static;
+    map_static = m_FirstLogicTemp;
+	while(map_static)
     {
-        g_MatrixMap->m_NextLogicObject = ms->m_NextLogicTemp;
-        if(ms != g_MatrixMap->GetPlayerSide()->GetUnitUnderManualControl())
+        g_MatrixMap->m_NextLogicObject = map_static->m_NextLogicTemp;
+        if(map_static != g_MatrixMap->GetPlayerSide()->GetUnitUnderManualControl())
         {
 //__int64 t1,t2;
-//EObjectType ot=ms->GetObjectType();
+//EObjectType ot=map_static->GetObjectType();
 //QueryPerformanceCounter((LARGE_INTEGER*)(&t1));
-            ms->StaticTact(takts);
+            map_static->StaticTact(ms);
 //QueryPerformanceCounter((LARGE_INTEGER *)(&t2));
 //tv[ot]+=t2-t1;
 //++tc[ot];
         }
-		ms=g_MatrixMap->m_NextLogicObject;
+
+        map_static = g_MatrixMap->m_NextLogicObject;
 	}
 //__int64 freq;
 //QueryPerformanceFrequency((LARGE_INTEGER *)(&freq));

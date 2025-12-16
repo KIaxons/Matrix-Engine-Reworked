@@ -445,7 +445,7 @@ protected:
     D3DXVECTOR3 m_ShadePosTo = { 0.0f, 0.0f, 0.0f };
     dword       m_ShadeInterfaceColor = 0;
         
-    int m_ReinforcementsTime = 0;
+    float m_ReinforcementsTime = 0.0f;
     int m_ReinforcementsPercent = 100;
 
     float m_StoreCurrentMusicVolume = 1.0f;
@@ -492,14 +492,14 @@ public:
     }
 
 #if defined _TRACE
-    void ResetReinforcementsTime() { m_ReinforcementsTime = 0; };
+    void ResetReinforcementsTime() { m_ReinforcementsTime = 0.0f; };
 #endif
-    int BeforeReinforcementsTime() const {return m_ReinforcementsTime;};
-    float BeforReinforcementsTimeT() const { return 1.0f - float(m_ReinforcementsTime) / (m_Difficulty.coef_time_before_reinforcements * float(g_Config.m_ReinforcementsTime * m_ReinforcementsPercent / 100)); };
-    void InitReinforcementsTime() { m_ReinforcementsTime = Float2Int(m_Difficulty.coef_time_before_reinforcements * float(g_Config.m_ReinforcementsTime) * float(m_ReinforcementsPercent) / 100.0f); };
+    float BeforeReinforcementsTime() const  { return m_ReinforcementsTime; }
+    float BeforeReinforcementsTimeT() const { return 1.0f - m_ReinforcementsTime / (m_Difficulty.coef_time_before_reinforcements * float(g_Config.m_ReinforcementsTime * m_ReinforcementsPercent / 100.0f)); };
+    void InitReinforcementsTime() { m_ReinforcementsTime = m_Difficulty.coef_time_before_reinforcements * g_Config.m_ReinforcementsTime * float(m_ReinforcementsPercent) / 100.0f; };
     bool ReinforcementsDisabled() const { return (m_ReinforcementsPercent == 0); }
     //int GetReinforcementsPrc() { return m_ReinforcementsPercent; }
-    void SetReinforcementsTime(int time) { m_ReinforcementsTime = time; }
+    void SetReinforcementsTime(float time) { m_ReinforcementsTime = time; }
 
     float GetZLand(double wx, double wy);
     float GetZ(float wx, float wy);

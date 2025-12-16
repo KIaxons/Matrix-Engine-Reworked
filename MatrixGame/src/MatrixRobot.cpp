@@ -391,6 +391,7 @@ void CMatrixRobotAI::LogicTact(int ms)
 
                 D3DXVECTOR3 temp = { m_Core->m_Matrix._41 - pos.x, m_Core->m_Matrix._42 - pos.y, m_Core->m_Matrix._43 - pos.z };
                 D3DXVec3Normalize(&dir, &temp);
+
             } while(!Pick(pos, dir, &t) && (--cnt > 0));
             
             if(cnt > 0)
@@ -2373,7 +2374,10 @@ bool CMatrixRobotAI::RotateRobotChassis(const D3DXVECTOR3& dest, byte rotate_cam
     if(angle1 <= rot_speed)
     {
         m_ChassisForward = dest_dir_norm;
-        if(rotate_cam_link == CONNECTED_CAM_ROTATION || rotate_cam_link == ROTATION_TO_CAM_POSITION) m_ChassisCamForward = dest_dir_norm;
+        if (rotate_cam_link == CONNECTED_CAM_ROTATION || rotate_cam_link == ROTATION_TO_CAM_POSITION)
+        {
+            m_ChassisCamForward = dest_dir_norm;
+        }
         else if(rotate_cam_link == SIMULTANEOUS_CAM_ROTATION)
         {
             if(rot_dir > 0) //Поворот налево

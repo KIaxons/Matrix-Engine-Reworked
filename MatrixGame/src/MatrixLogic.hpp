@@ -173,11 +173,11 @@ public:
 
     void CalcCannonPlace();
 
-    void Tact(int step);
-
     bool IsLogicVisible(CMatrixMapStatic* ofrom, CMatrixMapStatic* oto, float second_z = 0.0f);
 
     void DumpLogic();
+
+    void MainLogicTact(int step);
 };
 
 inline int CMatrixMapGroup::ObjectsCnt() const

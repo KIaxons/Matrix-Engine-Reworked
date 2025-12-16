@@ -455,7 +455,7 @@ int L3GRun()
                 smp = (smp + 1) & (SMOOTH_COUNT - 1);
 
                 g_PureGameTact = tt;
-                tt = smooths / int(SMOOTH_COUNT * g_GameSpeedFactor);
+                tt = smooths / SMOOTH_COUNT * g_GameSpeedFactor;
 
                 SRemindCore::Tact(tt);
 				g_FormCur->Tact(tt); //√лавный тактовый логический исполнитель игры

@@ -20,7 +20,7 @@ class CFormMatrixGame : public CForm
 private:
 	float m_LastWorldX = 0.0f;
 	float m_LastWorldY = 0.0f;
-	int m_Action = 0;
+	int   m_Action     = 0;
 
 	SKeyScan m_LastScans[MAX_SCANS];
 

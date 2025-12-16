@@ -190,7 +190,7 @@ void CFormMatrixGame::Tact(int step)
 {
     if(g_MatrixMap->CheckLostDevice()) return;
 
-	g_MatrixMap->Tact(step);
+	g_MatrixMap->MainLogicTact(step);
 
     CPoint mp = g_MatrixMap->m_Cursor.GetPos();
 
@@ -1010,7 +1010,7 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
                                 m_LastScans[MAX_SCANS - 1].scan = 0;
                                 if(!g_MatrixMap->ReinforcementsDisabled() && g_MatrixMap->BeforeReinforcementsTime() > 0)
                                 {
-                                    g_MatrixMap->SetReinforcementsTime(1);
+                                    g_MatrixMap->SetReinforcementsTime(0.25f); //Ставим на четверть секунды, чтобы успел отработать код оповещения игрока
                                     return;
                                 }
                             }
@@ -1391,15 +1391,22 @@ void CFormMatrixGame::Keyboard(bool down, int scan)
         //Увеличиваем скорость логической обработки игры (в том числе скорость движения роботов)
         if(GetAsyncKeyState(g_Config.m_KeyActions[KA_GAME_SPEED_UP]))
         {
-            if(g_GameSpeedFactor <= 0.1f) g_GameSpeedFactor = 0.25f;
-            else g_GameSpeedFactor = min(g_GameSpeedFactor + 0.25f, 2.0f);
+            if (g_GameSpeedFactor <= GAME_SPEED_FACTOR_LOWEST)
+            {
+                g_GameSpeedFactor = GAME_SPEED_FACTOR_CHANGE_STEP;
+            }
+            else
+            {
+                g_GameSpeedFactor = min(g_GameSpeedFactor + GAME_SPEED_FACTOR_CHANGE_STEP, GAME_SPEED_FACTOR_HIGHEST);
+            }
+
             return;
         }
 
         //Снижаем скорость логической обработки игры (в том числе скорость движения роботов)
         if(GetAsyncKeyState(g_Config.m_KeyActions[KA_GAME_SPEED_DOWN]))
         {
-            g_GameSpeedFactor = max(g_GameSpeedFactor - 0.25f, 0.1f);
+            g_GameSpeedFactor = max(g_GameSpeedFactor - GAME_SPEED_FACTOR_CHANGE_STEP, GAME_SPEED_FACTOR_LOWEST);
             return;
         }
 

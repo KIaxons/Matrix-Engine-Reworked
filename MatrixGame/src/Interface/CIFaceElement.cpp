@@ -165,7 +165,10 @@ void CIFaceElement::Render(byte alpha)
         memcpy(geom + 4, m_StateImages[GetState()].m_Geom, sizeof(SVert_V4_UV) * 4);
 
         float t = 0;
-        if(!g_MatrixMap->ReinforcementsDisabled())  t=g_MatrixMap->BeforReinforcementsTimeT();
+        if (!g_MatrixMap->ReinforcementsDisabled())
+        {
+            t = g_MatrixMap->BeforeReinforcementsTimeT();
+        }
         
         float hg = geom[0].p.y - geom[1].p.y;
         float ht = geom[0].tv - geom[1].tv;

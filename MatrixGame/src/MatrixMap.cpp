@@ -2292,7 +2292,7 @@ void CMatrixMap::Draw()
 void CMatrixMap::Tact(int step)
 {
     float fstep = float(step);
-    m_SkyAngle += m_SkyDeltaAngle* step;
+    m_SkyAngle += m_SkyDeltaAngle * step;
     int i;
 
     CMatrixMapStatic::SortEndGraphicTact(step);

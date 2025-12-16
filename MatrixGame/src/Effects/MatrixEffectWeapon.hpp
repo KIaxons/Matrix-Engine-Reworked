@@ -70,6 +70,7 @@ class CMachinegun : public CMatrixEffect
     CSpriteSequence   m_Sprite2;
     CSpriteSequence   m_Sprite3;
 
+    //Значения по умолчанию, задаются при вызове конструктора
     float m_SpritesLenght = 15.0f;
     float m_FireConeLenght = 5.0f;
     float m_FireConeRadius = 5.0f;

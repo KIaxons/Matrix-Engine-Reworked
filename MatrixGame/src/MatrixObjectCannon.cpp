@@ -1337,12 +1337,16 @@ bool CMatrixTurret::TakingDamage(
 
                 m_NextTimeAblaze = g_MatrixMap->GetTime(); //То есть в первый раз считаем логику получения урона от огня немедленно
             }
-            else if(effect_type == SECONDARY_WEAPON_EFFECT_SHORTED_OUT)
+            else if (effect_type == SECONDARY_WEAPON_EFFECT_SHORTED_OUT)
             {
-                for(int i = 0; i < m_TurretWeapon.size(); ++i) m_TurretWeapon[i].m_Weapon->FireEnd();
-                for(int i = 0; i < m_ModulesCount; ++i)
+                for (int i = 0; i < m_TurretWeapon.size(); ++i)
                 {
-                    if(m_Module[i].m_Type == TURRET_PART_GUN)
+                    m_TurretWeapon[i].m_Weapon->FireEnd();
+                }
+
+                for (int i = 0; i < m_ModulesCount; ++i)
+                {
+                    if (m_Module[i].m_Type == TURRET_PART_GUN)
                     {
                         m_Module[i].m_Graph->SetAnimLooped(0);
                         break;
@@ -1355,8 +1359,8 @@ bool CMatrixTurret::TakingDamage(
                 m_LastDelayDamageSide = attacker_side;
 
                 int ttl = GetShortedTTL();
-                float dur_per_hit = g_Config.m_WeaponsConsts[weap].extra_effects[i].duration_per_hit;
-                float max_dur = g_Config.m_WeaponsConsts[weap].extra_effects[i].max_duration * 3; //Турели станятся на большее время, т.к. в ваниле они не имели лимита продолжительности стана вовсе
+                float dur_per_hit = float(g_Config.m_WeaponsConsts[weap].extra_effects[i].duration_per_hit);
+                float max_dur = float(g_Config.m_WeaponsConsts[weap].extra_effects[i].max_duration * 3); //Турели станятся на большее время, т.к. в ваниле они не имели лимита продолжительности стана вовсе
                 ttl = (int)min(max(ttl + dur_per_hit, 0), max_dur);
                 if(ttl) SetShortedTTL(ttl);
 

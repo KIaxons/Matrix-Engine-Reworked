@@ -15,6 +15,10 @@
 #define SECRET_VALUE        1000000.0f
 #define LOGIC_TACT_DIVIDER  10 //В миллисекундах
 
+#define GAME_SPEED_FACTOR_CHANGE_STEP  0.25f
+#define GAME_SPEED_FACTOR_LOWEST       0.10f
+#define GAME_SPEED_FACTOR_HIGHEST      2.50f
+
 #define MACHINEGUN_MUZZLE_FLASH_SPRITES_NUM 0
 #define MACHINEGUN_GROUND_HIT_SPRITES_NUM   1
 #define MACHINEGUN_WATER_HIT_SPRITES_NUM    2
@@ -769,7 +773,7 @@ public:
     SStringPair* m_Cursors = nullptr;
     int          m_CursorsCnt = 0;
 
-    int          m_ReinforcementsTime = 0;
+    float        m_ReinforcementsTime = 0.0f;
 
     //int m_PlayerRobotsCnt = 0;
     //int m_CompRobotsCnt = 0;

@@ -2770,7 +2770,9 @@ static bool Egg2(const D3DXVECTOR2& center, CMatrixMapStatic* ms, dword user)
     return true;
 }
 
-void CMatrixMapLogic::Tact(int step)
+//В эту функцию приходит УЖЕ измененное множителем g_GameSpeedFactor время 
+//Если нужно постоянное, неизменённое время, используйте переменную g_PureGameTact
+void CMatrixMapLogic::MainLogicTact(int step)
 {
     if(g_RangersInterface)
     {
@@ -2874,9 +2876,9 @@ void CMatrixMapLogic::Tact(int step)
                     int mins = (time - hours * 3600) / 60;
                     int secs = (time - hours * 3600 - mins * 60);
 
-                    CWStr h(hours,g_CacheHeap);
-                    CWStr m(mins,g_CacheHeap);
-                    CWStr s(secs,g_CacheHeap);
+                    CWStr h(hours, g_CacheHeap);
+                    CWStr m(mins, g_CacheHeap);
+                    CWStr s(secs, g_CacheHeap);
                     if(h.GetLen() < 2) h.Insert(0, L"0");
                     if(m.GetLen() < 2) m.Insert(0, L"0");
                     if(s.GetLen() < 2) s.Insert(0, L"0");
@@ -2905,15 +2907,14 @@ void CMatrixMapLogic::Tact(int step)
         }
     }
 
-    CMultiSelection::AddTime(step);
-
+    CMultiSelection::AddTime(g_PureGameTact);
 
     if(m_Console.IsActive())
     {
         m_Console.Tact(step);
     }
 
-    if(IsPaused()) 
+    if(IsPaused())
     {
         if(m_GameSpeedHint)
         {
@@ -2987,14 +2988,17 @@ void CMatrixMapLogic::Tact(int step)
         }
     }
 
-    m_Time += step;
-    if(m_ReinforcementsTime > 0)
+    //Считаем, сколько прошло секунд с начала боя (изменение времени игроком не учитываем)
+    //m_Time += step;
+    m_Time += g_PureGameTact;
+
+    if(m_ReinforcementsTime > 0.0f)
     {
-        m_ReinforcementsTime -= step;
-        if(m_ReinforcementsTime < 0)
+        m_ReinforcementsTime -= float(step);
+        if(m_ReinforcementsTime <= 0.0f)
         {
             CSound::Play(S_REINFORCEMENTS_READY, SL_INTERFACE);
-            m_ReinforcementsTime = 0;
+            m_ReinforcementsTime = 0.0f;
         }
     }
 
@@ -3044,14 +3048,15 @@ void CMatrixMapLogic::Tact(int step)
         //GatherInfo(2);
     }
 
-    int portions = step / int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
-    
+    //int portions = step / int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
+    int portions = step / LOGIC_TACT_DIVIDER;
     for(int cnt = 0; cnt < portions; ++cnt)
     {
         CMatrixMapStatic::ProceedLogic(int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor));
     }
 
-    portions = step - portions * int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
+    //portions = step - portions * int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
+    portions = step - portions * LOGIC_TACT_DIVIDER;
     if(portions)
     {
         CMatrixMapStatic::ProceedLogic(portions);
@@ -3179,7 +3184,7 @@ oblom:
             if(!sides[m_Side[i].m_Id])
             {
                 //Ignore player dead if terron dead
-                if(FLAG(g_MatrixMap->m_Flags, MMFLAG_TERRON_DEAD) && (m_Side+i) == g_MatrixMap->GetPlayerSide()) continue;
+                if(FLAG(g_MatrixMap->m_Flags, MMFLAG_TERRON_DEAD) && (m_Side + i) == g_MatrixMap->GetPlayerSide()) continue;
                 //Ignore player dead if all specials broken
                 if(FLAG(g_MatrixMap->m_Flags, MMFLAG_SPECIAL_BROKEN) && (m_Side + i) == g_MatrixMap->GetPlayerSide()) continue;
 
@@ -3202,11 +3207,14 @@ oblom:
 
         // checking win/lose status
 
-        if(m_BeforeWinLoseDialogCount > 1) --m_BeforeWinLoseDialogCount; 
-        else if(m_BeforeWinLoseDialogCount == 1)
+        if (m_BeforeWinLoseDialogCount > 1)
+        {
+            --m_BeforeWinLoseDialogCount;
+        }
+        else if (m_BeforeWinLoseDialogCount == 1)
         {
             //Если был активен режим автобоя, то не побеждает никто
-            if(FLAG(g_MatrixMap->m_Flags, MMFLAG_FULLAUTO))
+            if (FLAG(g_MatrixMap->m_Flags, MMFLAG_FULLAUTO))
             {
                 g_ExitState = ES_EXIT_TO_MAIN_MENU;
                 SETFLAG(g_Flags, GFLAG_EXITLOOP);
