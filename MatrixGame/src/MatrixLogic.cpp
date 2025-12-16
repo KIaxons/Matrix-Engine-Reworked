@@ -3048,15 +3048,15 @@ void CMatrixMapLogic::MainLogicTact(int step)
         //GatherInfo(2);
     }
 
-    //int portions = step / int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
-    int portions = step / LOGIC_TACT_DIVIDER;
+    int portions = step / int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
+    //int portions = step / LOGIC_TACT_DIVIDER;
     for(int cnt = 0; cnt < portions; ++cnt)
     {
         CMatrixMapStatic::ProceedLogic(int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor));
     }
 
-    //portions = step - portions * int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
-    portions = step - portions * LOGIC_TACT_DIVIDER;
+    portions = step - portions * int(LOGIC_TACT_DIVIDER * g_GameSpeedFactor);
+    //portions = step - portions * LOGIC_TACT_DIVIDER;
     if(portions)
     {
         CMatrixMapStatic::ProceedLogic(portions);
